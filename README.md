@@ -1,4 +1,4 @@
 hydrology
 =========
 
-My hydrology repositry
+My hydrology repository
