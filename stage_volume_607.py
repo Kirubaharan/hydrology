@@ -31,15 +31,12 @@ def calcvolume(profile, order, dy):
         calc_vol = water_area * dy
         results.append(calc_vol)
     output[('Volume_%s' % order)] = results
-# print(df.ix[row])
-# index = df['']
 
-
+check_dam_no = 607
 check_dam_height = 2
 no_of_stage_interval = check_dam_height/.05
 
 dz = list((spread(0.00, check_dam_height, int(no_of_stage_interval), mode=3)))
-# print dz
 
 input_file = '/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/created_profile_607.csv'
 df = pd.read_csv(input_file, header=0)
@@ -52,12 +49,24 @@ output = pd.DataFrame(data, index=index, columns=columns)
 
 for l1, l2 in pairwise(df.ix[row]):
     if l2 > 0:
-        print("Processing for %s" % l1)
-        for idx, row in df.iteritems():
-            if idx != "Unnamed":
-                profile_name = "df." +idx
-                print profile_name
-                print row
-                calcvolume(profile=profile_name,order=l1,dy=int(l2-l1))
+        calcvolume(profile=df["Y_%s" % int(l1)], order=l1, dy=int(l2-l1))
 
-print output
+output_series = output.filter(regex="Volume_")
+output["total_vol"] = output_series.sum(axis=1)
+print output.head(5)
+output.to_csv('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/stage_vol_607.csv', sep=",")
+plt.plot(output['stage_m'], output['total_vol'], label="Stage - Volume")
+plt.legend(loc='upper left')
+# plt.xlabel('Stage (m)')
+# plt.ylabel('Total Volume (cu.m')
+# plt.title('Stage - volume relationship curve for Check Dam - 634')
+##add axis labels
+rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica']})
+rc('text', usetex=True)
+plt.rc('text', usetex=True)
+plt.rc('font', family='serif')
+plt.xlabel(r'\textbf{Stage} (m)')
+plt.ylabel(r'\textbf{Volume} ($m^3$)')
+plt.title(r"Stage - Volume Relationship for Check Dam - %s" % check_dam_no, fontsize=16)
+plt.show()
+plt.savefig('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/function/stage_vol_634.png')
