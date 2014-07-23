@@ -7,10 +7,11 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import axes3d, Axes3D
 from matplotlib import rc
 from mayavi import mlab
-from numpy import linspace, meshgrid
+# from numpy import linspace, meshgrid
 from scipy.interpolate import griddata
 import numpy as np
-import matplotlib.mlab as ml
+from matplotlib import cm
+# import matplotlib.mlab as ml
 
 base_file = '/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/base_profile_591.csv'
 df_base = pd.read_csv(base_file, header=-1)
@@ -88,43 +89,46 @@ X = data_1_df.x
 Y = data_1_df.y
 Z = data_1_df.z
 #
-fig = plt.figure()
-ax = fig.add_subplot(1,1,1, projection = '3d')
-ax.plot_wireframe(X, Y, Z, rstride=1, cstride=1)
+# fig = plt.figure()
+# ax = fig.add_subplot(1,1,1, projection = '3d')
+# ax.plot_wireframe(X, Y, Z, rstride=1, cstride=1)
 # ax.plot_surface(X,Y,Z, rstride=4, cstride=4, linewidth=2)
+# rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica']})
+# rc('text', usetex=True)
+# plt.rc('text', usetex=True)
+# plt.rc('font', family='serif')
+# plt.xlabel(r'\textbf{X} (m)')
+# plt.ylabel(r'\textbf{Y} (m)')
+# plt.title(r"Profile for 591", fontsize=16)
+# plt.show()
+
+fig = plt.figure(figsize=plt.figaspect(0.5))
+# ax = fig.add_subplot(1, 2, 1, projection='3d')
+xi = np.linspace(X.min(), X.max(), 100)
+yi = np.linspace(Y.min(), Y.max(), 100)
+
+zi = griddata((X,Y), Z, (xi[None, :], yi[:, None]), method='cubic')
+
+# CS = plt.contour(xi,yi,zi,30, linewidths=0.5, color='k')
+ax = fig.add_subplot(1,1,1, projection='3d')
+xig,yig = np.meshgrid(xi,yi)
+surf = ax.plot_surface(xig,yig,zi,rstride=5,cstride=3,linewidth=0,cmap=cm.coolwarm, antialiased=False)
+fig.colorbar(surf,shrink=0.5, aspect=5)
 rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica']})
 rc('text', usetex=True)
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
 plt.xlabel(r'\textbf{X} (m)')
 plt.ylabel(r'\textbf{Y} (m)')
-plt.title(r"Profile for 607", fontsize=16)
-# plt.show()
+plt.title(r"Profile for 591", fontsize=16)
 
-xmin, xmax, ymin, ymax =[min(X), max(X), min(Y), max(Y)]
-nx = (int(xmax-xmin+1))
-ny = (int(ymax-ymin+1))
-print nx, ny
+plt.show()
 
-xi = linspace(xmin,xmax,nx)
-yi = linspace(ymin,ymax,ny)
-xi,yi = meshgrid(xi,yi)
-ml.griddata(X,Y,Z,xi,yi,interp='nn')
 
-# mlab.points3d(X1, Y1, Z1, Z1)
+
 
 # points = np.random.rand(1000,2)
 # print points
-
-
-
-
-
-
-
-
-
-#
 # # pts = mlab.points3d(X, Y, Z)
 #
 # pts = mlab.points3d(X, Y, Z, Z)
@@ -135,6 +139,6 @@ ml.griddata(X,Y,Z,xi,yi,interp='nn')
 # #
 # surf = mlab.pipeline.surface(mesh)
 # mlab.contour3d(pts)
-mlab.show()
+# mlab.show()
 
 
