@@ -1,12 +1,12 @@
 __author__ = 'kiruba'
-from pairwise import pairwise
-from checkdam import calcvolume
+# from pairwise import pairwise
+# from checkdam import calcvolume
 import pandas as pd
-import itertools
+# import itertools
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import axes3d, Axes3D
 from matplotlib import rc
-from mayavi import mlab
+# from mayavi import mlab
 # from numpy import linspace, meshgrid
 from scipy.interpolate import griddata
 import numpy as np
@@ -33,11 +33,11 @@ z2 = .21   # elevation value at 9 m
 diff = z2 - z1
 profile_9 = template_0 + diff
 df_base_trans[17] = profile_9
-df_base_trans.ix[0,17] = 9
+df_base_trans.ix[0, 17] = 9
 
 template_10 = df_base_trans.ix[1:, 2]
 z10 = df_base_trans.ix[29, 2]
-z11  = .11
+z11 = .11
 diff = z11 - z10
 profile_11 = template_10 + diff
 df_base_trans[18] = profile_11
@@ -77,8 +77,6 @@ for y, row in df.iteritems():
         data_1.append((x, y, z))
         # print 'x = %s and z = %s' % (x,z)
 
-
-
 data_1_df = pd.DataFrame(data_1, columns=['x', 'y', 'z'])
 # df_base_trans.to_csv('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/base_trans.csv')
 data_1_df.to_csv('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/cloud.csv')
@@ -103,27 +101,24 @@ Z = data_1_df.z
 # plt.show()
 
 fig = plt.figure(figsize=plt.figaspect(0.5))
-# ax = fig.add_subplot(1, 2, 1, projection='3d')
+ax = fig.add_subplot(1, 2, 1, projection='3d')
 xi = np.linspace(X.min(), X.max(), 100)
 yi = np.linspace(Y.min(), Y.max(), 100)
 print len(xi)
 print len(yi)
 print len(Z)
-zi = griddata((X,Y), Z, (xi[None, :], yi[:, None]), method='linear')
+zi = griddata((X, Y), Z, (xi[None, :], yi[:, None]), method='linear')
 
-# inter = pd.DataFrame(zi, columns=list(range(0,100,1)))
-# inter.to_csv('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/inter.csv')
 
-# CS = plt.contour(xi,yi,zi,30, linewidths=0.5, color='k')
-ax = fig.add_subplot(1,1,1, projection='3d')
-xig, yig = np.meshgrid(xi,yi)
-surf = ax.plot_surface(xig,yig,zi,rstride=5,cstride=3,linewidth=0,cmap=cm.coolwarm, antialiased=False)
+CS = plt.contour(xi, yi, zi, 30, linewidths=0.5, color='k')
+ax = fig.add_subplot(1, 2, 2, projection='3d')
+xig, yig = np.meshgrid(xi, yi)
+surf = ax.plot_surface(xig, yig, zi, rstride=5, cstride=3, linewidth=0, cmap=cm.coolwarm, antialiased=False)
 inter_1 = []
-inter_1.append((xi,yi,zi))
+inter_1.append((xi, yi, zi))
 inter = pd.DataFrame(inter_1, columns=['x', 'y', 'z'])
 inter.to_csv('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/inter.csv')
-
-fig.colorbar(surf,shrink=0.5, aspect=5)
+fig.colorbar(surf, shrink=0.5, aspect=5)
 rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica']})
 rc('text', usetex=True)
 plt.rc('text', usetex=True)
@@ -133,24 +128,4 @@ plt.ylabel(r'\textbf{Y} (m)')
 plt.title(r"Profile for 591", fontsize=16)
 plt.gca().invert_xaxis()  # reverses x axis
 plt.savefig('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/linear_interpolation')
-
 plt.show()
-
-
-
-
-# points = np.random.rand(1000,2)
-# print points
-# # pts = mlab.points3d(X, Y, Z)
-#
-# pts = mlab.points3d(X, Y, Z, Z)
-# #
-# mesh = mlab.pipeline.delaunay2d(pts)
-# #
-# pts.remove()
-# #
-# surf = mlab.pipeline.surface(mesh)
-# mlab.contour3d(pts)
-# mlab.show()
-
-
