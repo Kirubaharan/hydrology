@@ -83,7 +83,7 @@ data_1_df = pd.DataFrame(data_1, columns=['x', 'y', 'z'])
 # df_base_trans.to_csv('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/base_trans.csv')
 data_1_df.to_csv('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/cloud.csv')
 
-# print data_1_df
+# print data_1_df.shape
 
 X = data_1_df.x
 Y = data_1_df.y
@@ -106,13 +106,23 @@ fig = plt.figure(figsize=plt.figaspect(0.5))
 # ax = fig.add_subplot(1, 2, 1, projection='3d')
 xi = np.linspace(X.min(), X.max(), 100)
 yi = np.linspace(Y.min(), Y.max(), 100)
+print len(xi)
+print len(yi)
+print len(Z)
+zi = griddata((X,Y), Z, (xi[None, :], yi[:, None]), method='linear')
 
-zi = griddata((X,Y), Z, (xi[None, :], yi[:, None]), method='cubic')
+# inter = pd.DataFrame(zi, columns=list(range(0,100,1)))
+# inter.to_csv('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/inter.csv')
 
 # CS = plt.contour(xi,yi,zi,30, linewidths=0.5, color='k')
 ax = fig.add_subplot(1,1,1, projection='3d')
-xig,yig = np.meshgrid(xi,yi)
+xig, yig = np.meshgrid(xi,yi)
 surf = ax.plot_surface(xig,yig,zi,rstride=5,cstride=3,linewidth=0,cmap=cm.coolwarm, antialiased=False)
+inter_1 = []
+inter_1.append((xi,yi,zi))
+inter = pd.DataFrame(inter_1, columns=['x', 'y', 'z'])
+inter.to_csv('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/inter.csv')
+
 fig.colorbar(surf,shrink=0.5, aspect=5)
 rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica']})
 rc('text', usetex=True)
@@ -121,6 +131,8 @@ plt.rc('font', family='serif')
 plt.xlabel(r'\textbf{X} (m)')
 plt.ylabel(r'\textbf{Y} (m)')
 plt.title(r"Profile for 591", fontsize=16)
+plt.gca().invert_xaxis()  # reverses x axis
+plt.savefig('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/linear_interpolation')
 
 plt.show()
 
