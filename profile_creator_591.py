@@ -6,12 +6,15 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import axes3d, Axes3D
 from matplotlib import rc
-# from mayavi import mlab
-# from numpy import linspace, meshgrid
+from matplotlib.collections import PolyCollection
+from numpy import linspace, meshgrid
 from scipy.interpolate import griddata
 import numpy as np
 from matplotlib import cm
+from matplotlib import _cntr as cntr
 # import matplotlib.mlab as ml
+import cv2
+from shapely.geometry import polygon as sp
 
 base_file = '/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/base_profile_591.csv'
 df_base = pd.read_csv(base_file, header=-1)
@@ -21,6 +24,8 @@ df_slope = pd.read_csv(slope_file, header=0)
 df_base_trans = df_base.T
 # print(df_base_trans)
 # print df_slope
+# check dam height = 1.9 m
+#width - 8.8 m
 # # df_base 17(0-16) rows and 47(0-46) columns
 # df_base_trans  has 47 (0-46) rows and 17(0-16) columns
 
@@ -104,13 +109,16 @@ fig = plt.figure(figsize=plt.figaspect(0.5))
 ax = fig.add_subplot(1, 2, 1, projection='3d')
 xi = np.linspace(X.min(), X.max(), 100)
 yi = np.linspace(Y.min(), Y.max(), 100)
-print len(xi)
-print len(yi)
-print len(Z)
+# print len(xi)
+# print len(yi)
+# print len(Z)
 zi = griddata((X, Y), Z, (xi[None, :], yi[:, None]), method='linear')
 
 
-CS = plt.contour(xi, yi, zi, 30, linewidths=0.5, color='k')
+CS = plt.contour(xi, yi, zi, 36, linewidths=0.5, color='k')
+# plt.setp(zc, linewidth=4)
+plt.gca().invert_xaxis()
+fig.colorbar(CS, shrink=0.5, aspect=5)
 ax = fig.add_subplot(1, 2, 2, projection='3d')
 xig, yig = np.meshgrid(xi, yi)
 surf = ax.plot_surface(xig, yig, zi, rstride=5, cstride=3, linewidth=0, cmap=cm.coolwarm, antialiased=False)
@@ -129,3 +137,29 @@ plt.title(r"Profile for 591", fontsize=16)
 plt.gca().invert_xaxis()  # reverses x axis
 plt.savefig('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/linear_interpolation')
 plt.show()
+
+# ## trace contours
+# z_list = CS.levels
+contour_area = []
+# print len(CS.collections)
+# for i in range(len(CS.levels))
+for i in range(len(CS.collections)):
+    p = CS.collections[i].get_paths()[0]
+    v = p.vertices
+    x = v[:, 0]
+    y = v[:, 1]
+    zc = CS.levels[i]
+    if zc < 1.9:
+        if len(x) > 2:
+            poly = sp.Polygon([(i[0], i[1]) for i in zip(x,y)])
+            contour_area.append((zc, poly.area))
+
+cont_area_df = pd.DataFrame(contour_area, columns=['Z', 'Area'])
+plt.plot( cont_area_df['Area'], cont_area_df['Z'])
+plt.rc('text', usetex=True)
+plt.rc('font', family='serif')
+plt.xlabel(r'\textbf{Area} ($m^2$)')
+plt.ylabel(r'\textbf{Stage} (m)')
+plt.savefig('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/cont_area')
+plt.show()
+cont_area_df.to_csv('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/cont_area.csv')
