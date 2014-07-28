@@ -28,9 +28,9 @@ df_base_trans = df_base.T
 #width - 8.8 m
 # # df_base 17(0-16) rows and 47(0-46) columns
 # df_base_trans  has 47 (0-46) rows and 17(0-16) columns
-
+############################################ In between profiles are filled
 # print df_base_trans.ix[1:, 1]   # df.ix[row,column]
-template_0 = df_base_trans.ix[1:, 1]
+template_0 = df_base_trans.ix[1:, 1]  # template for profile
 # print template_0
 # print df_base_trans.ix[0:, 0:1]
 z1 = df_base_trans.ix[29, 1]
@@ -64,8 +64,8 @@ profile_38 = template_30 + diff
 df_base_trans[20] = profile_38
 df_base_trans.ix[0, 20] = 38
 # print df_base_trans
-
-x1 = df_base_trans.ix[1:, 0]
+################################################
+x1 = df_base_trans.ix[1:, 0]   # separate out x, y, z values
 y1 = df_base_trans.ix[0, 1:]
 z1 = df_base_trans.ix[1:, 1:]
 
@@ -73,7 +73,7 @@ z_array = df_base_trans.ix[1:, 1:].values
 columns = list(df_base_trans.ix[0, 1:].values)
 index = df_base_trans.ix[1:, 0].values
 df = pd.DataFrame(z_array, columns=columns).set_index(index)
-
+#### create x, y, z array for plotting and contour
 # print df
 data_1 = []
 for y, row in df.iteritems():
@@ -105,6 +105,7 @@ Z = data_1_df.z
 # plt.title(r"Profile for 591", fontsize=16)
 # plt.show()
 
+## contour and 3d surface plotting
 fig = plt.figure(figsize=plt.figaspect(0.5))
 ax = fig.add_subplot(1, 2, 1, projection='3d')
 xi = np.linspace(X.min(), X.max(), 100)
@@ -112,20 +113,19 @@ yi = np.linspace(Y.min(), Y.max(), 100)
 # print len(xi)
 # print len(yi)
 # print len(Z)
-zi = griddata((X, Y), Z, (xi[None, :], yi[:, None]), method='linear')
+zi = griddata((X, Y), Z, (xi[None, :], yi[:, None]), method='linear')    # create a uniform spaced grid
 
 
-CS = plt.contour(xi, yi, zi, 36, linewidths=0.5, color='k')
-# plt.setp(zc, linewidth=4)
-plt.gca().invert_xaxis()
-fig.colorbar(CS, shrink=0.5, aspect=5)
+CS = plt.contour(xi, yi, zi, 36, linewidths=0.5, color='k')       # contour with .1 m interval
+plt.gca().invert_xaxis()       # invert x axis
+fig.colorbar(CS, shrink=0.5, aspect=5)  # legend
 ax = fig.add_subplot(1, 2, 2, projection='3d')
 xig, yig = np.meshgrid(xi, yi)
-surf = ax.plot_surface(xig, yig, zi, rstride=5, cstride=3, linewidth=0, cmap=cm.coolwarm, antialiased=False)
+surf = ax.plot_surface(xig, yig, zi, rstride=5, cstride=3, linewidth=0, cmap=cm.coolwarm, antialiased=False)   # 3d plot
 inter_1 = []
 inter_1.append((xi, yi, zi))
 inter = pd.DataFrame(inter_1, columns=['x', 'y', 'z'])
-inter.to_csv('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/inter.csv')
+inter.to_csv('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/inter.csv')  # interpolation data output
 fig.colorbar(surf, shrink=0.5, aspect=5)
 rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica']})
 rc('text', usetex=True)
@@ -142,7 +142,7 @@ plt.show()
 # z_list = CS.levels
 contour_area = []
 # print len(CS.collections)
-# for i in range(len(CS.levels))
+# CS.collections gives vertices of plotted contours, CS.levels gives the value of Z
 for i in range(len(CS.collections)):
     p = CS.collections[i].get_paths()[0]
     v = p.vertices
@@ -151,7 +151,7 @@ for i in range(len(CS.collections)):
     zc = CS.levels[i]
     if zc < 1.9:
         if len(x) > 2:
-            poly = sp.Polygon([(i[0], i[1]) for i in zip(x,y)])
+            poly = sp.Polygon([(i[0], i[1]) for i in zip(x, y)])
             contour_area.append((zc, poly.area))
 
 cont_area_df = pd.DataFrame(contour_area, columns=['Z', 'Area'])
