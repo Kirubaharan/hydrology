@@ -18,6 +18,6 @@ This file does following functions:
  2. Creates x,y,z grid from profile.
  3. Creates interpolation of uniform grid.
  4. Creates a contour and 3D surface plot from the interpolated data.
- 5. Calculates the contour area for each elevation level.
+ 5. Calculates the contour area for given elevation levels.
  6. Plot of surface area vs stage.
 
