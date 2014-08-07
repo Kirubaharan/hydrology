@@ -1,20 +1,12 @@
 __author__ = 'kiruba'
-# from pairwise import pairwise
-# from checkdam import calcvolume
 import pandas as pd
-# import itertools
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import axes3d, Axes3D
 from matplotlib import rc
-from matplotlib.collections import PolyCollection
-from numpy import linspace, meshgrid
 from scipy.interpolate import griddata
 import numpy as np
 from matplotlib import cm
-from matplotlib import _cntr as cntr
-# import matplotlib.mlab as ml
-import cv2
-from shapely.geometry import polygon as sp
+from matplotlib.path import *
 
 base_file = '/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/base_profile_591.csv'
 df_base = pd.read_csv(base_file, header=-1)
@@ -106,55 +98,150 @@ Z = data_1_df.z
 # plt.show()
 
 ## contour and 3d surface plotting
-fig = plt.figure(figsize=plt.figaspect(0.5))
-ax = fig.add_subplot(1, 2, 1, projection='3d')
+# fig = plt.figure(figsize=plt.figaspect(0.5))
+# ax = fig.add_subplot(1, 2, 1, projection='3d')
 xi = np.linspace(X.min(), X.max(), 100)
 yi = np.linspace(Y.min(), Y.max(), 100)
 # print len(xi)
 # print len(yi)
 # print len(Z)
 zi = griddata((X, Y), Z, (xi[None, :], yi[:, None]), method='linear')    # create a uniform spaced grid
-
-
-CS = plt.contour(xi, yi, zi, 36, linewidths=0.5, color='k')       # contour with .1 m interval
-plt.gca().invert_xaxis()       # invert x axis
-fig.colorbar(CS, shrink=0.5, aspect=5)  # legend
-ax = fig.add_subplot(1, 2, 2, projection='3d')
-xig, yig = np.meshgrid(xi, yi)
-surf = ax.plot_surface(xig, yig, zi, rstride=5, cstride=3, linewidth=0, cmap=cm.coolwarm, antialiased=False)   # 3d plot
-inter_1 = []
-inter_1.append((xi, yi, zi))
-inter = pd.DataFrame(inter_1, columns=['x', 'y', 'z'])
-inter.to_csv('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/inter.csv')  # interpolation data output
-fig.colorbar(surf, shrink=0.5, aspect=5)
+# print zi.min()
+# print zi.max()
+# CS_1 = plt.contourf(xi, yi, zi, 36, alpha =.75, cmap= 'jet')
+# CS = plt.contour(xi, yi, zi, 36, linewidths=0.5, color='black')       # contour with .1 m interval
+# plt.rc('text', usetex=True)
+# plt.rc('font', family='serif')
+# plt.xlabel(r'\textbf{X} (m)')
+# plt.ylabel(r'\textbf{Y} (m)')
+# zc = CS.collections[0]
+# plt.setp(zc, linewidth=4)
+# plt.gca().invert_xaxis()       # invert x axis
+# fig.colorbar(CS, shrink=0.5, aspect=5)  # legend
+# ax = fig.add_subplot(1, 2, 2, projection='3d')
+# xig, yig = np.meshgrid(xi, yi)
+# surf = ax.plot_surface(xig, yig, zi, rstride=5, cstride=3, linewidth=0, cmap=cm.coolwarm, antialiased=False)   # 3d plot
+# inter_1 = []
+# inter_1.append((xi, yi, zi))
+# inter = pd.DataFrame(inter_1, columns=['x', 'y', 'z'])
+# inter.to_csv('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/inter.csv')  # interpolation data output
+# fig.colorbar(surf, shrink=0.5, aspect=5)
 rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica']})
 rc('text', usetex=True)
-plt.rc('text', usetex=True)
-plt.rc('font', family='serif')
-plt.xlabel(r'\textbf{X} (m)')
-plt.ylabel(r'\textbf{Y} (m)')
-plt.title(r"Profile for 591", fontsize=16)
-plt.gca().invert_xaxis()  # reverses x axis
-plt.savefig('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/linear_interpolation')
-plt.show()
+# plt.rc('text', usetex=True)
+# plt.rc('font', family='serif')
+# plt.xlabel(r'\textbf{X} (m)')
+# plt.ylabel(r'\textbf{Y} (m)')
+# plt.title(r"Profile for 591", fontsize=16)
+# plt.gca().invert_xaxis()  # reverses x axis
+# # ax = fig
+# plt.savefig('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/linear_interpolation')
+# plt.show()
 
 # ## trace contours
-# z_list = CS.levels
-contour_area = []
-# print len(CS.collections)
-# CS.collections gives vertices of plotted contours, CS.levels gives the value of Z
-for i in range(len(CS.collections)):
-    p = CS.collections[i].get_paths()[0]
-    v = p.vertices
-    x = v[:, 0]
-    y = v[:, 1]
-    zc = CS.levels[i]
-    if zc < 1.9:
-        if len(x) > 2:
-            poly = sp.Polygon([(i[0], i[1]) for i in zip(x, y)])
-            contour_area.append((zc, poly.area))
+# Refer: Nikolai Shokhirev http://www.numericalexpert.com/blog/area_calculation/
 
-cont_area_df = pd.DataFrame(contour_area, columns=['Z', 'Area'])
+levels = [0, 0.4, 0.8, 1.2, 1.4, 1.6, 1.9, 2.4]  #, 3.93]
+plt.figure(figsize=(11.69, 8.27))
+CS = plt.contourf(xi, yi, zi, len(levels),alpha=.75, cmap=cm.hot, levels=levels)
+C = plt.contour(xi, yi, zi, len(levels), colors='black', linewidth=.5, levels=levels)
+plt.clabel(C, inline=1, fontsize=10)
+plt.colorbar(CS, shrink=0.5, aspect=5)
+plt.grid()
+plt.savefig('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/cont_2d')
+plt.show()
+# for i in range(len(CS.collections)):
+#     print CS.levels[i]
+#
+# for i in range(len(C.collections)):
+#     print(C.levels[i])
+
+
+def contour_area(mpl_obj):
+    """
+    Returns a array of contour levels and
+    corresponding cumulative area of contours
+    :param mpl_obj: Matplotlib contour object
+    :return: [(level1, area1), (level1, area1+area2)]
+    """
+    #Refer: Nikolai Shokhirev http://www.numericalexpert.com/blog/area_calculation/
+    n_c = len(mpl_obj.collections)  # n_c = no of contours
+    print 'No. of contours = %s' % n_c
+    area = 0
+    cont_area_array = []
+    for contour in range(n_c):
+        # area = 0
+        n_p = len(mpl_obj.collections[contour].get_paths())
+        zc = mpl_obj.levels[contour]
+        for path in range(n_p):
+            p = mpl_obj.collections[contour].get_paths()[path]
+            v = p.vertices
+            l = len(v)
+            s = 0
+            for i in range(l):
+                j = (i+1) % l
+                s += (v[j, 0] - v[i, 0]) * (v[j, 1] + v[i, 1])
+                poly_area = abs(-0.5*s)
+            area += poly_area
+        cont_area_array.append((zc, area))
+    return cont_area_array
+
+
+# contour_area(C)
+contour_a = contour_area(CS)
+
+# zero contour has two paths 0, 1
+# p_0_0 = CS.collections[0].get_paths()[0]    # CS.collections[index of contour].get_paths()[index of path]
+# p_0_1 = CS.collections[0].get_paths()[1]
+# v_0_0 = p_0_0.vertices
+# v_0_1 = p_0_1.vertices
+# area_0_0 = abs(poly_area(v_0_0))
+# area_0_1 = abs(poly_area(v_0_1))
+# area_0 = area_0_0 + area_0_1
+# z_0 = CS.levels[0]
+# print z_0, area_0
+
+# 0.4 contour has three paths 0,1,2
+# p_1_0 = CS.collections[1].get_paths()[0]
+# p_1_1 = CS.collections[1].get_paths()[1]
+# p_1_2 = CS.collections[1].get_paths()[2]
+# v_1_0 = p_1_0.vertices
+# v_1_1 = p_1_1.vertices
+# v_1_2 = p_1_2.vertices
+# area_1_0 = poly_area(v_1_0)
+# area_1_1 = poly_area(v_1_1)
+# area_1_2 = poly_area(v_1_2)
+# area_1 = area_1_0 + area_1_1 + area_1_2
+# z_1 = CS.levels[1]
+# print z_1, area_1
+
+# 0.8 contour has three paths 0,1,2
+# p_2_0 = CS.collections[2].get_paths()[0]
+# p_2_1 = CS.collections[2].get_paths()[1]
+# p_2_2 = CS.collections[2].get_paths()[2]
+# v_2_0 = p_2_0.vertices
+# v_2_1 = p_2_1.vertices
+# v_2_2 = p_2_2.vertices
+# area_2_0 = poly_area(v_2_0)
+# area_2_1 = poly_area(v_2_1)
+# area_2_2 = poly_area(v_2_2)
+# area_2 = area_2_0 + area_2_1 + area_2_2
+# z_2 = CS.levels[2]
+# print z_2, area_2
+
+# 0.8 contour has two paths 0,1
+# p_3_0 = CS.collections[3].get_paths()[0]
+# p_3_1 = CS.collections[3].get_paths()[1]
+# v_3_0 = p_3_0.vertices
+# v_3_1 = p_3_1.vertices
+# area_3_0 = abs(poly_area(v_3_0))
+# area_3_1 = abs(poly_area(v_3_1))
+# area_3 = area_3_0 + area_3_1
+# z_3 = CS.levels[3]
+# print z_3, area_3
+
+
+cont_area_df = pd.DataFrame(contour_a, columns=['Z', 'Area'])
 plt.plot( cont_area_df['Area'], cont_area_df['Z'])
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
@@ -163,3 +250,4 @@ plt.ylabel(r'\textbf{Stage} (m)')
 plt.savefig('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/cont_area')
 plt.show()
 cont_area_df.to_csv('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/cont_area.csv')
+
