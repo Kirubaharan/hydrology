@@ -13,7 +13,7 @@ df_base = pd.read_csv(base_file, header=-1)
 slope_file = '/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/slope_profile_1.csv'
 df_slope = pd.read_csv(slope_file, header=0)
 # print df_base
-df_base_trans = df_base.T
+df_base_trans = df_base.T    # T refers to transpose
 # print(df_base_trans)
 # print df_slope
 # check dam height = 1.9 m
