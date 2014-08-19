@@ -5,7 +5,10 @@
 ###Drop a particular column
 ```python
 DF = DF.drop('column_name', 1)
+df.drop([Column Name or list],inplace=True,axis=1)   #will delete one or more columns inplace.
 ```
+Dont use `inplace` if you dont want to change the original df
+
 ###Aggregate Daily Data
 ```python
 rain_df = rain_df.resample('D', how=np.sum)   # D for day
@@ -24,3 +27,11 @@ x = column no
 ```python
 print df_base.column.values[x]
 ```
+###Merge dataframes pandas lib
+```python
+rain_weather = weather_daily_df.join(rain_days, how='right')
+```
+|left |		Use keys from left frame only|
+|right|	 	Use keys from right frame only|
+|outer|		Use union of keys from both frames|
+|inner|	 	Use intersection of keys from both frames|
