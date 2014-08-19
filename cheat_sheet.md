@@ -17,6 +17,11 @@ Dont use `inplace` if you don't want to change the original df
 df = df.resample('D', how=np.sum)   # D for day
 ```
 ###Select column using column name
+####Select single column
+```python
+df['column name']
+```
+#### Select multiple columns
 ```python
 df1 = df[['column_name_1', 'column_name_2']]
 ```
