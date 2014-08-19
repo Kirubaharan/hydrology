@@ -1,35 +1,41 @@
-#Cheat Sheet
+#Pandas Cheat Sheet
 
 ##Frequently used functions
-
+`df` refers to Pandas data frame
 ###Drop a particular column
 ```python
-DF = DF.drop('column_name', 1)
+df = df.drop('column_name', 1)
 df.drop([Column Name or list],inplace=True,axis=1)   #will delete one or more columns inplace.
 ```
-Dont use `inplace` if you dont want to change the original df
+Dont use `inplace` if you don't want to change the original df
 
 ###Aggregate Daily Data
 ```python
-rain_df = rain_df.resample('D', how=np.sum)   # D for day
+df = df.resample('D', how=np.sum)   # D for day
 ```
 ###Select column using column name
 ```python
-rain_df = df_base[['Date_Time', 'Rain Collection (mm)']]
+df1 = df[['column_name_1', 'column_name_2']]
 ```
 ###Change column name using column index no
 ```python
-df_base.columns.values[x] = 'Air Temperature (C)'
+df.columns.values[x] = 'new column name'
 ```
 x = column no
 
-#### Print column name/ access column name by column index no
+### Select column pandas
+#### Access column name by column no(position starting from 0)
 ```python
-print df_base.column.values[x]
+print df.column.values[x]
 ```
-###Merge dataframes pandas lib
+#### Select a particular column for a given datetime index
 ```python
-rain_weather = weather_daily_df.join(rain_days, how='right')
+print df['2014-05-20']['column_name']
+```
+
+###Merge two dataframes
+```python
+df3 = df1.join(df2, how='right')
 ```
  Merge| Description
  ----- |-----
