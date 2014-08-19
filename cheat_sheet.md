@@ -4,6 +4,7 @@ Mostly collected from Stackflow answers.
 ##Frequently used functions
 `df` refers to Pandas data frame
 ###Drop a particular column
+[Ref:](http://stackoverflow.com/a/18145399/2632856)
 ```python
 df = df.drop('column_name', 1)
 df.drop([Column Name or list],inplace=True,axis=1)   #will delete one or more columns inplace.
@@ -11,6 +12,7 @@ df.drop([Column Name or list],inplace=True,axis=1)   #will delete one or more co
 Dont use `inplace` if you don't want to change the original df
 
 ###Aggregate Daily Data
+[Ref:](http://stackoverflow.com/questions/17001389/pandas-resample-documentation)
 ```python
 df = df.resample('D', how=np.sum)   # D for day
 ```
@@ -19,6 +21,7 @@ df = df.resample('D', how=np.sum)   # D for day
 df1 = df[['column_name_1', 'column_name_2']]
 ```
 ###Change column name using column index no
+[Ref:](http://stackoverflow.com/a/11346337/2632856) See the comments
 ```python
 df.columns.values[x] = 'new column name'
 ```
@@ -35,6 +38,7 @@ print df['2014-05-20']['column_name']
 ```
 
 ###Merge two dataframes
+[Ref:](http://pandas.pydata.org/pandas-docs/stable/merging.html#brief-primer-on-merge-methods-relational-algebra)
 ```python
 df3 = df1.join(df2, how='right')
 ```
@@ -46,6 +50,7 @@ df3 = df1.join(df2, how='right')
 |inner|	 	Use intersection of keys from both frames|
 
 ### Move a last column to front
+[Ref:](http://stackoverflow.com/a/13148611/2632856)
 ```python
 cols = df.columns.tolist()
 cols = cols[-1:] + cols[:-1]  # bring last column to first
@@ -53,7 +58,7 @@ df = df[cols]
 ```
 
 ### Give binary value for conditional statements
-[Reference](http://stackoverflow.com/a/18473330/2632856)
+[Ref:](http://stackoverflow.com/a/18473330/2632856)
 ```python
 df['new_column_name'] = (df['column'] == value).astype(int)
 ```
