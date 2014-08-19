@@ -31,6 +31,8 @@ print df_base.column.values[x]
 ```python
 rain_weather = weather_daily_df.join(rain_days, how='right')
 ```
+ Merge| Description
+ ----- |-----
 |left |		Use keys from left frame only|
 |right|	 	Use keys from right frame only|
 |outer|		Use union of keys from both frames|
