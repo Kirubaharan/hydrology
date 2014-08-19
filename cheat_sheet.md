@@ -14,3 +14,13 @@ rain_df = rain_df.resample('D', how=np.sum)   # D for day
 ```python
 rain_df = df_base[['Date_Time', 'Rain Collection (mm)']]
 ```
+###Change column name using column index no
+```python
+df_base.columns.values[x] = 'Air Temperature (C)'
+```
+x = column no
+
+#### Print column name/ access column name by column index no
+```python
+print df_base.column.values[x]
+```
