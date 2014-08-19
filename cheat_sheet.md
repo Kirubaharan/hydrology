@@ -1,4 +1,5 @@
 #Pandas Cheat Sheet
+Mostly collected from Stackflow answers.
 
 ##Frequently used functions
 `df` refers to Pandas data frame
@@ -43,3 +44,16 @@ df3 = df1.join(df2, how='right')
 |right|	 	Use keys from right frame only|
 |outer|		Use union of keys from both frames|
 |inner|	 	Use intersection of keys from both frames|
+
+### Move a last column to front
+```python
+cols = df.columns.tolist()
+cols = cols[-1:] + cols[:-1]  # bring last column to first
+df = df[cols]
+```
+
+### Give binary value for conditional statements
+[Reference](http://stackoverflow.com/a/18473330/2632856)
+```python
+df['new_column_name'] = (df['column'] == value).astype(int)
+```
