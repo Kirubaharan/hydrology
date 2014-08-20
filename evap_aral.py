@@ -13,6 +13,7 @@ import math
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import numpy as np
+from matplotlib import rc
 
 
 base_file = '/media/kiruba/New Volume/ACCUWA_Data/weather_station/smgollahalli/smgoll_1_5_11_8_14.csv'
@@ -196,7 +197,6 @@ def rext_calc(df, lat=float):
     month = pd.DatetimeIndex(df.index).month
     year = pd.DatetimeIndex(df.index).year
     doy = met.date2doy(dd=date, mm=month, yyyy=year)  # create day of year(1-366) acc to date
-    print doy
     l = sp.size(doy)
     if l < 2:
         dt = 0.409 * math.sin(2 * math.pi / 365 * doy - 1.39)
@@ -251,32 +251,55 @@ dry_weather['Solar Radiation (J/m2/day)'] = dry_weather['Solar Radiation (W/mm2)
 """
 Dry weather Evaporation calculation
 """
-airtemp = dry_weather['Air Temperature (C)']
-hum = dry_weather['Humidity (%)']
-airpress = dry_weather['AirPr(Pa)']
-rs = dry_weather['Solar Radiation (J/m2/day)']
-sun_hr = dry_weather['sunshine hours (h)']
-rext = dry_weather['Rext (J/m2)']
-wind_speed = dry_weather['Wind Speed (mps)']
+airtemp_d = dry_weather['Air Temperature (C)']
+hum_d = dry_weather['Humidity (%)']
+airpress_d = dry_weather['AirPr(Pa)']
+rs_d = dry_weather['Solar Radiation (J/m2/day)']
+sun_hr_d = dry_weather['sunshine hours (h)']
+rext_d = dry_weather['Rext (J/m2)']
+wind_speed_d = dry_weather['Wind Speed (mps)']
 
 
-eo = evaplib.E0(airtemp=airtemp, rh=hum, airpress=airpress, Rs=rs, N=sun_hr, Rext=rext, u=wind_speed, Z=z )
-dry_weather['Evaporation (mm/day)'] = eo
+eo_d = evaplib.E0(airtemp=airtemp_d, rh=hum_d, airpress=airpress_d, Rs=rs_d, N=sun_hr_d, Rext=rext_d, u=wind_speed_d, Z=z )
+dry_weather['Evaporation (mm/day)'] = eo_d
 
-fig = plt.figure()
-plt.plot_date(dry_weather.index, dry_weather['Evaporation (mm/day)'], 'b*')
-fig.autofmt_xdate()
-plt.show()
+
 
 """
 Wet weather Evaporation calculation
 """
-
-## windspeed unit conversion
-rain_weather['Wind Speed (mps)'] = rain_weather['Wind Speed (kmph)'] * 0.277778
 # air pressure
 rain_weather['AirPr(Pa)'] = air_p_pa
 # sunshine hours
 rain_weather = rain_weather.join(sunshine_daily_df, how='left')
 #extraterrestrial radiation
-dry_weather['Rext (J/m2)'] = rext_calc(dry_weather, lat=13.260196)
+rain_weather['Rext (J/m2)'] = rext_calc(rain_weather, lat=13.260196)
+# wind speed unit conversion
+rain_weather['Wind Speed (mps)'] = rain_weather['Wind Speed (kmph)'] * 0.277778
+#radiation unit conversion
+rain_weather['Solar Radiation (J/m2/day)'] = rain_weather['Solar Radiation (W/mm2)'] * 86400
+airtemp_r = rain_weather['Air Temperature (C)']
+hum_r = rain_weather['Humidity (%)']
+airpress_r = rain_weather['AirPr(Pa)']
+rs_r = rain_weather['Solar Radiation (J/m2/day)']
+sun_hr_r = rain_weather['sunshine hours (h)']
+rext_r = rain_weather['Rext (J/m2)']
+wind_speed_r = rain_weather['Wind Speed (mps)']
+eo_r = evaplib.E0(airtemp=airtemp_r, rh=hum_r, airpress=airpress_r, Rs=rs_r, N=sun_hr_r, Rext=rext_r, u=wind_speed_r,Z=z)
+rain_weather['Evaporation (mm/day)'] = eo_r
+dry_weather.to_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/dry_evap_591.csv')
+rain_weather.to_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/rain_evap_591.csv')
+#plot
+fig = plt.figure(figsize=(11.69, 8.27))
+plt.plot_date(dry_weather.index, dry_weather['Evaporation (mm/day)'], 'r.', label='Non -Rainy Day')
+plt.plot_date(rain_weather.index, rain_weather['Evaporation (mm/day)'], 'b.', label='Rainy Day')
+fig.autofmt_xdate()
+plt.legend(loc='upper right')
+rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica']})
+rc('text', usetex=True)
+plt.rc('text', usetex=True)
+plt.rc('font', family='serif')
+plt.ylabel(r'\textbf{Evaporation} ($mm/day$)')
+plt.title(r"Daily Evaporation for Check Dam - 591", fontsize=16)
+plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/591_evap')
+plt.show()
