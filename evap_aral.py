@@ -5,6 +5,7 @@ This file is for calculating the potential ET by Penman method for
 aralumallige watershed.
 """
 import evaplib
+import meteolib as met
 import scipy as sp
 import pandas as pd
 # import gdal, ogr, osr, numpy, sys   # uncomment it if you want to use zonalstats
@@ -118,7 +119,12 @@ dry_weather = weather_daily_df.join(dry_days, how='right')
 #  Air pressure calculation
 
 # Calculates statistics (mean) on values of a raster within the zones of an polygon shapefile
+
 """
+calculates the mean height of aralumallige milli watershed from dem.
+In case, if you don't want to calculate the value using a raster and vector
+every time the mean height is 803.441589 m
+
 def zonal_stats(input_value_raster, input_zone_polygon):
 
 
@@ -192,13 +198,6 @@ def zonal_stats(input_value_raster, input_zone_polygon):
     # calculate mean of zonal raster
     return numpy.mean(zoneraster)
 """
-
-"""
-calculates the mean height of milli watershed from dem.
-In case, if you don't want to calculate the value using a raster and vector
-every time the mean height is 803.441589 m
-
-"""
 # aral_shp = '/media/kiruba/New Volume/milli_watershed/aralumallige/milli_aralumallige.shp'
 # dem_raster = '/media/kiruba/New Volume/ACCUWA_Data/DEM_20_May/arkavathy/merged_dem'
 # h = zonal_stats(input_zone_polygon=aral_shp, input_value_raster=dem_raster)
@@ -229,8 +228,11 @@ Input (measured at 2 m height):
  air pressure (Pa) = 101325(1-2.25577 10^-5 h)^5.25588
 h = altitude above sea level (m)
 http://www.engineeringtoolbox.com/air-altitude-pressure-d_462.html
+mean elevation over watershed = 803.441589 m
+Elevation at the check dam = 799 m
 """
-h = 803.441589   # in metre
+# h = 803.441589   # in metre
+h = 799
 p = (1-(2.25577*(10**-5)*h))
 air_p_pa = 101325*(p**5.25588)
 rain_weather['AirPr(Pa)'] = air_p_pa  # give air pressure value
@@ -241,7 +243,7 @@ airtemp = dry_weather['Air Temperature (C)']
 hum = dry_weather['Humidity (%)']
 airpress = dry_weather['AirPr(Pa)']
 """
-Sunshine hours and Rext calculation
+Sunshine hours calculation
 591 calculation - lat = 13.260196, long = 77.5120849
 floor division(//): http://www.tutorialspoint.com/python/python_basic_operators.htm
 """
@@ -257,6 +259,77 @@ sunshine_daily_df = sunshine_daily_df.drop(sunshine_daily_df.columns.values[0], 
 rain_weather = rain_weather.join(sunshine_daily_df, how='left')
 dry_weather = dry_weather.join(sunshine_daily_df, how='left')
 
+
+"""
+Daily Extraterrestrial Radiation Calculation(J/m2/day)
+"""
+
+
+def rext_calc(df, lat=float):
+    """
+    Function to calculate extraterrestrial radiation output in J/m2/day
+    Ref:http://www.fao.org/docrep/x0490e/x0490e07.htm
+
+    :param df: dataframe with datetime index
+    :param lat: latitude (negative for Southern hemisphere)
+    :return: Rext (J/m2)
+    """
+    # set solar constant [MJ m^-2 min^-1]
+    s = 0.0820
+    #convert latitude [degrees] to radians
+    latrad = lat*math.pi / 180.0
+    #have to add in function for calculating single value here
+    # extract date, month, year from index
+    date = pd.DatetimeIndex(df.index).day
+    month = pd.DatetimeIndex(df.index).month
+    year = pd.DatetimeIndex(df.index).year
+    doy = met.date2doy(dd=date, mm=month, yyyy=year)  # create day of year(1-366) acc to date
+    print doy
+    l = sp.size(doy)
+    if l < 2:
+        dt = 0.409 * math.sin(2 * math.pi / 365 * doy - 1.39)
+        ws = sp.arccos(-math.tan(latrad) * math.tan(dt))
+        j = 2 * math.pi / 365.25 * doy
+        dr = 1.0 + 0.03344 * math.cos(j - 0.048869)
+        rext = s * 86400 / math.pi * dr * (ws * math.sin(latrad) * math.sin(dt) + math.sin(ws) * math.cos(latrad) * math.cos(dt))
+    #Create dummy output arrays sp refers to scipy
+    else:
+        rext = sp.zeros(l)
+        dt = sp.zeros(l)
+        ws = sp.zeros(l)
+        j = sp.zeros(l)
+        dr = sp.zeros(l)
+        #calculate Rext
+        for i in range(0, l):
+            #Calculate solar decimation dt(d in FAO) [rad]
+            dt[i] = 0.409 * math.sin(2 * math.pi / 365 * doy[i] - 1.39)
+            #calculate sunset hour angle [rad]
+            ws[i] = sp.arccos(-math.tan(latrad) * math.tan(dt[i]))
+            # calculate day angle j [radians]
+            j[i] = 2 * math.pi / 365.25 * doy[i]
+            # calculate relative distance to sun
+            dr[i] = 1.0 + 0.03344 * math.cos(j[i] - 0.048869)
+            #calculate Rext dt = d(FAO) and latrad = j(FAO)
+            rext[i] = (s * 86400.0 / math.pi) * dr[i] * (ws[i] * math.sin(latrad) * math.sin(dt[i]) + math.sin(ws[i])* math.cos(latrad) * math.cos(dt[i]))
+
+    rext = sp.array(rext) * 1000000
+    return rext
+
+dry_weather['Rext (J/m2)'] = rext_calc(dry_weather, lat=13.260196)
+print dry_weather
+
+# fig = plt.figure()
+# plt.plot_date(dry_weather.index, dry_weather['Rext (J/m2)'], 'b*')
+# fig.autofmt_xdate()
+# plt.show()
+
+"""
+wind speed from km/h to m/s
+1 kmph = 0.277778 m/s
+"""
+rain_weather['Wind Speed (mps)'] = rain_weather['Wind Speed (kmph)'] * 0.277778
+dry_weather['Wind Speed (mps)'] = dry_weather['Wind Speed (kmph)'] * 0.277778
+# print rain_weather
 
 # eo = evaplib.E0(airtemp=airtemp, rh=hum, airpress=airpress, Rs= )
 
