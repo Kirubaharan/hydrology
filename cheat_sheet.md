@@ -69,7 +69,7 @@ df['new_column_name'] = (df['column'] == value).astype(int)
 ```
 
 ### Extract date, month, year from Datetime Index(yyyy-mm-dd)
-[Ref:}(http://stackoverflow.com/a/21954923/2632856)
+[Ref:](http://stackoverflow.com/a/21954923/2632856)
 ```python
 def datesep(df):
     """
