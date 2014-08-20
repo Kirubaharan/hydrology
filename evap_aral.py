@@ -116,15 +116,7 @@ rain_weather = weather_daily_df.join(rain_days, how='right')  # right = use the 
 dry_weather = weather_daily_df.join(dry_days, how='right')
 # print dry_weather.head()
 # print df_base['2014-05-20']['Rain Collection (mm)']
-#  Air pressure calculation
 
-# Calculates statistics (mean) on values of a raster within the zones of an polygon shapefile
-
-
-# aral_shp = '/media/kiruba/New Volume/milli_watershed/aralumallige/milli_aralumallige.shp'
-# dem_raster = '/media/kiruba/New Volume/ACCUWA_Data/DEM_20_May/arkavathy/merged_dem'
-# h = zonal_stats(input_zone_polygon=aral_shp, input_value_raster=dem_raster)
-# print h # values are in m
 """
 Evaporation from open water
 Equation according to J.D. Valiantzas (2006). Simplified versions
@@ -154,17 +146,14 @@ http://www.engineeringtoolbox.com/air-altitude-pressure-d_462.html
 mean elevation over watershed = 803.441589 m
 Elevation at the check dam = 799 m
 """
-# h = 803.441589   # in metre
-h = 799
-p = (1-(2.25577*(10**-5)*h))
+z = 799
+p = (1-(2.25577*(10**-5)*z))
 air_p_pa = 101325*(p**5.25588)
-rain_weather['AirPr(Pa)'] = air_p_pa  # give air pressure value
+  # give air pressure value
 dry_weather['AirPr(Pa)'] = air_p_pa
 # print(dry_weather.head())
 
-airtemp = dry_weather['Air Temperature (C)']
-hum = dry_weather['Humidity (%)']
-airpress = dry_weather['AirPr(Pa)']
+
 """
 Sunshine hours calculation
 591 calculation - lat = 13.260196, long = 77.5120849
@@ -179,7 +168,7 @@ sunshine_df['sunshine hours (h)'] = (sunshine_df['Solar Radiation (W/mm2)'] != 0
 sunshine_daily_df = sunshine_df.resample('D', how=np.sum) // 2  # // floor division
 sunshine_daily_df = sunshine_daily_df.drop(sunshine_daily_df.columns.values[0], 1)
 # Join with rainy day and dry day weather based on date
-rain_weather = rain_weather.join(sunshine_daily_df, how='left')
+# rain_weather = rain_weather.join(sunshine_daily_df, how='left')
 dry_weather = dry_weather.join(sunshine_daily_df, how='left')
 
 
@@ -239,7 +228,7 @@ def rext_calc(df, lat=float):
     return rext
 
 dry_weather['Rext (J/m2)'] = rext_calc(dry_weather, lat=13.260196)
-print dry_weather
+# print dry_weather
 
 # fig = plt.figure()
 # plt.plot_date(dry_weather.index, dry_weather['Rext (J/m2)'], 'b*')
@@ -250,9 +239,44 @@ print dry_weather
 wind speed from km/h to m/s
 1 kmph = 0.277778 m/s
 """
-rain_weather['Wind Speed (mps)'] = rain_weather['Wind Speed (kmph)'] * 0.277778
 dry_weather['Wind Speed (mps)'] = dry_weather['Wind Speed (kmph)'] * 0.277778
 # print rain_weather
 
-# eo = evaplib.E0(airtemp=airtemp, rh=hum, airpress=airpress, Rs= )
+"""
+Radiation unit conversion
+"""
 
+dry_weather['Solar Radiation (J/m2/day)'] = dry_weather['Solar Radiation (W/mm2)'] * 86400
+
+"""
+Dry weather Evaporation calculation
+"""
+airtemp = dry_weather['Air Temperature (C)']
+hum = dry_weather['Humidity (%)']
+airpress = dry_weather['AirPr(Pa)']
+rs = dry_weather['Solar Radiation (J/m2/day)']
+sun_hr = dry_weather['sunshine hours (h)']
+rext = dry_weather['Rext (J/m2)']
+wind_speed = dry_weather['Wind Speed (mps)']
+
+
+eo = evaplib.E0(airtemp=airtemp, rh=hum, airpress=airpress, Rs=rs, N=sun_hr, Rext=rext, u=wind_speed, Z=z )
+dry_weather['Evaporation (mm/day)'] = eo
+
+fig = plt.figure()
+plt.plot_date(dry_weather.index, dry_weather['Evaporation (mm/day)'], 'b*')
+fig.autofmt_xdate()
+plt.show()
+
+"""
+Wet weather Evaporation calculation
+"""
+
+## windspeed unit conversion
+rain_weather['Wind Speed (mps)'] = rain_weather['Wind Speed (kmph)'] * 0.277778
+# air pressure
+rain_weather['AirPr(Pa)'] = air_p_pa
+# sunshine hours
+rain_weather = rain_weather.join(sunshine_daily_df, how='left')
+#extraterrestrial radiation
+dry_weather['Rext (J/m2)'] = rext_calc(dry_weather, lat=13.260196)
