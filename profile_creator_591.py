@@ -148,6 +148,7 @@ C = plt.contour(xi, yi, zi, len(levels), colors='black', linewidth=.5, levels=le
 plt.clabel(C, inline=1, fontsize=10)
 plt.colorbar(CS, shrink=0.5, aspect=5)
 plt.grid()
+plt.gca().invert_xaxis()
 plt.savefig('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/cont_2d')
 plt.show()
 # for i in range(len(CS.collections)):
@@ -242,12 +243,40 @@ contour_a = contour_area(CS)
 
 
 cont_area_df = pd.DataFrame(contour_a, columns=['Z', 'Area'])
-plt.plot( cont_area_df['Area'], cont_area_df['Z'])
+plt.plot(cont_area_df['Z'], cont_area_df['Area'])
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
-plt.xlabel(r'\textbf{Area} ($m^2$)')
-plt.ylabel(r'\textbf{Stage} (m)')
+plt.ylabel(r'\textbf{Area} ($m^2$)')
+plt.xlabel(r'\textbf{Stage} (m)')
 plt.savefig('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/cont_area')
-plt.show()
+# plt.show()
 cont_area_df.to_csv('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/cont_area.csv')
 
+## Curve fitting
+fig = plt.figure(figsize=(11.69, 8.27))
+y = cont_area_df['Area']
+x = cont_area_df['Z']
+
+# calculate linear fit
+po = np.polyfit(x, y, 1)
+f = np.poly1d(po)
+print np.poly1d(po)
+x_new = np.linspace(min(x), max(x), 50)
+y_new = f(x_new)
+plt.plot(x,y, 'o', x_new, y_new)
+plt.xlim([(min(x))-1, (max(x))+1])
+plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/linear_fit_591')
+plt.show()
+
+#calculate  4th deg polynomial
+po = np.polyfit(x, y, 4)
+f = np.poly1d(po)
+print np.poly1d(f)
+#calculate new x, y
+x_new = np.linspace(min(x), max(x), 50)
+y_new = f(x_new)
+
+plt.plot(x,y, 'o', x_new, y_new)
+plt.xlim([(min(x))-1, (max(x))+1])
+plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/poly_4_deg_591')
+plt.show()
