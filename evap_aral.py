@@ -304,6 +304,7 @@ plt.title(r"Daily Evaporation for Check Dam - 591", fontsize=16)
 plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/591_evap')
 plt.show()
 
+"""
 #plot weather parameters
 print weather_daily_df.head()
 #windspeed
@@ -335,3 +336,40 @@ plt.title(r"Solar Radiation - Aralumallige", fontsize=16)
 plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/solar_rad')
 fig.autofmt_xdate()
 plt.show()
+"""
+#check dam caliberation
+x_cal = [10, 40, 100, 160, 225, 275, 300]
+y_cal = [2036, 2458, 3025, 4078, 5156, 5874, 6198]
+
+
+def polyfit(x,y, degree):
+    results = {}
+    coeffs = np.polyfit(x, y, degree)
+    results['polynomial'] = coeffs.tolist()
+    #r squared
+    p = np.poly1d(coeffs)
+    yhat = p(x)
+    ybar = np.sum(y)/len(y)
+    ssreg = np.sum((yhat-ybar)**2)
+    sstot = np.sum((y-ybar)**2)
+    results['determination'] = ssreg/sstot
+    return results
+
+a = polyfit(x_cal,y_cal,1)
+po = np.polyfit(x_cal, y_cal, 1)
+f = np.poly1d(po)
+print np.poly1d(f)
+print a
+print a['polynomial'][0]
+coeff_cal = a['polynomial']
+
+fig = plt.figure(figsize=(11.69, 8.27))
+plt.plot(x_cal, y_cal, 'bo')
+plt.xlim([(min(x_cal))-1, (max(x_cal))+1])
+plt.show()
+
+## Read check dam data
+block_1 = '/media/kiruba/New Volume/ACCUWA_Data/check_dam_water_level/2525_008_001.CSV'
+water_level = pd.read_csv(block_1, skiprows=9, sep=',', header=0,  names=['scan no', 'date', 'time', 'raw value', 'calibrated value'])
+water_level['calibrated value'] = (coeff_cal[0]*water_level['raw value']) + coeff_cal[1]
+print water_level
