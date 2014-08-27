@@ -258,18 +258,18 @@ y = cont_area_df['Area']
 x = cont_area_df['Z']
 
 # calculate linear fit
-po = np.polyfit(x, y, 1)
-f = np.poly1d(po)
-print np.poly1d(po)
-x_new = np.linspace(min(x), max(x), 50)
-y_new = f(x_new)
-plt.plot(x,y, 'o', x_new, y_new)
-plt.xlim([(min(x))-1, (max(x))+1])
-plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/linear_fit_591')
-plt.show()
+# po = np.polyfit(x, y, 1)
+# f = np.poly1d(po)
+# print np.poly1d(po)
+# x_new = np.linspace(min(x), max(x), 50)
+# y_new = f(x_new)
+# plt.plot(x,y, 'o', x_new, y_new)
+# plt.xlim([(min(x))-1, (max(x))+1])
+# plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/linear_fit_591')
+# plt.show()
 
-#calculate  4th deg polynomial
-po = np.polyfit(x, y, 4)
+#calculate  2nd deg polynomial
+po = np.polyfit(x, y, 2)
 f = np.poly1d(po)
 print np.poly1d(f)
 #calculate new x, y
@@ -278,5 +278,9 @@ y_new = f(x_new)
 
 plt.plot(x,y, 'o', x_new, y_new)
 plt.xlim([(min(x))-1, (max(x))+1])
-plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/poly_4_deg_591')
+plt.xlabel(r'\textbf{Stage} (m)')
+plt.ylabel(r'\textbf{Area} ($m^2$)')
+plt.text(-0.8, 3000, r'\textbf{$y = 518.3x^2 + 335.3x + 391.7$}')
+
+plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/poly_2_deg_591')
 plt.show()
