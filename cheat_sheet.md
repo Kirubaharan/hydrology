@@ -16,7 +16,7 @@ Dont use `inplace` if you don't want to change the original df
 ```python
 df['column name']
 ```
-#### Select multiple columns
+#### Select multiple columns as a dataframe
 ```python
 df1 = df[['column_name_1', 'column_name_2']]
 ```
