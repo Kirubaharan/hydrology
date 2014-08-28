@@ -14,19 +14,18 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import numpy as np
 from matplotlib import rc
+import datetime
 
 
 base_file = '/media/kiruba/New Volume/ACCUWA_Data/weather_station/smgollahalli/smgoll_1_5_11_8_14.csv'
-# dateparse = lambda x: pd.datetime.strptime(x, '%d/%m/%y %H:%M:S')
+#read csv file
 df_base = pd.read_csv(base_file, header=0, sep=',')
-format = '%d/%m/%y %H:%M:%S'
-df_base['Date_Time'] = pd.to_datetime(df_base['Date'] + ' ' + df_base['Time'], format=format)
+# convert date and time columns into timestamp
+date_format = '%d/%m/%y %H:%M:%S'
+df_base['Date_Time'] = pd.to_datetime(df_base['Date'] + ' ' + df_base['Time'], format=date_format)
+# set index
 df_base.set_index(df_base['Date_Time'], inplace=True)
-# df_base = df_base.drop(['Date', 'Time'], axis=1)
-# df_base.insert(0, 'Date_Time', df_base['Date_Time'])
-# df_base['Date'] = pd.to_datetime(df_base['Date'], format='%d/%m/%y')
-
-# df_base = df_base.sort(['Date'])
+# sort based on index
 df_base.sort_index(inplace=True)
 cols = df_base.columns.tolist()
 cols = cols[-1:] + cols[:-1]  # bring last column to first
@@ -39,12 +38,6 @@ df_base.columns.values[9] = 'Max Air Temperature (C)'
 df_base.columns.values[16] = 'Canopy Temperature (C)'
 # print df_base.head()
 # print df_base.columns.values[16]
-# rain_df = pd.DataFrame(df_base['Rain Collection (mm)'], columns='Rain (mm)', index=df_base['Date_Time'])
-# print rain_df.head()
-# df_base[['Rain Collection (mm)', 'Humidity (%)']].plot()
-
-# plt.plot_date(x=df_base['Date_Time'], y=df_base['Wind Speed (kmph)'])
-# plt.show()
 
 
 """
@@ -87,7 +80,7 @@ plt.rc('font', family='serif')
 plt.ylabel(r'\textbf{Rain} (mm)')
 plt.title(r'Rainfall - Aralumallige Watershed')
 
-plt.show()
+# plt.show()
 
 # print rain_df.head()
 """
@@ -302,7 +295,7 @@ plt.rc('font', family='serif')
 plt.ylabel(r'\textbf{Evaporation} ($mm/day$)')
 plt.title(r"Daily Evaporation for Check Dam - 591", fontsize=16)
 plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/591_evap')
-plt.show()
+# plt.show()
 
 """
 #plot weather parameters
@@ -338,11 +331,11 @@ fig.autofmt_xdate()
 plt.show()
 """
 #check dam caliberation
-x_cal = [10, 40, 100, 160, 225, 275, 300]
-y_cal = [2036, 2458, 3025, 4078, 5156, 5874, 6198]
+y_cal = [10, 40, 100, 160, 225, 275, 300]
+x_cal = [2036, 2458, 3025, 4078, 5156, 5874, 6198]
 
 
-def polyfit(x,y, degree):
+def polyfit(x, y, degree):
     results = {}
     coeffs = np.polyfit(x, y, degree)
     results['polynomial'] = coeffs.tolist()
@@ -354,22 +347,143 @@ def polyfit(x,y, degree):
     sstot = np.sum((y-ybar)**2)
     results['determination'] = ssreg/sstot
     return results
+##stage_calibration
+a_stage = polyfit(x_cal, y_cal, 1)
+# po_stage = np.polyfit(x_cal, y_cal, 1)
+# f_stage = np.poly1d(po_stage)
+# print np.poly1d(f_stage)
+# print a_stage
+# print a_stage['polynomial'][0]
+coeff_cal = a_stage['polynomial']
 
-a = polyfit(x_cal,y_cal,1)
-po = np.polyfit(x_cal, y_cal, 1)
-f = np.poly1d(po)
-print np.poly1d(f)
-print a
-print a['polynomial'][0]
-coeff_cal = a['polynomial']
+x_cal_new = np.linspace(min(x_cal), max(x_cal), 50)
+y_cal_new = (x_cal_new*coeff_cal[0]) + coeff_cal[1]
 
 fig = plt.figure(figsize=(11.69, 8.27))
-plt.plot(x_cal, y_cal, 'bo')
-plt.xlim([(min(x_cal))-1, (max(x_cal))+1])
-plt.show()
+plt.plot(x_cal, y_cal, 'bo', label=r'Observation')
+plt.plot(x_cal_new, y_cal_new, 'b-', label=r'Prediction')
+plt.xlim([(min(x_cal)-500), (max(x_cal)+500)])
+plt.ylim([0, 350])
+plt.xlabel(r'\textbf{Capacitance} (ohm)')
+plt.ylabel(r'\textbf{Stage} (m)')
+plt.legend(loc='upper left')
+plt.title(r'Capacitance Sensor Calibration for 591 Check dam')
+plt.text(x=1765, y=275, fontsize=15, s=r"\textbf{{$ y = {0:.4} x  {1:.4} $}}".format(coeff_cal[0], coeff_cal[1]))
+plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/sensor_calib_591')
+# plt.show()
 
 ## Read check dam data
 block_1 = '/media/kiruba/New Volume/ACCUWA_Data/check_dam_water_level/2525_008_001.CSV'
-water_level = pd.read_csv(block_1, skiprows=9, sep=',', header=0,  names=['scan no', 'date', 'time', 'raw value', 'calibrated value'])
-water_level['calibrated value'] = (coeff_cal[0]*water_level['raw value']) + coeff_cal[1]
-print water_level
+water_level_1 = pd.read_csv(block_1, skiprows=9, sep=',', header=0,  names=['scan no', 'date',
+                                                                            'time', 'raw value', 'calibrated value'])
+water_level_1['calibrated value'] = (water_level_1['raw value']*coeff_cal[0]) + coeff_cal[1]  # in cm
+# convert to metre
+water_level_1['calibrated value'] /= 100
+#change the column name
+water_level_1.columns.values[4] = 'stage(m)'
+# create date time index
+format = '%d/%m/%Y  %H:%M:%S'
+# change 24:00:00 to 23:59:59
+water_level_1['time'] = water_level_1['time'].replace(' 24:00:00', ' 23:59:59')
+water_level_1['date_time'] = pd.to_datetime(water_level_1['date'] + water_level_1['time'], format=format)
+water_level_1.set_index(water_level_1['date_time'], inplace=True)
+# drop unneccessary columns before datetime aggregation
+water_level_1.drop(['scan no', 'date', 'time', 'raw value'], inplace=True, axis=1)
+#aggregate daily
+water_level_1 = water_level_1.resample('D', how=np.mean)
+# print water_level_1
+block_2 = '/media/kiruba/New Volume/ACCUWA_Data/check_dam_water_level/2525_008_002.CSV'
+water_level_2 = pd.read_csv(block_2, skiprows=9, sep=',', header=0,  names=['scan no', 'date', 'time', 'raw value', 'calibrated value'])
+water_level_2['calibrated value'] = (water_level_2['raw value']*coeff_cal[0]) + coeff_cal[1] # in cm
+# convert to metre
+water_level_2['calibrated value'] /= 100
+#change the column name
+water_level_2.columns.values[4] = 'stage(m)'
+# create date time index
+format = '%d/%m/%Y  %H:%M:%S'
+# change 24:00:00 to 23:59:59
+water_level_2['time'] = water_level_2['time'].replace(' 24:00:00', ' 23:59:59')
+water_level_2['date_time'] = pd.to_datetime(water_level_2['date'] + water_level_2['time'], format=format)
+water_level_2.set_index(water_level_2['date_time'], inplace=True)
+# drop unneccessary columns before datetime aggregation
+water_level_2.drop(['scan no', 'date', 'time', 'raw value'], inplace=True, axis=1)
+#aggregate daily
+water_level_2 = water_level_2.resample('D', how=np.mean)
+# print water_level_2
+block_3 = '/media/kiruba/New Volume/ACCUWA_Data/check_dam_water_level/2525_008_003.CSV'
+water_level_3 = pd.read_csv(block_3, skiprows=9, sep=',', header=0,  names=['scan no', 'date', 'time', 'raw value', 'calibrated value'])
+water_level_3['calibrated value'] = (water_level_3['raw value']*coeff_cal[0]) + coeff_cal[1] # in cm
+# convert to metre
+water_level_3['calibrated value'] /= 100
+#change the column name
+water_level_3.columns.values[4] = 'stage(m)'
+# create date time index
+format = '%d/%m/%Y  %H:%M:%S'
+# change 24:00:00 to 23:59:59
+water_level_3['time'] = water_level_3['time'].replace(' 24:00:00', ' 23:59:59')
+water_level_3['date_time'] = pd.to_datetime(water_level_3['date'] + water_level_3['time'], format=format)
+water_level_3.set_index(water_level_3['date_time'], inplace=True)
+# drop unneccessary columns before datetime aggregation
+water_level_3.drop(['scan no', 'date', 'time', 'raw value'], inplace=True, axis=1)
+#aggregate daily
+water_level_3 = water_level_3.resample('D', how=np.mean)
+# print water_level_3
+water_level = pd.concat([water_level_1, water_level_2, water_level_3], axis=0)
+# print water_level
+# merge with dry day weather and rain weather df
+dry_weather = dry_weather.join(water_level, how='left')
+rain_weather = rain_weather.join(water_level, how='left')
+# select from the date where stage data is available
+dry_weather = dry_weather['2014-05-14':]
+rain_weather = rain_weather['2014-05-18':]
+# print(rain_weather)
+#save as csv
+dry_weather.to_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/dry_stage_weather_591.csv')
+rain_weather.to_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/rain_stage_weather_591.csv')
+# plot daily water level
+fig = plt.figure(figsize=(11.69, 8.27))
+plt.plot_date(water_level.index, water_level['stage(m)'], 'r-', label='Stage (m)')
+# plt.ylabel(r'\textbf{Wind Speed}($Km/h$)')
+plt.title(r"Average Daily Water Level in Checkdam 591", fontsize=16)
+plt.legend(loc='upper left')
+plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/daily_stage_591')
+fig.autofmt_xdate()
+# plt.show()
+#stage_area relationship
+stage_area_df = pd.read_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/cont_area.csv',
+                            sep=',', header=0, names=['sno', 'Z (m)', 'Area (m2)'])
+stage_area_df.drop('sno', inplace=True, axis=1)
+# print stage_area_df
+###calibration
+z_cal = stage_area_df.ix[0:, 0]     # x
+area_cal = stage_area_df.ix[0:, 1]       # y
+
+stage_area_cal = polyfit(z_cal, area_cal, 2)    #
+po_stage_area = np.polyfit(z_cal, area_cal, 2)
+f_stage_area = np.poly1d(po_stage_area)
+# print np.poly1d(f_stage_area)
+# print stage_area_cal
+# print a_stage['polynomial'][0]
+coeff_stage_area_cal = stage_area_cal['polynomial']
+
+#calculate new coefficients
+z_cal_new = np.linspace(min(z_cal), max(z_cal), 50)
+area_cal_new = ((z_cal_new**2)*coeff_stage_area_cal[0]) + \
+               (z_cal_new*coeff_stage_area_cal[1]) + \
+               coeff_stage_area_cal[2]
+fig = plt.figure(figsize=(11.69, 8.27))
+plt.plot(z_cal, area_cal, 'bo', label=r'Observation')
+plt.plot(z_cal_new, area_cal_new, 'b-', label=r'2\textsuperscript{nd} Degree Polynomial')
+plt.legend(loc='upper left')
+plt.xlim([-0.5, 2.1])
+plt.ylim([250, 3500])
+plt.xlabel(r'\textbf{Stage} (m)')
+plt.ylabel(r'\textbf{Area} ($m^2$)')
+plt.text(x=-0.25, y=3000, fontsize=15, s=r"\textbf{{$ y = {0:.4} x^2 + {1:.4} x + {2:.4} $}}".format(coeff_stage_area_cal[0],
+                                                                 coeff_stage_area_cal[1],
+                                                                 coeff_stage_area_cal[2]))
+plt.title(r'Stage - Area Relationship for 591 Check Dam')
+plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/poly_2_deg_591')
+plt.show()
+
+# Dry day water balance components
