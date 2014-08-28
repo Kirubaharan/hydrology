@@ -33,11 +33,11 @@ x = column no
 print df.column.values[x]
 ```
 ###Date Time Index
-#### Create datetime index from two columns have date and time separately
+#### Create datetime column from two columns have date and time separately
 ```pyton
 format = '%d/%m/%y %H:%M:%S'
 #pd = pandas
-df_base['Date_Time'] = pd.to_datetime(df_base['Date'] + ' ' + df_base['Time'], format=format)
+df['Date_Time'] = pd.to_datetime(df['Date'] + ' ' + df['Time'], format=format)
 ```
 #### Select a particular column for a given datetime index
 ```python
