@@ -94,7 +94,7 @@ def datesep(df):
     month = pd.DatetimeIndex(df.index).month
     year = pd.DatetimeIndex(df.index).year
     return date, month, year
-    
+```    
 ### Augmented Assignment
 [Ref](http://legacy.python.org/dev/peps/pep-0203/)
 
@@ -117,7 +117,8 @@ df.ix[row,column]
  and .4 refers to one decimal approximation, 
  use 0.5 for two decimal places
 """
-plt.text(x=-0.25, y=3000, fontsize=15, s=r"\textbf{{$ y = {0:.4} x^2 + {1:.4} x + {2:.4} $}}".format(coeff_stage_area_cal[0],
-                                                                 coeff_stage_area_cal[1],
-                                                                 coeff_stage_area_cal[2]))
+plt.text(x=-0.25, y=3000, fontsize=15, 
+         s=r"\textbf{{$ y = {0:.4} x^2 + {1:.4} x + {2:.4} $}}".format(coeff_stage_area_cal[0],
+                                                                       coeff_stage_area_cal[1],
+                                                                       coeff_stage_area_cal[2]))
 ```
