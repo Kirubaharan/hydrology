@@ -39,6 +39,10 @@ format = '%d/%m/%y %H:%M:%S'
 #pd = pandas
 df['Date_Time'] = pd.to_datetime(df['Date'] + ' ' + df['Time'], format=format)
 ```
+#### Set datetime index
+```python
+df.set_index(df['Date_Time'], inplace=True)
+```
 #### Select a particular column for a given datetime index
 ```python
 print df['2014-05-20']['column_name']
