@@ -11,11 +11,6 @@ df.drop([Column Name or list],inplace=True,axis=1)   #will delete one or more co
 ```
 Dont use `inplace` if you don't want to change the original df
 
-###Aggregate Daily Data
-[Ref:](http://stackoverflow.com/questions/17001389/pandas-resample-documentation)
-```python
-df = df.resample('D', how=np.sum)   # D for day
-```
 ###Select column using column name
 ####Select single column
 ```python
@@ -37,9 +32,21 @@ x = column no
 ```python
 print df.column.values[x]
 ```
+###Date Time Index
+#### Create datetime index from two columns have date and time separately
+```pyton
+format = '%d/%m/%y %H:%M:%S'
+#pd = pandas
+df_base['Date_Time'] = pd.to_datetime(df_base['Date'] + ' ' + df_base['Time'], format=format)
+```
 #### Select a particular column for a given datetime index
 ```python
 print df['2014-05-20']['column_name']
+```
+#### Aggregate Daily Data
+[Ref:](http://stackoverflow.com/questions/17001389/pandas-resample-documentation)
+```python
+df = df.resample('D', how=np.sum)   # D for day
 ```
 
 ###Merge two dataframes
