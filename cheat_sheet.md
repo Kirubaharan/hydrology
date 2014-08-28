@@ -103,3 +103,8 @@ def datesep(df):
 x +=y
 #<x> <operator>= y
 ```
+#### Slicing dataframe
+### Using .ix
+```python
+df.ix[row,column]
+```
