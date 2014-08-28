@@ -83,3 +83,12 @@ def datesep(df):
     month = pd.DatetimeIndex(df.index).month
     year = pd.DatetimeIndex(df.index).year
     return date, month, year
+    
+### Augmented Assignment
+[Ref](http://legacy.python.org/dev/peps/pep-0203/)
+
+```python
+#Instead of using `x = x + y` use
+x +=y
+#<x> <operator>= y
+```
