@@ -108,3 +108,16 @@ x +=y
 ```python
 df.ix[row,column]
 ```
+###Matplotlib Plots
+####Using Tex, Latex in matplotlib plots
+##### String formatting in Latex
+```python
+"""
+{x : .4} x refers to position of string in .format(starts with 0)
+ and .4 refers to one decimal approximation, 
+ use 0.5 for two decimal places
+"""
+plt.text(x=-0.25, y=3000, fontsize=15, s=r"\textbf{{$ y = {0:.4} x^2 + {1:.4} x + {2:.4} $}}".format(coeff_stage_area_cal[0],
+                                                                 coeff_stage_area_cal[1],
+                                                                 coeff_stage_area_cal[2]))
+```
