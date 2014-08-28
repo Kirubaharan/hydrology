@@ -248,12 +248,12 @@ plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
 plt.ylabel(r'\textbf{Area} ($m^2$)')
 plt.xlabel(r'\textbf{Stage} (m)')
-plt.savefig('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/cont_area')
+plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/cont_area_591')
 # plt.show()
-cont_area_df.to_csv('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/cont_area.csv')
+cont_area_df.to_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/cont_area.csv')
 
 ## Curve fitting
-fig = plt.figure(figsize=(11.69, 8.27))
+# fig = plt.figure(figsize=(11.69, 8.27))
 y = cont_area_df['Area']
 x = cont_area_df['Z']
 
@@ -276,11 +276,11 @@ print np.poly1d(f)
 x_new = np.linspace(min(x), max(x), 50)
 y_new = f(x_new)
 
-plt.plot(x,y, 'o', x_new, y_new)
+fig = plt.figure(figsize=(11.69, 8.27))
+plt.plot(x, y, 'o', x_new, y_new)
 plt.xlim([(min(x))-1, (max(x))+1])
 plt.xlabel(r'\textbf{Stage} (m)')
 plt.ylabel(r'\textbf{Area} ($m^2$)')
 plt.text(-0.8, 3000, r'\textbf{$y = 518.3x^2 + 335.3x + 391.7$}')
-
 plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/poly_2_deg_591')
 plt.show()
