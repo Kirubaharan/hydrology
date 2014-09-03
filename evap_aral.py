@@ -486,4 +486,6 @@ plt.title(r'Stage - Area Relationship for 591 Check Dam')
 plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/poly_2_deg_591')
 plt.show()
 
+# Stage area relationship
+
 # Dry day water balance components
