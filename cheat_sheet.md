@@ -117,14 +117,16 @@ df.ix[row,column]
 ###Matplotlib Plots
 ####Using Tex, Latex in matplotlib plots
 ##### String formatting in Latex
+[Ref :](http://mkaz.com/2012/10/10/python-string-format/)
 ```python
 """
-{x : .4} x refers to position of string in .format(starts with 0)
- and .4 refers to one decimal approximation, 
- use 0.5 for two decimal places
+{x : .1f} x refers to position of string in .format(starts with 0)
+ and .1 refers to one decimal approximation, 
+ use .2 for two decimal places
+ use .0f for without decimal places
 """
 plt.text(x=-0.25, y=3000, fontsize=15, 
-         s=r"\textbf{{$ y = {0:.4} x^2 + {1:.4} x + {2:.4} $}}".format(coeff_stage_area_cal[0],
+         s=r"\textbf{{$ y = {0:1f} x^2 + {1:.1f} x + {2:..1f} $}}".format(coeff_stage_area_cal[0],
                                                                        coeff_stage_area_cal[1],
                                                                        coeff_stage_area_cal[2]))
 ```
@@ -137,4 +139,4 @@ plt.text(x=-0.25, y=3000, fontsize=15,
 | ``'e'``    | Floating point exponential format (lowercase).  
 | ``'E'``    | Floating point exponential format (uppercase).  
 | ``'f'``    | Floating point decimal format.
-| ``'F'``    | Floating point decimal format.
+| ``'F'``    | Floating point decimal format.   
