@@ -128,3 +128,47 @@ plt.text(x=-0.25, y=3000, fontsize=15,
                                                                        coeff_stage_area_cal[1],
                                                                        coeff_stage_area_cal[2]))
 ```
+###String Formatting General Python
++------------+-----------------------------------------------------+-------+
+| Conversion | Meaning                                             | Notes |
++============+=====================================================+=======+
+| ``'d'``    | Signed integer decimal.                             |       |
++------------+-----------------------------------------------------+-------+
+| ``'i'``    | Signed integer decimal.                             |       |
++------------+-----------------------------------------------------+-------+
+| ``'o'``    | Signed octal value.                                 | \(1)  |
++------------+-----------------------------------------------------+-------+
+| ``'u'``    | Obsolete type -- it is identical to ``'d'``.        | \(7)  |
++------------+-----------------------------------------------------+-------+
+| ``'x'``    | Signed hexadecimal (lowercase).                     | \(2)  |
++------------+-----------------------------------------------------+-------+
+| ``'X'``    | Signed hexadecimal (uppercase).                     | \(2)  |
++------------+-----------------------------------------------------+-------+
+| ``'e'``    | Floating point exponential format (lowercase).      | \(3)  |
++------------+-----------------------------------------------------+-------+
+| ``'E'``    | Floating point exponential format (uppercase).      | \(3)  |
++------------+-----------------------------------------------------+-------+
+| ``'f'``    | Floating point decimal format.                      | \(3)  |
++------------+-----------------------------------------------------+-------+
+| ``'F'``    | Floating point decimal format.                      | \(3)  |
++------------+-----------------------------------------------------+-------+
+| ``'g'``    | Floating point format. Uses lowercase exponential   | \(4)  |
+|            | format if exponent is less than -4 or not less than |       |
+|            | precision, decimal format otherwise.                |       |
++------------+-----------------------------------------------------+-------+
+| ``'G'``    | Floating point format. Uses uppercase exponential   | \(4)  |
+|            | format if exponent is less than -4 or not less than |       |
+|            | precision, decimal format otherwise.                |       |
++------------+-----------------------------------------------------+-------+
+| ``'c'``    | Single character (accepts integer or single         |       |
+|            | character string).                                  |       |
++------------+-----------------------------------------------------+-------+
+| ``'r'``    | String (converts any Python object using            | \(5)  |
+|            | :ref:`repr() <func-repr>`).                         |       |
++------------+-----------------------------------------------------+-------+
+| ``'s'``    | String (converts any Python object using            | \(6)  |
+|            | :func:`str`).                                       |       |
++------------+-----------------------------------------------------+-------+
+| ``'%'``    | No argument is converted, results in a ``'%'``      |       |
+|            | character in the result.                            |       |
++------------+-----------------------------------------------------+-------+
