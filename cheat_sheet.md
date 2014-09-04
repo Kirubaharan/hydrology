@@ -20,13 +20,19 @@ df['column name']
 ```python
 df1 = df[['column_name_1', 'column_name_2']]
 ```
-###Change column name using column index no
+### Change Column name
+####Change column name using column index no
 [Ref:](http://stackoverflow.com/a/11346337/2632856) See the comments
 ```python
 df.columns.values[x] = 'new column name'
 ```
 x = column no
-
+#### Change column name using list
+[Ref: ](http://stackoverflow.com/a/17018994/2632856)
+```python
+my_columns = ['a', 'b', 'c']
+df.columns = my_columns
+```
 ### Select column pandas
 #### Access column name by column no(position starting from 0)
 ```python
