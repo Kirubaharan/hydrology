@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import numpy as np
 from matplotlib import rc
-import datetime
+from datetime import date
 import itertools
 from spread import spread
 # copy the code from http://code.activestate.com/recipes/577878-generate-equally-spaced-floats/ #
@@ -573,7 +573,7 @@ output["total_vol_cu_m"] = output_series.sum(axis=1)  # get total volume
 
 # select only stage and total volume
 stage_vol_df = output[['stage_m', "total_vol_cu_m"]]
-print stage_vol_df
+# print stage_vol_df
 
 
 ## Stage Volume relationship 591
@@ -604,11 +604,85 @@ plt.ylabel(r'\textbf{Volume} ($m^3$)')
 # coeff_1 = format(66.66666666, '.2f')
 # print coeff_1
 # print type(coeff_stage_vol_cal[0])
-plt.text(x=-0.16, y=1500, fontsize=15, s=r"\textbf{{$ y = {0:.0f} x^2  {1:.1f} x + {2:.0f} $}}".format(coeff_stage_vol_cal[0],
-                                                                 coeff_stage_vol_cal[1],
-                                                                 coeff_stage_vol_cal[2]))
+plt.text(x=-0.16, y=1500, fontsize=15,
+         s=r"\textbf{{$ y = {0:.0f} x^2  {1:.1f} x + {2:.0f} $}}".format(coeff_stage_vol_cal[0], coeff_stage_vol_cal[1],
+                                                                         coeff_stage_vol_cal[2]))
 plt.title(r'Stage - Volume Relationship for 591 Check Dam')
 plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/stage_vol_poly_2_deg_591')
 # plt.show()
+"""
+Remove Duplicates
+"""
+# check for duplicates
+# df2 = dry_weather.groupby(level=0).filter(lambda x: len(x) > 1)
+# print(df2)
+dry_weather['index'] = dry_weather.index
+dry_weather.drop_duplicates(subset='index', take_last=True, inplace=True)
+del dry_weather['index']
+dry_weather = dry_weather.sort()
+#  similar for rainy days
+rain_weather['index'] = rain_weather.index
+rain_weather.drop_duplicates(subset='index', take_last=True, inplace=True)
+del rain_weather['index']
+rain_weather = rain_weather.sort()
 
 ## Dry days water balance
+# print dry_weather
+dry_water_balance = dry_weather[['Rain Collection (mm)', 'Evaporation (mm/day)', 'stage(m)']]
+# convert stage to volume
+dry_water_balance['volume (cu.m)'] = (coeff_stage_vol_cal[0]*(dry_water_balance['stage(m)']**2)) + \
+                                     (coeff_stage_vol_cal[1]*dry_water_balance['stage(m)']) + \
+                                     coeff_stage_vol_cal[2]
+
+# fig = plt.figure(figsize=(11.69, 8.27))
+# plt.plot(z_cal, vol_cal, 'bo')
+# plt.plot(dry_water_balance['stage(m)'], dry_water_balance['Volume (cu.m)'], 'ro')
+# plt.show()
+dry_water_balance['ws_area(sq.m)'] = (coeff_stage_area_cal[0]*(dry_water_balance['stage(m)']**2)) + \
+                                                (coeff_stage_area_cal[1]*dry_water_balance['stage(m)']) +\
+                                                 coeff_stage_area_cal[2]
+
+dry_water_balance['Evaporation (cu.m)'] = (dry_water_balance['Evaporation (mm/day)'] * 0.001) * dry_water_balance['ws_area(sq.m)']
+
+
+
+# print dry_water_balance
+cons_days = []
+for d1, d2 in pairwise(dry_water_balance.index):
+    # print d1, d2
+    diff = abs((d2 - d1).days)
+    # print diff
+    if diff == 1:
+        cons_days.append(d1)
+        cons_days.append(d2)
+# http://www.peterbe.com/plog/uniqifiers-benchmark
+
+# function for taking unique values from list
+def f2(seq):
+    checked = []
+    for e in seq:
+        if e not in checked:
+            checked.append(e)
+    return checked
+
+unique_dates = f2(cons_days)
+
+# Select only consecutive dates for analyis
+dry_wb_cons_day = dry_water_balance.ix[unique_dates]
+
+
+dry_wb_cons_day['change_storage(cu.m)'] = 0.000
+
+for d1, d2 in pairwise(dry_wb_cons_day.index):
+    # print d2.strftime('%Y-%m-%d')
+    # print d1, d2
+    diff = abs((d2 - d1).days)
+    # print diff
+    if diff == 1:
+        dry_wb_cons_day['change_storage(cu.m)'][d2.strftime('%Y-%m-%d')] = dry_wb_cons_day['volume (cu.m)'][d2.strftime('%Y-%m-%d')] - dry_wb_cons_day['volume (cu.m)'][d1.strftime('%Y-%m-%d')]
+
+
+
+# dry_wb_cons_day['change_storage(cu.m)']['2014-05-14'] =1
+
+print dry_wb_cons_day
