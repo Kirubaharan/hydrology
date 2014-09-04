@@ -140,3 +140,13 @@ plt.text(x=-0.25, y=3000, fontsize=15,
 | ``'E'``    | Floating point exponential format (uppercase).  
 | ``'f'``    | Floating point decimal format.
 | ``'F'``    | Floating point decimal format.   
+
+### Select Unique values from list
+```python
+def f2(seq):
+    checked = []
+    for e in seq:
+        if e not in checked:
+            checked.append(e)
+    return checked
+```
