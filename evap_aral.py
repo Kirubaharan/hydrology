@@ -15,6 +15,9 @@ import matplotlib.dates as mdates
 import numpy as np
 from matplotlib import rc
 import datetime
+import itertools
+from spread import spread
+# copy the code from http://code.activestate.com/recipes/577878-generate-equally-spaced-floats/ #
 
 
 base_file = '/media/kiruba/New Volume/ACCUWA_Data/weather_station/smgollahalli/smgoll_1_5_11_8_14.csv'
@@ -368,7 +371,7 @@ plt.xlabel(r'\textbf{Capacitance} (ohm)')
 plt.ylabel(r'\textbf{Stage} (m)')
 plt.legend(loc='upper left')
 plt.title(r'Capacitance Sensor Calibration for 591 Check dam')
-plt.text(x=1765, y=275, fontsize=15, s=r"\textbf{{$ y = {0:.4} x  {1:.4} $}}".format(coeff_cal[0], coeff_cal[1]))
+plt.text(x=1765, y=275, fontsize=15, s=r"\textbf{{$ y = {0:.1f} x  {1:.1f} $}}".format(coeff_cal[0], coeff_cal[1]))
 plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/sensor_calib_591')
 # plt.show()
 
@@ -479,13 +482,133 @@ plt.xlim([-0.5, 2.1])
 plt.ylim([250, 3500])
 plt.xlabel(r'\textbf{Stage} (m)')
 plt.ylabel(r'\textbf{Area} ($m^2$)')
-plt.text(x=-0.25, y=3000, fontsize=15, s=r"\textbf{{$ y = {0:.4} x^2 + {1:.4} x + {2:.4} $}}".format(coeff_stage_area_cal[0],
+plt.text(x=-0.47, y=3000, fontsize=15, s=r"\textbf{{$ y = {0:.1f} x^2 + {1:.1f} x + {2:.1f} $}}".format(coeff_stage_area_cal[0],
                                                                  coeff_stage_area_cal[1],
                                                                  coeff_stage_area_cal[2]))
 plt.title(r'Stage - Area Relationship for 591 Check Dam')
 plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/poly_2_deg_591')
-plt.show()
+# plt.show()
 
-# Stage area relationship
+# Stage Volume relationship 591
 
-# Dry day water balance components
+def pairwise(iterable):
+    """s -> (s0,s1), (s1,s2), (s2,s3), ..."""
+    a, b = itertools.tee(iterable)
+    next(b, None)
+    return itertools.izip(a, b)
+
+#function to create stage volume output
+
+
+def calcvolume(profile, order, dy):
+    """
+    Profile = df.Y1,df.Y2,.. and order = 1,2,3
+    :param profile: series of Z values
+    :param order: distance from origin
+    :param dy: thickness of profile in m
+    :param dam_height: Height of check dam in m
+    :return: output: pandas dataframe volume for profile
+    """
+
+    # print 'profile length = %s' % len(profile)
+    results = []
+
+    for stage in dz:
+        water_area = 0
+        for z1, z2 in pairwise(profile):
+            delev = (z2 - z1) / 10
+            elev = z1
+            for b in range(1, 11, 1):
+                elev += delev
+                if stage > elev:
+                    # print 'elev = %s' % elev
+                    water_area += (0.1 * (stage-elev))
+                    # print 'order = %s and dy = %s' %(order, dy)
+                    # print 'area = %s' % water_area
+
+            calc_vol = water_area * dy
+        # print 'calc vol = %s' % calc_vol
+        results.append(calc_vol)
+        # print 'results = %s' % results
+        # print 'results length = %s' % len(results)
+
+    output[('Volume_%s' % order)] = results
+
+
+#input parameters
+base_file_591 = '/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/base_profile_591.csv'
+check_dam_no = 591
+check_dam_height = 1.9    # m
+df_591 = pd.read_csv(base_file_591, sep=',')
+df_591_trans = df_591.T  # Transpose
+no_of_stage_interval = check_dam_height/.05
+dz = list((spread(0.00, check_dam_height, int(no_of_stage_interval), mode=3)))
+index = [range(len(dz))]  # no of stage intervals
+columns = ['stage_m']
+data = np.array(dz)
+output = pd.DataFrame(data, index=index, columns=columns)
+# print(df_591_trans)
+# print len(df_591_trans.ix[1:, 0])
+### Renaming the column and dropping y values
+y_name_list = []
+for y_value in df_591_trans.ix[0, 0:]:
+    y_name_list.append(('Y_%d' %y_value))
+
+df_591_trans.columns = y_name_list
+# print df_591_trans
+y_value_list = df_591_trans.ix[0, 0:]
+# print y_value_list
+
+# drop the y values from data
+final_data = df_591_trans.ix[1:, 0:]
+# print final_data
+
+#volume calculation
+for l1, l2 in pairwise(y_value_list):
+    calcvolume(profile=final_data["Y_%d" % l1], order=l1, dy=int(l2-l1))
+
+output_series = output.filter(regex="Volume_")  # filter the columns that have Volume_
+output["total_vol_cu_m"] = output_series.sum(axis=1)  # get total volume
+# print output
+
+# select only stage and total volume
+stage_vol_df = output[['stage_m', "total_vol_cu_m"]]
+print stage_vol_df
+
+
+## Stage Volume relationship 591
+z_cal = stage_vol_df['stage_m']     # x
+vol_cal = stage_vol_df['total_vol_cu_m']       # y
+
+stage_vol_cal = polyfit(z_cal, vol_cal, 2)    #
+# po_stage_vol = np.polyfit(z_cal, area_cal, 2)
+# f_stage_area = np.poly1d(po_stage_area)
+# print np.poly1d(f_stage_area)
+# print stage_area_cal
+# print a_stage['polynomial'][0]
+coeff_stage_vol_cal = stage_vol_cal['polynomial']
+
+#calculate new coefficients
+z_cal_new = np.linspace(min(z_cal), max(z_cal), 50)
+vol_cal_new = ((z_cal_new**2)*coeff_stage_vol_cal[0]) + \
+               (z_cal_new*coeff_stage_vol_cal[1]) + \
+               coeff_stage_vol_cal[2]
+fig = plt.figure(figsize=(11.69, 8.27))
+plt.plot(z_cal, vol_cal, 'bo', label=r'Observation')
+plt.plot(z_cal_new, vol_cal_new, 'b-', label=r'2\textsuperscript{nd} Degree Polynomial')
+plt.legend(loc='upper left')
+plt.xlim([-0.2, 2.1])
+plt.ylim([-20, 2000])
+plt.xlabel(r'\textbf{Stage} (m)')
+plt.ylabel(r'\textbf{Volume} ($m^3$)')
+# coeff_1 = format(66.66666666, '.2f')
+# print coeff_1
+# print type(coeff_stage_vol_cal[0])
+plt.text(x=-0.16, y=1500, fontsize=15, s=r"\textbf{{$ y = {0:.0f} x^2  {1:.1f} x + {2:.0f} $}}".format(coeff_stage_vol_cal[0],
+                                                                 coeff_stage_vol_cal[1],
+                                                                 coeff_stage_vol_cal[2]))
+plt.title(r'Stage - Volume Relationship for 591 Check Dam')
+plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/stage_vol_poly_2_deg_591')
+# plt.show()
+
+## Dry days water balance
