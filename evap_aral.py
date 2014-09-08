@@ -574,42 +574,6 @@ output["total_vol_cu_m"] = output_series.sum(axis=1)  # get total volume
 
 # select only stage and total volume
 stage_vol_df = output[['stage_m', "total_vol_cu_m"]]
-"""
-## Stage Volume relationship 591
-z_cal = stage_vol_df['stage_m']     # x
-vol_cal = stage_vol_df['total_vol_cu_m']       # y
-
-stage_vol_cal = polyfit(z_cal, vol_cal, 2)    #
-# po_stage_vol = np.polyfit(z_cal, area_cal, 2)
-# f_stage_area = np.poly1d(po_stage_area)
-# print np.poly1d(f_stage_area)
-# print stage_area_cal
-# print a_stage['polynomial'][0]
-coeff_stage_vol_cal = stage_vol_cal['polynomial']
-
-#calculate new coefficients
-z_cal_new = np.linspace(min(z_cal), max(z_cal), 50)
-vol_cal_new = ((z_cal_new**2)*coeff_stage_vol_cal[0]) + \
-               (z_cal_new*coeff_stage_vol_cal[1]) + \
-               coeff_stage_vol_cal[2]
-fig = plt.figure(figsize=(11.69, 8.27))
-plt.plot(z_cal, vol_cal, 'bo', label=r'Observation')
-plt.plot(z_cal_new, vol_cal_new, 'b-', label=r'2\textsuperscript{nd} Degree Polynomial')
-plt.legend(loc='upper left')
-plt.xlim([-0.2, 2.1])
-plt.ylim([-20, 2000])
-plt.xlabel(r'\textbf{Stage} (m)')
-plt.ylabel(r'\textbf{Volume} ($m^3$)')
-# coeff_1 = format(66.66666666, '.2f')
-# print coeff_1
-# print type(coeff_stage_vol_cal[0])
-plt.text(x=-0.16, y=1500, fontsize=15,
-         s=r"\textbf{{$ y = {0:.0f} x^2  {1:.1f} x + {2:.0f} $}}".format(coeff_stage_vol_cal[0], coeff_stage_vol_cal[1],
-                                                                         coeff_stage_vol_cal[2]))
-plt.title(r'Stage - Volume Relationship for 591 Check Dam')
-plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/stage_vol_poly_2_deg_591')
-# plt.show()
-"""
 
 """
 Remove Duplicates
