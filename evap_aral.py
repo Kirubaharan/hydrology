@@ -18,6 +18,7 @@ from datetime import date
 import itertools
 from spread import spread
 # copy the code from http://code.activestate.com/recipes/577878-generate-equally-spaced-floats/ #
+from bisect import bisect_left
 
 
 base_file = '/media/kiruba/New Volume/ACCUWA_Data/weather_station/smgollahalli/smgoll_1_5_11_8_14.csv'
@@ -476,7 +477,7 @@ area_cal_new = ((z_cal_new**2)*coeff_stage_area_cal[0]) + \
                coeff_stage_area_cal[2]
 fig = plt.figure(figsize=(11.69, 8.27))
 plt.plot(z_cal, area_cal, 'bo', label=r'Observation')
-plt.plot(z_cal_new, area_cal_new, 'b-', label=r'2\textsuperscript{nd} Degree Polynomial')
+plt.plot(z_cal_new, area_cal_new, 'r-', label=r'2\textsuperscript{nd} Degree Polynomial')
 plt.legend(loc='upper left')
 plt.xlim([-0.5, 2.1])
 plt.ylim([250, 3500])
@@ -573,9 +574,7 @@ output["total_vol_cu_m"] = output_series.sum(axis=1)  # get total volume
 
 # select only stage and total volume
 stage_vol_df = output[['stage_m', "total_vol_cu_m"]]
-# print stage_vol_df
-
-
+"""
 ## Stage Volume relationship 591
 z_cal = stage_vol_df['stage_m']     # x
 vol_cal = stage_vol_df['total_vol_cu_m']       # y
@@ -611,6 +610,8 @@ plt.title(r'Stage - Volume Relationship for 591 Check Dam')
 plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/stage_vol_poly_2_deg_591')
 # plt.show()
 """
+
+"""
 Remove Duplicates
 """
 # check for duplicates
@@ -627,20 +628,59 @@ del rain_weather['index']
 rain_weather = rain_weather.sort()
 
 ## Dry days water balance
-# print dry_weather
-dry_water_balance = dry_weather[['Rain Collection (mm)', 'Evaporation (mm/day)', 'stage(m)']]
-# convert stage to volume
-dry_water_balance['volume (cu.m)'] = (coeff_stage_vol_cal[0]*(dry_water_balance['stage(m)']**2)) + \
-                                     (coeff_stage_vol_cal[1]*dry_water_balance['stage(m)']) + \
-                                     coeff_stage_vol_cal[2]
 
-# fig = plt.figure(figsize=(11.69, 8.27))
-# plt.plot(z_cal, vol_cal, 'bo')
-# plt.plot(dry_water_balance['stage(m)'], dry_water_balance['Volume (cu.m)'], 'ro')
+# linear interpolation for stage volume
+# set stage as index
+stage_vol_df.set_index(stage_vol_df['stage_m'], inplace=True)
+# print stage_vol_df
+# function to find containing intervals
+
+
+def find_range(array, a):
+    start = bisect_left(array, a)
+    return array[start-1], array[start]
+# print dry_weather
+
+dry_water_balance = dry_weather[['Rain Collection (mm)', 'Evaporation (mm/day)', 'stage(m)']]
+# set stage as index
+# dry_water_balance.set_index(dry_water_balance['stage(m)'], inplace=True)
+# create empty volume column
+dry_water_balance['volume (cu.m)'] = 0
+# print dry_water_balance
+# convert stage to volume
+for index, row in dry_water_balance.iterrows():
+    # print 'index = %s' % index
+    # print 'row = %s' % row
+    obs_stage = row['stage(m)']  # observed stage
+    print obs_stage
+    x1, x2 = find_range(stage_vol_df['stage_m'].tolist(), obs_stage)
+    x_diff = x2-x1
+    y1 = stage_vol_df['total_vol_cu_m'][x1]
+    y2 = stage_vol_df['total_vol_cu_m'][x2]
+    y_diff = y2 - y1
+    slope = y_diff/x_diff
+    y_intercept = y2 - (slope*x2)
+    # print x1, x2, stage_vol_df['total_vol_cu_m'][x1], stage_vol_df['total_vol_cu_m'][x2], slope
+    dry_water_balance['volume (cu.m)'][index.strftime('%Y-%m-%d')] = (slope*obs_stage) + y_intercept
+    # dry_water_balance['volume (cu.m)'][index.strftime('%Y-%m-%d')] = ((-1*x2) + obs_stage + (slope*y2))/slope
+
+# dry_water_balance['volume (cu.m)'] = (coeff_stage_vol_cal[0]*(dry_water_balance['stage(m)']**2)) + \
+#                                      (coeff_stage_vol_cal[1]*dry_water_balance['stage(m)']) + \
+#                                      coeff_stage_vol_cal[2]
+
+fig = plt.figure(figsize=(11.69, 8.27))
+plt.plot(stage_vol_df['stage_m'], stage_vol_df['total_vol_cu_m'], 'bo', label='Observation')
+plt.plot(dry_water_balance['stage(m)'], dry_water_balance['volume (cu.m)'], 'ro', label='Prediction')
+plt.legend(loc='upper left')
+plt.xlabel(r'\textbf{Stage} (m)')
+plt.ylabel(r'\textbf{Volume} ($m^3$)')
+# plt.xlim(-0.25, 2)
+# plt.ylim(-100, 2000)
+plt.title(r'Stage - Volume Relationship for 591 Check Dam')
+plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/stage_vol_linear_591')
 # plt.show()
-dry_water_balance['ws_area(sq.m)'] = (coeff_stage_area_cal[0]*(dry_water_balance['stage(m)']**2)) + \
-                                                (coeff_stage_area_cal[1]*dry_water_balance['stage(m)']) +\
-                                                 coeff_stage_area_cal[2]
+
+dry_water_balance['ws_area(sq.m)'] = 1
 
 dry_water_balance['Evaporation (cu.m)'] = (dry_water_balance['Evaporation (mm/day)'] * 0.001) * dry_water_balance['ws_area(sq.m)']
 
@@ -667,7 +707,7 @@ def f2(seq):
 
 unique_dates = f2(cons_days)
 
-# Select only consecutive dates for analyis
+# Select only consecutive dates for analysis
 dry_wb_cons_day = dry_water_balance.ix[unique_dates]
 
 
@@ -683,6 +723,43 @@ for d1, d2 in pairwise(dry_wb_cons_day.index):
 
 
 
-# dry_wb_cons_day['change_storage(cu.m)']['2014-05-14'] =1
+dry_wb_cons_day['infiltration(cu.m)'] = dry_wb_cons_day['change_storage(cu.m)'] + dry_wb_cons_day['Evaporation (cu.m)']
 
-print dry_wb_cons_day
+"""
+Correlation between stage and infiltration
+"""
+stage_cal = dry_wb_cons_day['stage(m)']     # x
+inf_cal = dry_wb_cons_day['infiltration(cu.m)']       # y
+
+stage_inf_cal = polyfit(stage_cal, inf_cal, 2)    #
+# po_stage_vol = np.polyfit(z_cal, area_cal, 2)
+# f_stage_area = np.poly1d(po_stage_area)
+# print np.poly1d(f_stage_area)
+# print stage_area_cal
+# print a_stage['polynomial'][0]
+coeff_stage_inf_cal = stage_inf_cal['polynomial']
+
+#calculate new coefficientss
+stage_cal_new = np.linspace(min(stage_cal), max(stage_cal), 50)
+inf_cal_new = ((stage_cal_new**2)*coeff_stage_inf_cal[0]) + \
+               (stage_cal_new*coeff_stage_inf_cal[1]) + \
+               coeff_stage_inf_cal[2]
+fig = plt.figure(figsize=(11.69, 8.27))
+plt.plot(stage_cal, inf_cal, 'bo', label=r'Observation')
+# plt.plot(stage_cal_new, inf_cal_new, 'b-', label=r'2\textsuperscript{nd} Degree Polynomial')
+plt.legend(loc='upper left')
+# plt.xlim([-0.2, 2.1])
+# plt.ylim([-20, 2000])
+plt.xlabel(r'\textbf{Stage} (m)')
+plt.ylabel(r'\textbf{Infiltration} ($m^3/day$)')
+# coeff_1 = format(66.66666666, '.2f')
+# print coeff_1
+# print type(coeff_stage_vol_cal[0])
+plt.text(x=-0.16, y=1500, fontsize=15,
+         s=r"\textbf{{$ y = {0:.0f} x^2  {1:.1f} x + {2:.0f} $}}".format(coeff_stage_inf_cal[0], coeff_stage_inf_cal[1],
+                                                                         coeff_stage_inf_cal[2]))
+plt.title(r'Stage - Infiltration Relationship for 591 Check Dam')
+plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/stage_inf_poly_2_deg_591')
+dry_wb_cons_day.to_csv('/media/kiruba/New Volume/milli_watershed/check_dam_evap/591/dry_wb_591.csv')
+plt.show()
+# print dry_wb_cons_day
