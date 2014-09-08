@@ -130,6 +130,10 @@ plt.text(x=-0.25, y=3000, fontsize=15,
                                                                        coeff_stage_area_cal[1],
                                                                        coeff_stage_area_cal[2]))
 ```
+####String formatting involving power
+```python
+plt.text(x=0.15, y=11, fontsize=15, s=r'$Infiltration = {0:.2f}h^{{{1:.2f}}}$'.format(popt[0], popt[1]))
+```
 ###String Formatting General Python
 
 | Conversion | Meaning                                             
