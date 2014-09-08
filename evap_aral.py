@@ -1,8 +1,7 @@
 __author__ = 'kiruba'
 """
 Calculate daily evapotranspiration from weather data.
-This file is for calculating the potential ET by Penman method for
-aralumallige watershed.
+and water balance for Check dam no 591
 """
 import evaplib
 import meteolib as met
@@ -453,10 +452,8 @@ plt.legend(loc='upper left')
 plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/daily_stage_591')
 fig.autofmt_xdate()
 # plt.show()
-#stage_area relationship
-stage_area_df = pd.read_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/cont_area.csv',
-                            sep=',', header=0, names=['sno', 'Z (m)', 'Area (m2)'])
-stage_area_df.drop('sno', inplace=True, axis=1)
+
+"""
 # print stage_area_df
 ###calibration
 z_cal = stage_area_df.ix[0:, 0]     # x
@@ -475,19 +472,7 @@ z_cal_new = np.linspace(min(z_cal), max(z_cal), 50)
 area_cal_new = ((z_cal_new**2)*coeff_stage_area_cal[0]) + \
                (z_cal_new*coeff_stage_area_cal[1]) + \
                coeff_stage_area_cal[2]
-fig = plt.figure(figsize=(11.69, 8.27))
-plt.plot(z_cal, area_cal, 'bo', label=r'Observation')
-plt.plot(z_cal_new, area_cal_new, 'r-', label=r'2\textsuperscript{nd} Degree Polynomial')
-plt.legend(loc='upper left')
-plt.xlim([-0.5, 2.1])
-plt.ylim([250, 3500])
-plt.xlabel(r'\textbf{Stage} (m)')
-plt.ylabel(r'\textbf{Area} ($m^2$)')
-plt.text(x=-0.47, y=3000, fontsize=15, s=r"\textbf{{$ y = {0:.1f} x^2 + {1:.1f} x + {2:.1f} $}}".format(coeff_stage_area_cal[0],
-                                                                 coeff_stage_area_cal[1],
-                                                                 coeff_stage_area_cal[2]))
-plt.title(r'Stage - Area Relationship for 591 Check Dam')
-plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/poly_2_deg_591')
+"""
 # plt.show()
 
 # Stage Volume relationship 591
@@ -616,7 +601,7 @@ for index, row in dry_water_balance.iterrows():
     # print 'index = %s' % index
     # print 'row = %s' % row
     obs_stage = row['stage(m)']  # observed stage
-    print obs_stage
+    # print obs_stage
     x1, x2 = find_range(stage_vol_df['stage_m'].tolist(), obs_stage)
     x_diff = x2-x1
     y1 = stage_vol_df['total_vol_cu_m'][x1]
@@ -643,8 +628,45 @@ plt.ylabel(r'\textbf{Volume} ($m^3$)')
 plt.title(r'Stage - Volume Relationship for 591 Check Dam')
 plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/stage_vol_linear_591')
 # plt.show()
+"""
+Stage vs area linear relationship
+"""
+stage_area_df = pd.read_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/cont_area.csv',
+                            sep=',', header=0, names=['sno', 'stage_m', 'total_area_sq_m'])
+stage_area_df.drop('sno', inplace=True, axis=1)
+#create empty column
+dry_water_balance['ws_area(sq.m)'] = 0
+# set stage as index
+stage_area_df.set_index(stage_area_df['stage_m'], inplace=True)
 
-dry_water_balance['ws_area(sq.m)'] = 1
+
+for index, row in dry_water_balance.iterrows():
+    # print 'index = %s' % index
+    # print 'row = %s' % row
+    obs_stage = row['stage(m)']  # observed stage
+    # print obs_stage
+    x1, x2 = find_range(stage_area_df['stage_m'].tolist(), obs_stage)
+    x_diff = x2-x1
+    y1 = stage_area_df['total_area_sq_m'][x1]
+    y2 = stage_area_df['total_area_sq_m'][x2]
+    y_diff = y2 - y1
+    slope = y_diff/x_diff
+    y_intercept = y2 - (slope*x2)
+    # print x1, x2, stage_vol_df['total_vol_cu_m'][x1], stage_vol_df['total_vol_cu_m'][x2], slope
+    dry_water_balance['ws_area(sq.m)'][index.strftime('%Y-%m-%d')] = (slope*obs_stage) + y_intercept
+
+fig = plt.figure(figsize=(11.69, 8.27))
+plt.plot(stage_area_df['stage_m'], stage_area_df['total_area_sq_m'], 'bo')
+plt.plot(dry_water_balance['stage(m)'], dry_water_balance['ws_area(sq.m)'], 'ro', label='Predicted water spread area')
+plt.legend(loc='upper left')
+plt.xlabel(r'\textbf{Stage} (m)')
+plt.ylabel(r'\textbf{Area} ($m^2$)')
+# plt.xlim(-0.25, 2)
+# plt.ylim(-100, 2000)
+plt.title(r'Stage - Surface Area Relationship for 591 Check Dam')
+plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/stage_area_linear_591')
+# plt.show()
+
 
 dry_water_balance['Evaporation (cu.m)'] = (dry_water_balance['Evaporation (mm/day)'] * 0.001) * dry_water_balance['ws_area(sq.m)']
 
@@ -674,7 +696,7 @@ unique_dates = f2(cons_days)
 # Select only consecutive dates for analysis
 dry_wb_cons_day = dry_water_balance.ix[unique_dates]
 
-
+# assume 0 initially 
 dry_wb_cons_day['change_storage(cu.m)'] = 0.000
 
 for d1, d2 in pairwise(dry_wb_cons_day.index):
@@ -687,8 +709,12 @@ for d1, d2 in pairwise(dry_wb_cons_day.index):
 
 
 
-dry_wb_cons_day['infiltration(cu.m)'] = dry_wb_cons_day['change_storage(cu.m)'] + dry_wb_cons_day['Evaporation (cu.m)']
+dry_wb_cons_day['infiltration(cu.m)'] = -1*(dry_wb_cons_day['change_storage(cu.m)'] + dry_wb_cons_day['Evaporation (cu.m)'])
 
+# removing stage values less than 5 cm or .05 metre
+dry_wb_cons_day = dry_wb_cons_day[dry_wb_cons_day['stage(m)'] > 0.05]
+# also remove zero change in storage values as these dont have previous date values
+dry_wb_cons_day = dry_wb_cons_day[~(dry_wb_cons_day['change_storage(cu.m)'] == 0)]
 """
 Correlation between stage and infiltration
 """
@@ -725,5 +751,29 @@ plt.text(x=-0.16, y=1500, fontsize=15,
 plt.title(r'Stage - Infiltration Relationship for 591 Check Dam')
 plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/stage_inf_poly_2_deg_591')
 dry_wb_cons_day.to_csv('/media/kiruba/New Volume/milli_watershed/check_dam_evap/591/dry_wb_591.csv')
-plt.show()
+# plt.show()
 # print dry_wb_cons_day
+## plot of daily infiltration
+fig = plt.figure(figsize=(11.69, 8.27))
+plt.plot_date(dry_wb_cons_day.index, inf_cal, 'bo', label=r'Dry Infiltration ($m^3$)')
+# plt.plot_date(rain_weather.index, np.random.normal(size=len(rain_weather.index)), 'ro', label='Rainy days')
+
+# plt.ylabel(r'\textbf{Wind Speed}($Km/h$)')
+plt.title(r"Infiltration for only Dry Days 591", fontsize=16)
+plt.legend(loc='upper left')
+plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/dry_infiltration_591')
+fig.autofmt_xdate()
+# print dry_wb_cons_day
+fig = plt.figure(figsize=(11.69, 8.27))
+plt.plot_date(dry_wb_cons_day.index, dry_wb_cons_day['change_storage(cu.m)'], 'bo', label=r'Change in Storage ($m^3$)')
+plt.legend(loc='upper left')
+plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/dry_change_storage_591')
+fig.autofmt_xdate()
+## dry day evaporation
+print dry_wb_cons_day
+fig = plt.figure(figsize=(11.69, 8.27))
+plt.plot_date(dry_wb_cons_day.index, dry_wb_cons_day['Evaporation (cu.m)'], 'bo', label=r'Evaporation ($m^3$)')
+plt.legend(loc='upper left')
+plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/dry_evaporation_591')
+fig.autofmt_xdate()
+plt.show()
