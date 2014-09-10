@@ -115,6 +115,9 @@ x +=y
 df.ix[row,column]
 ```
 ###Matplotlib Plots
+### Exponential Curve Fitting
+[Ref :](http://stackoverflow.com/a/21421137/2632856)
+
 ####Using Tex, Latex in matplotlib plots
 ##### String formatting in Latex
 [Ref :](http://mkaz.com/2012/10/10/python-string-format/)
@@ -154,3 +157,9 @@ def f2(seq):
             checked.append(e)
     return checked
 ```
+### Date time 
+-`%d` is the day number
+-`%m` is the month number
+-`%b` is the month abbreviation
+-`%y` is the year last two digits
+-`%Y` is the all year
