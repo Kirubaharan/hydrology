@@ -53,8 +53,12 @@ Aggregate half hourly to daily
 
 ## separate out rain daily sum
 rain_df = df_base[['Date_Time', 'Rain Collection (mm)']]
+# plot rainfall
+fig = plt.figure(figsize=(11.69, 8.27))
+plt.plot(rain_df.index, rain_df["Rain Collection (mm)"], '-b')
+fig.autofmt_xdate(rotation=90)
+plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/rainfall_intensity_591')
 ## separate out weather data(except rain)
-
 weather_df = df_base.drop(['Date',
                            'Time',
                            'Rain Collection (mm)',
@@ -81,7 +85,7 @@ weather_daily_df = weather_df.resample('D', how=np.mean)
 fig = plt.figure(figsize=(11.69, 8.27))
 plt.bar(rain_df.index, rain_df['Rain Collection (mm)'], 0.35, color='b')
 # plt.plot_date(rain_df.index, rain_df['Rain Collection (mm)'], 'b-')
-fig.autofmt_xdate()
+fig.autofmt_xdate(rotation=90)
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
 # plt.xlabel(r'\textbf{Area} ($m^2$)')
@@ -234,7 +238,7 @@ dry_weather['Rext (J/m2)'] = rext_calc(dry_weather, lat=13.260196)
 
 # fig = plt.figure()
 # plt.plot_date(dry_weather.index, dry_weather['Rext (J/m2)'], 'b*')
-# fig.autofmt_xdate()
+# fig.autofmt_xdate(rotation=90)
 # plt.show()
 
 """
@@ -295,7 +299,7 @@ rain_weather.to_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance
 fig = plt.figure(figsize=(11.69, 8.27))
 plt.plot_date(dry_weather.index, dry_weather['Evaporation (mm/day)'], 'r.', label='Non -Rainy Day')
 plt.plot_date(rain_weather.index, rain_weather['Evaporation (mm/day)'], 'b.', label='Rainy Day')
-fig.autofmt_xdate()
+fig.autofmt_xdate(rotation=90)
 plt.legend(loc='upper right')
 rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica']})
 rc('text', usetex=True)
@@ -315,28 +319,28 @@ plt.plot_date(weather_daily_df.index, weather_daily_df['Wind Speed (kmph)'], 'r-
 plt.ylabel(r'\textbf{Wind Speed}($Km/h$)')
 plt.title(r"Wind Speed - Aralumallige", fontsize=16)
 plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/wind_speed_aral')
-fig.autofmt_xdate()
+fig.autofmt_xdate(rotation=90)
 #Air Temperature
 fig = plt.figure(figsize=(11.69, 8.27))
 plt.plot_date(weather_daily_df.index, weather_daily_df['Air Temperature (C)'], 'r-', label='Air Temperature (C)')
 plt.ylabel(r'\textbf{Air Temperature}(C)')
 plt.title(r"Daily Average Temperature(C) - Aralumallige", fontsize=16)
 plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/avg_temp')
-fig.autofmt_xdate()
+fig.autofmt_xdate(rotation=90)
 #humidity
 fig = plt.figure(figsize=(11.69, 8.27))
 plt.plot_date(weather_daily_df.index, weather_daily_df['Humidity (%)'], 'r-', label='Humidity (%)')
 plt.ylabel(r'\textbf{Humidity}(\%)')
 plt.title(r"Humidity - Aralumallige", fontsize=16)
 plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/humidity')
-fig.autofmt_xdate()
+fig.autofmt_xdate(rotation=90)
 #solar radiation
 fig = plt.figure(figsize=(11.69, 8.27))
 plt.plot_date(weather_daily_df.index, weather_daily_df['Solar Radiation (W/mm2)'], 'r-', label='Solar Radiation (W/mm2)')
 plt.ylabel(r'\textbf{Solar Radiation ($W/mm2$)')
 plt.title(r"Solar Radiation - Aralumallige", fontsize=16)
 plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/solar_rad')
-fig.autofmt_xdate()
+fig.autofmt_xdate(rotation=90)
 plt.show()
 """
 #check dam caliberation
@@ -443,26 +447,32 @@ water_level = pd.concat([water_level_1, water_level_2, water_level_3], axis=0)
 dry_weather = dry_weather.join(water_level, how='left')
 rain_weather = rain_weather.join(water_level, how='left')
 # select from the date where stage data is available
-print min(dry_weather.index)
-print max(dry_weather.index)
-print min(rain_weather.index)
-print max(rain_weather.index)
-print min(water_level.index)
-print max(water_level.index)
+# print min(dry_weather.index)
+# print max(dry_weather.index)
+# print min(rain_weather.index)
+# print max(rain_weather.index)
+# print min(water_level.index)
+# print max(water_level.index)
 dry_weather = dry_weather[min(water_level.index):max(water_level.index)]
 rain_weather = rain_weather[min(water_level.index):max(water_level.index)]
 # print(rain_weather)
 #save as csv
 dry_weather.to_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/dry_stage_weather_591.csv')
 rain_weather.to_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/rain_stage_weather_591.csv')
+
+
+def func1(x):
+    return x, 1.9
 # plot daily water level
 fig = plt.figure(figsize=(11.69, 8.27))
 plt.plot_date(water_level.index, water_level['stage(m)'], 'r-', label='Stage (m)')
+# plt.plot([0, 1.9], [1, 1.9], '-k')
+plt.hlines(1.9, min(water_level.index), max(water_level.index))
 # plt.ylabel(r'\textbf{Wind Speed}($Km/h$)')
 plt.title(r"Average Daily Water Level in Checkdam 591", fontsize=16)
 plt.legend(loc='upper left')
 plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/daily_stage_591')
-fig.autofmt_xdate()
+fig.autofmt_xdate(rotation=90)
 # plt.show()
 
 """
@@ -755,20 +765,20 @@ plt.plot_date(dry_wb_cons_day.index, inf_cal, 'bo', label=r'Dry Infiltration ($m
 plt.title(r"Infiltration for only Dry Days 591", fontsize=16)
 plt.legend(loc='upper left')
 plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/dry_infiltration_591')
-fig.autofmt_xdate()
+fig.autofmt_xdate(rotation=90)
 # print dry_wb_cons_day
 fig = plt.figure(figsize=(11.69, 8.27))
 plt.plot_date(dry_wb_cons_day.index, dry_wb_cons_day['change_storage(cu.m)'], 'bo', label=r'Change in Storage ($m^3$)')
 plt.legend(loc='upper left')
 plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/dry_change_storage_591')
-fig.autofmt_xdate()
+fig.autofmt_xdate(rotation=90)
 ## dry day evaporation
 # print dry_wb_cons_day
 fig = plt.figure(figsize=(11.69, 8.27))
 plt.plot_date(dry_wb_cons_day.index, dry_wb_cons_day['Evaporation (cu.m)'], 'bo', label=r'Evaporation ($m^3$)')
 plt.legend(loc='upper left')
 plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/dry_evaporation_591')
-fig.autofmt_xdate()
+fig.autofmt_xdate(rotation=90)
 # plt.show()
 ##stacked bar plot
 fig = plt.figure(figsize=(11.69, 8.27))
@@ -777,7 +787,7 @@ plt.bar(dry_wb_cons_day.index, inf_cal, 0.35, color='b', bottom=dry_wb_cons_day[
 plt.legend(loc='upper left')
 plt.title(r'Evaporation and Infiltration for Check dam 591')
 plt.ylabel(r'$m^3$')
-fig.autofmt_xdate()
+fig.autofmt_xdate(rotation=90)
 plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/dry_evaporation_inf_591')
 
 
@@ -828,15 +838,15 @@ water_balance_df['volume (cu.m)'] = 0.000
 # print(water_balance_df)
 
 # removing stage values less than 14 cm or .14 metre
-water_balance_df = water_balance_df[water_balance_df['stage(m)'] > 0.14]
-# leave overflowing days
+# water_balance_df = water_balance_df[water_balance_df['stage(m)'] > 0.14]
+# # leave overflowing days
 water_balance_df = water_balance_df[water_balance_df['stage(m)'] < 1.9]
 # print stage_vol_df
 # convert stage to volume
 
 for index, row in water_balance_df.iterrows():
     obs_stage = row['stage(m)']
-    print obs_stage
+    # print obs_stage
     x1, x2 = find_range(stage_vol_df['stage_m'].tolist(), obs_stage)
     x_diff = x2 - x1
     y1 = stage_vol_df['total_vol_cu_m'][x1]
@@ -926,6 +936,12 @@ for t1 in ax2.get_yticklabels():
 plt.legend(loc='best')
 fig.autofmt_xdate(rotation=90)
 plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/whole_change_storage_591')
+
+#create average stage for two days
+water_balance_df['average_stage_m'] = 0.000
+for d1, d2 in pairwise(water_balance_df.index):
+    water_balance_df['average_stage_m'][d2.strftime('%Y-%m-%d')] = (water_balance_df['stage(m)'][d2.strftime('%Y-%m-%d')]+water_balance_df['stage(m)'][d1.strftime('%Y-%m-%d')])/2
+
 #take out dry days
 water_balance_df_dry = water_balance_df[water_balance_df['status'] == 'D']
 # calculate infiltration
@@ -934,9 +950,11 @@ water_balance_df_dry['infiltration(cu.m)'] = -1*(water_balance_df_dry['change_st
 # removing stage values less than 14 cm or .14 metre
 water_balance_df_dry = water_balance_df_dry[water_balance_df_dry['stage(m)'] > 0.14]
 water_balance_df_dry = water_balance_df_dry[water_balance_df_dry['infiltration(cu.m)'] > 0.0]
-stage_cal = water_balance_df_dry['stage(m)']
+
+
+stage_cal = water_balance_df_dry['average_stage_m']
 inf_cal = water_balance_df_dry['infiltration(cu.m)']
-# print water_balance_df_dry
+# print water_balance_df_dry.head()
 
 def func(h, alpha, beta):
     return alpha*(h**beta)
@@ -953,7 +971,7 @@ fig = plt.figure(figsize=(11.69, 8.27))
 plt.plot(stage_cal, inf_cal, 'bo', label=r'Observation')
 plt.plot(stage_cal_new, inf_cal_new, 'r-', label='Prediction')
 # plt.plot(stage_cal_new, inf_cal_new, 'b-', label=r'2\textsuperscript{nd} Degree Polynomial')
-plt.legend(loc='upper left')
+plt.legend(loc='upper right')
 # plt.xlim([-0.2, 2.1])
 # plt.ylim([-20, 2000])
 plt.xlabel(r'\textbf{Stage} (m)')
@@ -964,4 +982,66 @@ plt.ylabel(r'\textbf{Infiltration} ($m^3/day$)')
 plt.title(r'Stage - Infiltration Relationship for 591 Check Dam')
 plt.text(x=0.15, y=11, fontsize=15, s=r'$Infiltration = {0:.2f}h^{{{1:.2f}}}$'.format(popt[0], popt[1]))
 plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/stage_inf_exp_dry_591')
+
+## wet day infiltration
+# print water_balance_df.tail()
+water_balance_df_wet = water_balance_df[water_balance_df['status'] == 'R']
+#drop first day
+# print water_balance_df.head()
+water_balance_df_wet = water_balance_df_wet.ix[1:, 0:]
+#apply the function to calculate infiltration
+water_balance_df_wet['infiltration(cu.m)'] = func(water_balance_df_wet['average_stage_m'], popt[0], popt[1])
+#rainfall calculation
+print stage_area_df
+# surface_area = stage_area_df['total_area_sq_m'][1.9]
+# water_balance_df_wet['Precipitation(cu.m)'] = (water_balance_df_wet['Rain Collection (mm)']*0.001)*water_balance_df_wet['ws_area(sq.m)']
+#inflow
+water_balance_df_wet['Inflow(cu.m)'] = water_balance_df_wet['change_storage(cu.m)'] + water_balance_df_wet['Evaporation (cu.m)'] + water_balance_df_wet['infiltration(cu.m)']
+# print water_balance_df_wet
+
+# print water_balance_df_dry
+print water_balance_df.head()
+##Plot of storage, evaporation, infiltration
+
+fig, ax1 = plt.subplots(figsize=(11.69, 8.27))
+ax1.bar(water_balance_df.index, water_balance_df['volume (cu.m)'], 0.45, color='g', label=r'Storage ($m^3$)')
+# plt.bar(dry_wb_cons_day.index, inf_cal, 0.35, color='b', bottom=dry_wb_cons_day['Evaporation (cu.m)'], label=r'Infiltration ($m^3$)')
+plt.legend(loc='best')
+plt.title(r'Storage for Check dam 591')
+plt.ylabel(r'$m^3$')
+ax2 = ax1.twinx()
+ax2.plot(rain_df.index, rain_df['Rain Collection (mm)'], '-b', label='Rainfall (mm)')
+plt.legend(loc='best')
+for t1 in ax2.get_yticklabels():
+    t1.set_color('b')
+# fig.autofmt_xdate(rotation=90)
+plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/storage_rain_591')
+# storage and evaporation
+fig, ax1 = plt.subplots(figsize=(11.69, 8.27))
+ax1.bar(water_balance_df.index, water_balance_df['Evaporation (cu.m)'], .45,color='r', label=r'Evaporation ($m^3$)')
+# plt.bar(dry_wb_cons_day.index, inf_cal, 0.35, color='b', bottom=dry_wb_cons_day['Evaporation (cu.m)'], label=r'Infiltration ($m^3$)')
+plt.legend(loc='upper left')
+plt.title(r'Storage for Check dam 591')
+plt.ylabel(r'$m^3$')
+ax2 = ax1.twinx()
+ax2.bar(water_balance_df.index, water_balance_df['volume (cu.m)'], 0.45, color='g', label=r'Storage ($m^3$)')
+plt.legend(loc='upper right')
+for t1 in ax2.get_yticklabels():
+    t1.set_color('r')
+fig.autofmt_xdate(rotation=90)
+plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/storage_evaporation_591')
+
+# storage and Inflow
+# fig, ax1 = plt.subplots(figsize=(11.69, 8.27))
+# ax1.bar(water_balance_df.index, water_balance_df['volume (cu.m)'], 0.45, color='g', label=r'Storage ($m^3$)')# plt.bar(dry_wb_cons_day.index, inf_cal, 0.35, color='b', bottom=dry_wb_cons_day['Evaporation (cu.m)'], label=r'Infiltration ($m^3$)')
+# plt.legend(loc='upper left')
+# plt.title(r'Storage for Check dam 591')
+# plt.ylabel(r'$m^3$')
+# ax2 = ax1.twinx()
+# ax2.bar(water_balance_df_dry.index, water_balance_df_dry['Inflow(cu.m)'], color='r', label='Dry day')
+# plt.legend(loc='upper right')
+# for t1 in ax2.get_yticklabels():
+#     t1.set_color('r')
+# fig.autofmt_xdate(rotation=90)
+# plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/storage_evaporation_591')
 
