@@ -461,8 +461,6 @@ dry_weather.to_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/
 rain_weather.to_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/rain_stage_weather_591.csv')
 
 
-def func1(x):
-    return x, 1.9
 # plot daily water level
 fig = plt.figure(figsize=(11.69, 8.27))
 plt.plot_date(water_level.index, water_level['stage(m)'], 'r-', label='Stage (m)')
