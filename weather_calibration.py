@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib import rc
+from datetime import timedelta
 
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
@@ -84,7 +85,42 @@ fig.autofmt_xdate(rotation=90)
 # plt.show()
 
 #calibration
-wrong_temp = weather_df[weather_df['Min Air Temperature (C)'] < 0]
+wrong_min_temp = weather_df[weather_df['Min Air Temperature (C)'] < 0]
 # print wrong_temp.index
-for date_time in wrong_temp.index:
+for date_time in wrong_min_temp.index:
+    # print date_time
+    prev_date_time = date_time - timedelta(days=1)
+    prev_value = weather_df['Min Air Temperature (C)'][prev_date_time.strftime('%Y-%m-%d %H:%M')]
+    next_date_time = date_time + timedelta(days=1)
+    next_value = weather_df['Min Air Temperature (C)'][next_date_time.strftime('%Y-%m-%d %H:%M')]
+    average_value = (prev_value+next_value) / 2
+    weather_df['Min Air Temperature (C)'][date_time.strftime('%Y-%m-%d %H:%M')] = average_value
+
+
+fig = plt.figure(figsize=(11.69, 8.27))
+plt.plot_date(weather_df.index, weather_df["Min Air Temperature (C)"], 'r-', label='Min Air Temperature (C)')
+plt.ylabel(r'\textbf{Temperature}($^\circ$C)')
+plt.title(r"Calibrated Minimum Temperature($^\circ$C) - Aralumallige", fontsize=16)
+plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/sm_corr_min_temp')
+fig.autofmt_xdate(rotation=90)
+# plt.show()
+
+wrong_max_temp = weather_df[weather_df['Max Air Temperature (C)'] > 45]
+# print wrong_temp.index
+for date_time in wrong_max_temp.index:
     print date_time
+    prev_date_time = date_time - timedelta(days=1)
+    prev_value = weather_df['Max Air Temperature (C)'][prev_date_time.strftime('%Y-%m-%d %H:%M')]
+    next_date_time = date_time + timedelta(days=1)
+    next_value = weather_df['Max Air Temperature (C)'][next_date_time.strftime('%Y-%m-%d %H:%M')]
+    average_value = (prev_value+next_value) / 2
+    weather_df['Max Air Temperature (C)'][date_time.strftime('%Y-%m-%d %H:%M')] = average_value
+
+fig = plt.figure(figsize=(11.69, 8.27))
+plt.plot_date(weather_df.index, weather_df["Max Air Temperature (C)"], 'r-', label='Air Temperature (C)')
+plt.ylabel(r'\textbf{Temperature}($^\circ$C)')
+plt.title(r"Calibrated Maximum Temperature($^\circ$C) - Aralumallige", fontsize=16)
+plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/sm_corr_max_temp')
+fig.autofmt_xdate(rotation=90)
+
+plt.show()
