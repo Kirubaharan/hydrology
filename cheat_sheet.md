@@ -163,3 +163,9 @@ def f2(seq):
 -`%b` is the month abbreviation
 -`%y` is the year last two digits
 -`%Y` is the all year
+## Function
+### Basic Function
+```python
+def my_add(a, b):
+    total = a + b
+    
