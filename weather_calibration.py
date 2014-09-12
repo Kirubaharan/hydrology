@@ -84,18 +84,47 @@ fig.autofmt_xdate(rotation=90)
 # fig.autofmt_xdate(rotation=90)
 # plt.show()
 
-#calibration
-wrong_min_temp = weather_df[weather_df['Min Air Temperature (C)'] < 0]
-# print wrong_temp.index
-for date_time in wrong_min_temp.index:
-    # print date_time
-    prev_date_time = date_time - timedelta(days=1)
-    prev_value = weather_df['Min Air Temperature (C)'][prev_date_time.strftime('%Y-%m-%d %H:%M')]
-    next_date_time = date_time + timedelta(days=1)
-    next_value = weather_df['Min Air Temperature (C)'][next_date_time.strftime('%Y-%m-%d %H:%M')]
-    average_value = (prev_value+next_value) / 2
-    weather_df['Min Air Temperature (C)'][date_time.strftime('%Y-%m-%d %H:%M')] = average_value
 
+def weather_interpolate(dataframe, column_name, cutoff_value, mode):
+    """
+    Takes the average of previous time period and next time period
+    :param dataframe: Weather pandas dataframe with datetime index
+    :param column_name: Weather variable
+    :type column_name: str
+    :param cutoff_value: Cutoff value
+    :type cutoff_value: float
+    :param mode: 1 for Less than cutoff_value, 2 for more than cutoff value
+    :type mode: int
+    :return:corrected dataframe
+    """
+    # from datetime import timedelta
+    if mode == 1:
+        wrong_value = dataframe[dataframe[column_name] < cutoff_value]
+    if mode == 2:
+        wrong_value = dataframe[dataframe[column_name] > cutoff_value]
+    for date_time in wrong_value.index:
+        prev_date_time = date_time - timedelta(days=1)
+        next_date_time = date_time + timedelta(days=1)
+        prev_value = dataframe[column_name][prev_date_time.strftime('%Y-%m-%d %H:%M')]
+        next_value = dataframe[column_name][next_date_time.strftime('%Y-%m-%d %H:%M')]
+        average_value = (prev_value + next_value) / 2
+        dataframe[column_name][date_time.strftime('%Y-%m-%d %H:%M')] = average_value
+    return dataframe
+
+#calibration
+# wrong_min_temp = weather_df[weather_df['Min Air Temperature (C)'] < 0]
+# # print wrong_temp.index
+# for date_time in wrong_min_temp.index:
+#     # print date_time
+#     prev_date_time = date_time - timedelta(days=1)
+#     prev_value = weather_df['Min Air Temperature (C)'][prev_date_time.strftime('%Y-%m-%d %H:%M')]
+#     next_date_time = date_time + timedelta(days=1)
+#     next_value = weather_df['Min Air Temperature (C)'][next_date_time.strftime('%Y-%m-%d %H:%M')]
+#     average_value = (prev_value+next_value) / 2
+#     weather_df['Min Air Temperature (C)'][date_time.strftime('%Y-%m-%d %H:%M')] = average_value
+
+# weather_df = weather_interpolate(dataframe=weather_df, column_name='Min Air Temperature (C)',
+#                                  cutoff_value=0, mode=1)
 
 fig = plt.figure(figsize=(11.69, 8.27))
 plt.plot_date(weather_df.index, weather_df["Min Air Temperature (C)"], 'r-', label='Min Air Temperature (C)')
@@ -105,16 +134,19 @@ plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/sm
 fig.autofmt_xdate(rotation=90)
 # plt.show()
 
-wrong_max_temp = weather_df[weather_df['Max Air Temperature (C)'] > 45]
-# print wrong_temp.index
-for date_time in wrong_max_temp.index:
-    print date_time
-    prev_date_time = date_time - timedelta(days=1)
-    prev_value = weather_df['Max Air Temperature (C)'][prev_date_time.strftime('%Y-%m-%d %H:%M')]
-    next_date_time = date_time + timedelta(days=1)
-    next_value = weather_df['Max Air Temperature (C)'][next_date_time.strftime('%Y-%m-%d %H:%M')]
-    average_value = (prev_value+next_value) / 2
-    weather_df['Max Air Temperature (C)'][date_time.strftime('%Y-%m-%d %H:%M')] = average_value
+# wrong_max_temp = weather_df[weather_df['Max Air Temperature (C)'] > 45]
+# # print wrong_temp.index
+# for date_time in wrong_max_temp.index:
+#     print date_time
+#     prev_date_time = date_time - timedelta(days=1)
+#     prev_value = weather_df['Max Air Temperature (C)'][prev_date_time.strftime('%Y-%m-%d %H:%M')]
+#     next_date_time = date_time + timedelta(days=1)
+#     next_value = weather_df['Max Air Temperature (C)'][next_date_time.strftime('%Y-%m-%d %H:%M')]
+#     average_value = (prev_value+next_value) / 2
+#     weather_df['Max Air Temperature (C)'][date_time.strftime('%Y-%m-%d %H:%M')] = average_value
+#
+
+
 
 fig = plt.figure(figsize=(11.69, 8.27))
 plt.plot_date(weather_df.index, weather_df["Max Air Temperature (C)"], 'r-', label='Air Temperature (C)')
@@ -123,4 +155,76 @@ plt.title(r"Calibrated Maximum Temperature($^\circ$C) - Aralumallige", fontsize=
 plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/sm_corr_max_temp')
 fig.autofmt_xdate(rotation=90)
 
-plt.show()
+# plt.show()
+print weather_df.head()
+
+#min wind speed
+fig = plt.figure(figsize=(11.69, 8.27))
+plt.plot_date(weather_df.index, weather_df['Min Wind Speed (kmph)'], 'g-', label='Wind Speed (Kmph)')
+plt.ylabel(r'\textbf{Wind Speed}($Km/h$)')
+plt.title(r"Minimum Wind Speed - Aralumallige", fontsize=16)
+plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/min_wind_speed_aral')
+fig.autofmt_xdate(rotation=90)
+# plt.show()
+
+# max wind speed
+fig = plt.figure(figsize=(11.69, 8.27))
+plt.plot_date(weather_df.index, weather_df['Max Wind Speed (kmph)'], 'g-', label='Wind Speed (Kmph)')
+plt.ylabel(r'\textbf{Wind Speed}($Km/h$)')
+plt.title(r"Maximum Wind Speed - Aralumallige", fontsize=16)
+plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/max_wind_speed_aral')
+fig.autofmt_xdate(rotation=90)
+# plt.show()
+
+col_cutoff_dict = {'Max Air Temperature (C)': [45, '>'],
+                   'Min Air Temperature (C)': [0, '<'],
+                    'Max Wind Speed (kmph)': [50, '>']}
+
+
+def pick_incorrect_value(dataframe, **param):
+    """
+    Selects a unique list of timestamp that satisfies the condition given in the param dictionary
+    :param dataframe: Pandas dataframe
+    :param param: Conditonal Dictionary, Eg.{column name: [cutoff, '>']}
+    :type param: dict
+    :return: unique list of timestamp
+    :rtype: list
+    """
+    wrong_date_time = []
+    unique_list = []
+    for key, value in param.items():
+        # print key
+        # print len(wrong_date_time)
+        if value[1] == '>':
+            wrong_df = dataframe[dataframe[key] > value[0]]
+        if value[1] == '<':
+            wrong_df = dataframe[dataframe[key] < value[0]]
+        for wrong_time in wrong_df.index:
+            wrong_date_time.append(wrong_time)
+
+    for i in wrong_date_time:
+        if i not in unique_list:
+            unique_list.append(i)
+
+    return unique_list
+
+
+def day_interpolate(dataframe, column_name, wrong_date_time):
+    """
+
+    :param dataframe: Pandas dataframe
+    :param column_name: Interpolation target column name of dataframe
+    :type column_name: str
+    :param wrong_date_time: List of error timestamp
+    :type wrong_date_time: list
+    :return: Corrected dataframe
+    """
+    for date_time in wrong_date_time:
+        prev_date_time = date_time - timedelta(days=1)
+        next_date_time = date_time + timedelta(days=1)
+        prev_value = dataframe[column_name][prev_date_time.strftime('%Y-%m-%d %H:%M')]
+        next_value = dataframe[column_name][next_date_time.strftime('%Y-%m-%d %H:%M')]
+        average_value = (prev_value + next_value) / 2
+        dataframe[column_name][date_time.strftime('%Y-%m-%d %H:%M')] = average_value
+
+    return dataframe
