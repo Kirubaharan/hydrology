@@ -2,6 +2,8 @@ __author__ = 'kiruba'
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import itertools
+import operator
 
 
 base_file = '/media/kiruba/New Volume/ACCUWA_Data/weather_station/smgollahalli/smgoll_5_8_14.csv'
@@ -30,7 +32,7 @@ ksndmc_df = pd.read_csv(ksndmc_file, sep=',')
 
 # drop unnecessary
 ksndmc_df.drop(['TRGCODE', 'DISTRICT', 'TALUKNAME', 'HOBLINAME', 'HOBLICODE', 'Total'], inplace=True, axis=1)
-print ksndmc_df.head()
+# print ksndmc_df.head()
 data = []
 for row_no, row in ksndmc_df.iterrows():
     # print row_no
@@ -49,15 +51,46 @@ data_df['Date_Time'] = pd.to_datetime(data_df['Date'] + ' ' + data_df['Time'], f
 data_df.set_index(data_df['Date_Time'], inplace=True)
 data_df.sort_index(inplace=True)
 data_df.drop(['Date_Time'], axis=1, inplace=True)
-print data_df.head()
-data_df.plot(y='Rain(mm)', style='-b')
-plt.show()
+fig = plt.figure(figsize=(11.69, 8.27))
+plt.title('Raw data')
+plt.plot_date(data_df.index, data_df['Rain(mm)'], '-g')
+fig.autofmt_xdate()
+data_8h_df = data_df['2014-05-01 8H30T': '2014-09-10 8H30T']
+# print data_8h_df.head()
+# print data_df.head()
 
+
+def pairwise(iterable):
+    """s -> (s0,s1), (s1,s2), (s2,s3), ..."""
+    a, b = itertools.tee(iterable)
+    next(b, None)
+    return itertools.izip(a, b)
+
+data_8h_df['diff'] = 0.000
+# print data_8h_df
+for d1, d2 in pairwise(data_8h_df.index):
+    # print d1, d2
+    if data_8h_df['Rain(mm)'][d2] > data_8h_df['Rain(mm)'][d1]:
+        data_8h_df['diff'][d2] = data_8h_df['Rain(mm)'][d2] - data_8h_df['Rain(mm)'][d1]
+#
+
+# print data_8h_df
+# data_df.plot(y='Rain(mm)', style='-b')
+data_8h_df.to_csv('/media/kiruba/New Volume/ACCUWA_Data/weather_station/kanaswadi/recal.csv')
+# plt.show()
+fig = plt.figure(figsize=(11.69, 8.27))
+plt.plot_date(data_8h_df.index, data_8h_df['diff'], '-r')
+fig.autofmt_xdate()
+plt.show()
+rain_k_df = data_8h_df[['diff']]
+rain_k_df = rain_k_df.resample('3H', how=np.sum)
+rain_k_df.columns.values[0] = 'Rain Collection (mm)'
+# print rain_k_df
 """
 Aggregate half hourly to daily
 """
 
-## separate out rain daily sum
+# ## separate out rain daily sum
 rain_df = df_base[['Date_Time', 'Rain Collection (mm)']]
 rain_df = rain_df.resample('3H', how=np.sum)
 
@@ -184,3 +217,4 @@ fig = plt.figure(figsize=(11.69, 8.27))
 plt.plot(rain_df.index, rain_df["Rain Collection (mm)"], '-b')
 fig.autofmt_xdate(rotation=90)
 plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/rainfall_3_H_591')
+plt.show()
