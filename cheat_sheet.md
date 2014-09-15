@@ -53,12 +53,17 @@ df.set_index(df['Date_Time'], inplace=True)
 ```python
 print df['2014-05-20']['column_name']
 ```
+### Pandas.dataframe.resample
 #### Aggregate Daily Data
 [Ref:](http://stackoverflow.com/questions/17001389/pandas-resample-documentation)
 ```python
 df = df.resample('D', how=np.sum)   # D for day
 ```
-
+#### Aggregate 15 min to 30 min
+```python
+df_30_min = df_15_min.resample('30Min', how=np.sum, label='right', closed='right')
+```
+label ='right' and closed='right' makes sure that value between 1.30 and 2.00 is assigned to 2.00
 ###Merge two dataframes
 [Ref:](http://pandas.pydata.org/pandas-docs/stable/merging.html#brief-primer-on-merge-methods-relational-algebra)
 ```python
@@ -109,6 +114,7 @@ def datesep(df):
 x +=y
 #<x> <operator>= y
 ```
+### 
 #### Slicing dataframe
 ### Using .ix
 ```python
@@ -168,4 +174,6 @@ def f2(seq):
 ```python
 def my_add(a, b):
     total = a + b
+    
+```
     
