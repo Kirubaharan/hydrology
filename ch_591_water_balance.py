@@ -265,7 +265,26 @@ water_level_3.drop(['scan no', 'date', 'time', 'raw value'], inplace=True, axis=
 #aggregate daily
 water_level_3 = water_level_3.resample('D', how=np.mean)
 # print water_level_3
-water_level = pd.concat([water_level_1, water_level_2, water_level_3], axis=0)
+# bloack 4
+block_4 = '/media/kiruba/New Volume/ACCUWA_Data/check_dam_water_level/2525_008_004.CSV'
+water_level_4 = pd.read_csv(block_4, skiprows=9, sep=',', header=0,  names=['scan no', 'date',
+                                                                            'time', 'raw value', 'calibrated value'])
+water_level_4['calibrated value'] = (water_level_4['raw value']*coeff_cal[0]) + coeff_cal[1]  # in cm
+# convert to metre
+water_level_4['calibrated value'] /= 100
+#change the column name
+water_level_4.columns.values[4] = 'stage(m)'
+# create date time index
+format = '%d/%m/%Y  %H:%M:%S'
+# change 24:00:00 to 23:59:59
+water_level_4['time'] = water_level_4['time'].replace(' 24:00:00', ' 23:59:59')
+water_level_4['date_time'] = pd.to_datetime(water_level_4['date'] + water_level_4['time'], format=format)
+water_level_4.set_index(water_level_4['date_time'], inplace=True)
+# drop unneccessary columns before datetime aggregation
+water_level_4.drop(['scan no', 'date', 'time', 'raw value'], inplace=True, axis=1)
+#aggregate daily
+water_level_4 = water_level_4.resample('D', how=np.mean)
+water_level = pd.concat([water_level_1, water_level_2, water_level_3, water_level_4], axis=0)
 
 weather_daily_df = weather_daily_df.join(water_level, how='left')
 
@@ -368,10 +387,12 @@ stage_vol_df = output[['stage_m', "total_vol_cu_m"]]
 Select data where stage is available, Remove Overflowing days
 """
 weather_stage_avl_df = weather_daily_df[min(water_level.index):max(water_level.index)]
-# weather_stage_avl_df = weather_stage_avl_df[weather_stage_avl_df['stage(m)'] < 1.9]
-# assumption cutoff stage to be 14 cm below which data is not considered reliable
-weather_stage_avl_df = weather_stage_avl_df[weather_stage_avl_df['stage(m)'] > 0.14]
 
+weather_stage_avl_df = weather_stage_avl_df[weather_stage_avl_df['stage(m)'] < 1.9]
+# assumption cutoff stage to be 14 cm below which data is not considered reliable
+weather_stage_avl_df = weather_stage_avl_df[weather_stage_avl_df['stage(m)'] > 0.05]
+# weather_stage_avl_df = weather_stage_avl_df[weather_stage_avl_df['change_storage(cu.m)'] > 0]
+# print weather_stage_avl_df
 """
 Convert observed stage to volume by linear interpolation
 """
@@ -435,13 +456,17 @@ water_balance_df['change_storage(cu.m)'] = 0.000
 #change in storage is today minus yesterday volume
 for d1, d2 in pairwise(water_balance_df.index):
     water_balance_df['change_storage(cu.m)'][d2.strftime('%Y-%m-%d')] = water_balance_df['volume (cu.m)'][d2.strftime('%Y-%m-%d')]-water_balance_df['volume (cu.m)'][d1.strftime('%Y-%m-%d')]
-
+# print water_balance_df
+water_balance_df = water_balance_df[water_balance_df['change_storage(cu.m)'] < 0]
+# water_balance_df =
 #create average stage for two days
 water_balance_df['average_stage_m'] = 0.000
 for d1, d2 in pairwise(water_balance_df.index):
     water_balance_df['average_stage_m'][d2.strftime('%Y-%m-%d')] = (water_balance_df['stage(m)'][d2.strftime('%Y-%m-%d')]
                                                                     + water_balance_df['stage(m)'][d1.strftime('%Y-%m-%d')])/2
 # print water_balance_df.head()
+# print water_balance_df
+
 """
 Separate Rainy days and daily days
 """
@@ -451,7 +476,9 @@ rain_water_balance_df = water_balance_df[water_balance_df['Rain Collection (mm)'
 Calculate infiltration
 """
 # calculate infiltration
-dry_water_balance_df['infiltration(cu.m)'] = -1*(dry_water_balance_df['change_storage(cu.m)'] + dry_water_balance_df['Evaporation (cu.m)'])
+dry_water_balance_df['infiltration(cu.m)'] = -1*(dry_water_balance_df['change_storage(cu.m)'] - dry_water_balance_df['Evaporation (cu.m)'])
+
+print dry_water_balance_df
 """
 Fitting exponential function
 """
@@ -469,17 +496,27 @@ inf_cal_new = func(stage_cal_new, *popt)
 fig = plt.figure(figsize=(11.69, 8.27))
 plt.plot(stage_cal, inf_cal, 'bo', label=r'Observation')
 plt.plot(stage_cal_new, inf_cal_new, 'r-', label='Prediction')
-# plt.plot(stage_cal_new, inf_cal_new, 'b-', label=r'2\textsuperscript{nd} Degree Polynomial')
-plt.legend(loc='upper right')
-# plt.xlim([-0.2, 2.1])
-# plt.ylim([-20, 2000])
+plt.vlines(1.9, min(inf_cal), max(inf_cal), 'g')
+plt.hlines(0, min(stage_cal), max(stage_cal), 'y')
+plt.legend(loc='lower right')
 plt.xlabel(r'\textbf{Stage} (m)')
 plt.ylabel(r'\textbf{Infiltration} ($m^3/day$)')
-# coeff_1 = format(66.66666666, '.2f')
-# print coeff_1
-# print type(coeff_stage_vol_cal[0])
 plt.title(r'Stage - Infiltration Relationship for 591 Check Dam')
 plt.text(x=0.15, y=11, fontsize=15, s=r'$Infiltration = {0:.2f}h^{{{1:.2f}}}$'.format(popt[0], popt[1]))
 plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_591/stage_inf_exp_dry_591')
+# plt.show()
+# print dry_water_balance_df
+# print dry_water_balance_df[dry_water_balance_df['infiltration(cu.m)'] < 0]
+# plot rainfall vs stage
+
+fig, ax1 = plt.subplots(figsize=(11.69, 8.27))
+ax1.bar(water_balance_df.index, water_balance_df['Rain Collection (mm)'], 0.35, color='b', label=r'Rainfall(mm)')
+ax1.set_ylabel('Rainfall(mm)')
+plt.legend(loc='upper left')
+ax2 = ax1.twinx()
+ax2.plot_date(water_balance_df.index, water_balance_df['stage(m)'], 'r', label='stage (m)')
+for t1 in ax2.get_yticklabels():
+    t1.set_color('r')
+plt.legend(loc='upper right')
+fig.autofmt_xdate(rotation=90)
 plt.show()
-print dry_water_balance_df[dry_water_balance_df['infiltration(cu.m)'] < 0]
