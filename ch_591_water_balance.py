@@ -7,10 +7,11 @@ from matplotlib import rc
 from spread import spread
 import meteolib as met
 import evaplib
-from bisect import bisect_left
+from bisect import bisect_left, bisect_right
 from scipy.optimize import curve_fit
 import math
 import scipy as sp
+from datetime import timedelta
 
 # latex parameters
 rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica']})
@@ -114,7 +115,7 @@ def rext_calc(df, lat=float):
     :return: Rext (J/m2)
     """
     # set solar constant [MJ m^-2 min^-1]
-    s = 0.0820
+    s = 0.08166
     #convert latitude [degrees] to radians
     latrad = lat*math.pi / 180.0
     #have to add in function for calculating single value here
@@ -129,7 +130,7 @@ def rext_calc(df, lat=float):
         ws = sp.arccos(-math.tan(latrad) * math.tan(dt))
         j = 2 * math.pi / 365.25 * doy
         dr = 1.0 + 0.03344 * math.cos(j - 0.048869)
-        rext = s * 86400 / math.pi * dr * (ws * math.sin(latrad) * math.sin(dt) + math.sin(ws) * math.cos(latrad) * math.cos(dt))
+        rext = s * 1440 / math.pi * dr * (ws * math.sin(latrad) * math.sin(dt) + math.sin(ws) * math.cos(latrad) * math.cos(dt))
     #Create dummy output arrays sp refers to scipy
     else:
         rext = sp.zeros(l)
@@ -148,7 +149,7 @@ def rext_calc(df, lat=float):
             # calculate relative distance to sun
             dr[i] = 1.0 + 0.03344 * math.cos(j[i] - 0.048869)
             #calculate Rext dt = d(FAO) and latrad = j(FAO)
-            rext[i] = (s * 86400.0 / math.pi) * dr[i] * (ws[i] * math.sin(latrad) * math.sin(dt[i]) + math.sin(ws[i])* math.cos(latrad) * math.cos(dt[i]))
+            rext[i] = (s * 1440.0 / math.pi) * dr[i] * (ws[i] * math.sin(latrad) * math.sin(dt[i]) + math.sin(ws[i])* math.cos(latrad) * math.cos(dt[i]))
 
     rext = sp.array(rext) * 1000000
     return rext
@@ -388,11 +389,11 @@ Select data where stage is available, Remove Overflowing days
 """
 weather_stage_avl_df = weather_daily_df[min(water_level.index):max(water_level.index)]
 
-weather_stage_avl_df = weather_stage_avl_df[weather_stage_avl_df['stage(m)'] < 1.9]
+# weather_stage_avl_df = weather_stage_avl_df[weather_stage_avl_df['stage(m)'] < 1.9]
 # assumption cutoff stage to be 14 cm below which data is not considered reliable
-weather_stage_avl_df = weather_stage_avl_df[weather_stage_avl_df['stage(m)'] > 0.05]
+# weather_stage_avl_df = weather_stage_avl_df[weather_stage_avl_df['stage(m)'] > 0.05]
 # weather_stage_avl_df = weather_stage_avl_df[weather_stage_avl_df['change_storage(cu.m)'] > 0]
-# print weather_stage_avl_df
+# print weather_stage_avl_df['stage(m)']
 """
 Convert observed stage to volume by linear interpolation
 """
@@ -401,16 +402,18 @@ stage_vol_df.set_index(stage_vol_df['stage_m'], inplace=True)
 # function to find containing intervals
 
 
-def find_range(array, a):
-    if a < max(array):
-        start = bisect_left(array, a)
+def find_range(array, ab):
+    if ab < max(array):
+        start = bisect_left(array, ab)
         return array[start-1], array[start]
     else:
-        start = array.index(max(array))
-        return array[start-1], array[start]
+        return min(array), max(array)
+
+
 
 # print weather_stage_avl_df.head()
 water_balance_df = weather_stage_avl_df[['Rain Collection (mm)', 'Evaporation (mm/day)', 'stage(m)']]
+# print find_range(stage_vol_df['stage_m'].tolist(), max(water_balance_df['stage(m)']))
 water_balance_df['volume (cu.m)'] = 0.000
 for index, row in water_balance_df.iterrows():
     obs_stage = row['stage(m)']  # observed stage
@@ -423,6 +426,30 @@ for index, row in water_balance_df.iterrows():
     y_intercept = y2 - (slope*x2)
     water_balance_df['volume (cu.m)'][index.strftime('%Y-%m-%d')] = (slope*obs_stage) + y_intercept
 
+# fig = plt.figure(figsize=(11.69, 8.27))
+# plt.plot_date(water_balance_df.index, water_balance_df['volume (cu.m)'], '-g')
+# plt.hlines(stage_vol_df['total_vol_cu_m'][1.9], min(water_balance_df.index), max(water_balance_df.index))
+# plt.title('before overflow correction')
+
+"""
+Overflow
+"""
+full_vol = stage_vol_df['total_vol_cu_m'][1.9]
+print full_vol
+water_balance_df['overflow(cu.m)'] = 0.000
+for index, row in water_balance_df.iterrows():
+    obs_vol = row['volume (cu.m)']
+    if obs_vol > full_vol:
+        # print obs_vol
+        water_balance_df['overflow(cu.m)'][index.strftime('%Y-%m-%d')] = obs_vol - full_vol
+        water_balance_df['volume (cu.m)'][index.strftime('%Y-%m-%d')] = full_vol
+        water_balance_df['stage(m)'][index.strftime('%Y-%m-%d')] = 1.9
+
+
+# fig = plt.figure(figsize=(11.69, 8.27))
+# plt.plot_date(water_balance_df.index, water_balance_df['volume (cu.m)'], '-g')
+# plt.hlines(stage_vol_df['total_vol_cu_m'][1.9], min(water_balance_df.index), max(water_balance_df.index))
+# plt.title('after overflow correction')
 """
 Stage vs area linear relationship
 """
@@ -431,6 +458,8 @@ stage_area_df = pd.read_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water
 stage_area_df.drop('sno', inplace=True, axis=1)
 # set stage as index
 stage_area_df.set_index(stage_area_df['stage_m'], inplace=True)
+# print max(water_balance_df['stage(m)'])
+# print find_range(stage_area_df['stage_m'].tolist(), max(water_balance_df['stage(m)']))
 #create empty column
 water_balance_df['ws_area(sq.m)'] = 0.000
 for index, row in water_balance_df.iterrows():
@@ -455,34 +484,89 @@ water_balance_df['change_storage(cu.m)'] = 0.000
 
 #change in storage is today minus yesterday volume
 for d1, d2 in pairwise(water_balance_df.index):
-    water_balance_df['change_storage(cu.m)'][d2.strftime('%Y-%m-%d')] = water_balance_df['volume (cu.m)'][d2.strftime('%Y-%m-%d')]-water_balance_df['volume (cu.m)'][d1.strftime('%Y-%m-%d')]
+    if d2 > d1:
+        diff = (d2-d1).days
+        if diff == 1:
+            water_balance_df['change_storage(cu.m)'][d2.strftime('%Y-%m-%d')] = water_balance_df['volume (cu.m)'][d2.strftime('%Y-%m-%d')] - water_balance_df['volume (cu.m)'][d1.strftime('%Y-%m-%d')]
 # print water_balance_df
-water_balance_df = water_balance_df[water_balance_df['change_storage(cu.m)'] < 0]
-# water_balance_df =
+# water_balance_df = water_balance_df[water_balance_df['change_storage(cu.m)'] < 0]
+
+
+def plot_date(dataframe, column_name):
+    """
+
+    :param dataframe:
+    :param column_name:
+    :type column_name:str
+    :return:
+    """
+    fig = plt.figure(figsize=(11.69, 8.27))
+    p = plt.plot(dataframe.index, dataframe[column_name], 'b-', label=r"%s" % column_name)
+    plt.hlines(0, min(dataframe.index), max(dataframe.index), 'r')
+    plt.legend(loc='best')
+    fig.autofmt_xdate(rotation=90)
+    return p
+
+a = plot_date(water_balance_df, 'change_storage(cu.m)')
+
+
+# plt.show()
 #create average stage for two days
 water_balance_df['average_stage_m'] = 0.000
 for d1, d2 in pairwise(water_balance_df.index):
-    water_balance_df['average_stage_m'][d2.strftime('%Y-%m-%d')] = (water_balance_df['stage(m)'][d2.strftime('%Y-%m-%d')]
-                                                                    + water_balance_df['stage(m)'][d1.strftime('%Y-%m-%d')])/2
+    diff = abs((d2-d1).days)
+    if diff == 1:
+        water_balance_df['average_stage_m'][d2.strftime('%Y-%m-%d')] = (water_balance_df['stage(m)']
+                                                                        [d2.strftime('%Y-%m-%d')]
+                                                                        + water_balance_df['stage(m)']
+                                                                        [d1.strftime('%Y-%m-%d')])/2
 # print water_balance_df.head()
 # print water_balance_df
 
 """
-Separate Rainy days and daily days
+Separate inflow and no inflow days
 """
-dry_water_balance_df = water_balance_df[water_balance_df['Rain Collection (mm)'] == 0]
-rain_water_balance_df = water_balance_df[water_balance_df['Rain Collection (mm)'] > 0]
+dry_water_balance_df = water_balance_df[water_balance_df['change_storage(cu.m)'] < 0]
+rain_water_balance_df = water_balance_df[water_balance_df['change_storage(cu.m)'] > 0]
+
+# b = plot_date(dry_water_balance_df, 'change_storage(cu.m)')
 """
 Calculate infiltration
 """
 # calculate infiltration
-dry_water_balance_df['infiltration(cu.m)'] = -1*(dry_water_balance_df['change_storage(cu.m)'] - dry_water_balance_df['Evaporation (cu.m)'])
+dry_water_balance_df.to_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/dry_wb_check.CSV')
+# print dry_water_balance_df.head()
+# dry_water_balance_df['infiltration(cu.m)'] = 0.000
+delta_s = dry_water_balance_df['change_storage(cu.m)']
+evap = dry_water_balance_df['Evaporation (cu.m)']
+outflow = dry_water_balance_df['overflow(cu.m)']
+# for t1, t2 in pairwise(dry_water_balance_df.index):
+#     diff = abs((t2-t1).days)
+#     if diff == 1:
+#         print t1, t2
+#         dry_water_balance_df['infiltration(cu.m)'][t1.strftime('%Y-%m-%d')] = -1*(delta_s[t2.strftime('%Y-%m-%d')] + evap[t2.strftime('%Y-%m-%d')] + outflow[t2.strftime('%Y-%m-%d')])
+# # for index, row in dry_water_balance_df.iterrows():
+#     if index > min(dry_water_balance_df.index):
+#         t_1 = index - timedelta(days=1)
+#         if t_1 < max(dry_water_balance_df.index):
+#             diff = abs((index-t_1).days)
+#             if diff == 1:
+#                 print index
+#                 # print t_1
+                # dry_water_balance_df['infiltration(cu.m)'][index.strftime('%Y-%m-%d')] = -1*(delta_s[index.strftime('%Y-%m-%d')] + evap[t_1.strftime('%Y-%m-%d')] + outflow[t_1.strftime('%Y-%m-%d')])
+    # print row
 
-print dry_water_balance_df
+
+dry_water_balance_df['infiltration(cu.m)'] = -1.0*(evap + outflow + delta_s)
+# print dry_water_balance_df.head()
+# fig = plt.figure(figsize=(11.69, 8.27))
+# plt.plot(dry_water_balance_df['average_stage_m'], dry_water_balance_df['infiltration(cu.m)'], 'bo')
+# plt.show()
 """
 Fitting exponential function
 """
-stage_cal = dry_water_balance_df['average_stage_m']
+stage_cal = dry_water_balance_df['stage(m)']
+# stage_cal = dry_water_balance_df['average_stage_m']
 inf_cal = dry_water_balance_df['infiltration(cu.m)']
 
 
@@ -490,19 +574,25 @@ def func(h, alpha, beta):
     return alpha*(h**beta)
 
 popt, pcov = curve_fit(func, stage_cal, inf_cal)
+
+print popt
+print pcov
+# print np.diag(pcov)
+print np.sqrt(np.diag(pcov))
+
 # plot
 stage_cal_new = np.linspace(min(stage_cal), max(stage_cal), 50)
 inf_cal_new = func(stage_cal_new, *popt)
 fig = plt.figure(figsize=(11.69, 8.27))
 plt.plot(stage_cal, inf_cal, 'bo', label=r'Observation')
 plt.plot(stage_cal_new, inf_cal_new, 'r-', label='Prediction')
-plt.vlines(1.9, min(inf_cal), max(inf_cal), 'g')
+plt.vlines(1.9, 0, max(inf_cal), 'g')
 plt.hlines(0, min(stage_cal), max(stage_cal), 'y')
-plt.legend(loc='lower right')
+plt.legend(loc='upper left')
 plt.xlabel(r'\textbf{Stage} (m)')
 plt.ylabel(r'\textbf{Infiltration} ($m^3/day$)')
-plt.title(r'Stage - Infiltration Relationship for 591 Check Dam')
-plt.text(x=0.15, y=11, fontsize=15, s=r'$Infiltration = {0:.2f}h^{{{1:.2f}}}$'.format(popt[0], popt[1]))
+plt.title(r"No inflow day's stage - infiltration relationship for 591 check dam")
+plt.text(x=0.15, y=1250, fontsize=15, s=r'$Infiltration = {0:.2f}h^{{{1:.2f}}}$'.format(popt[0], popt[1]))
 plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_591/stage_inf_exp_dry_591')
 # plt.show()
 # print dry_water_balance_df
@@ -511,6 +601,9 @@ plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_591/sta
 
 fig, ax1 = plt.subplots(figsize=(11.69, 8.27))
 ax1.bar(water_balance_df.index, water_balance_df['Rain Collection (mm)'], 0.35, color='b', label=r'Rainfall(mm)')
+plt.gca().invert_yaxis()
+for t1 in ax1.get_yticklabels():
+    t1.set_color('b')
 ax1.set_ylabel('Rainfall(mm)')
 plt.legend(loc='upper left')
 ax2 = ax1.twinx()
@@ -519,4 +612,31 @@ for t1 in ax2.get_yticklabels():
     t1.set_color('r')
 plt.legend(loc='upper right')
 fig.autofmt_xdate(rotation=90)
+# plt.show()
+
+"""
+Rainy day infiltration
+"""
+rain_water_balance_df['infiltration(cu.m)'] = popt[0]*(rain_water_balance_df['average_stage_m']**popt[1])
+fig = plt.figure(figsize=(11.69, 8.27))
+plt.plot(rain_water_balance_df['average_stage_m'], rain_water_balance_df['infiltration(cu.m)'], 'bo', label='Predicted Infiltration' )
+# plt.vlines(1.9, 0, 100, 'g')
+# plt.xlim([-1, 2.0])
+# plt.legend(loc='upper left')
+plt.xlabel(r'\textbf{Stage} (m)')
+plt.ylabel(r'\textbf{Infiltration} ($m^3/day$)')
+plt.title(r"Inflow day's stage - infiltration relationship for 591 check dam")
 plt.show()
+
+"""
+Inflow calculation
+"""
+# print dry_water_balance_df.head()
+dry_water_balance_df['status'] = 'D'
+rain_water_balance_df['status'] = 'R'
+# dry_water_balance_df = dry_water_balance_df.drop(['Evaporation (mm/day)', 'ws_area(sq.m)'], inplace=True, axis=1)
+# rain_water_balance_df = rain_water_balance_df.drop(['Evaporation (mm/day)', 'ws_area(sq.m)'], inplace=True, axis=1)
+# merged_table = dry_water_balance_df.join(rain_water_balance_df, how='right')
+# print rain_water_balance_df.head()
+dry_water_balance_df.to_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/dry_wb.CSV')
+rain_water_balance_df.to_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/rain_wb.CSV')
