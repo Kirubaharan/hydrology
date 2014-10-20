@@ -12,6 +12,7 @@ from scipy.optimize import curve_fit
 import math
 import scipy as sp
 from datetime import timedelta
+import matplotlib as mpl
 
 # latex parameters
 rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica']})
@@ -563,6 +564,50 @@ dry_water_balance_df['infiltration(cu.m)'] = -1.0*(evap + outflow + delta_s)
 # plt.plot(dry_water_balance_df['average_stage_m'], dry_water_balance_df['infiltration(cu.m)'], 'bo')
 # plt.show()
 """
+Dry infiltration vs rainfall
+"""
+fig, ax1 = plt.subplots(nrows=1, ncols=1, figsize=(11.69, 8.27))
+# fig.subplots_adjust(right=0.8)
+line1 = ax1.plot(water_balance_df.index, water_balance_df['Rain Collection (mm)'], '-b', label=r'Rainfall(mm)')
+plt.gca().invert_yaxis()
+ax1.xaxis.tick_bottom()
+ax1.yaxis.tick_left()
+for t1 in ax1.get_yticklabels():
+    t1.set_color('b')
+# plt.legend(loc='upper left')
+ax2 = ax1.twinx()
+cmap, norm = mpl.colors.from_levels_and_colors([0, 0.05, 1, 1.5, 2.0], ['red', 'yellow', 'green', 'blue'])
+line2 = ax2.scatter(dry_water_balance_df.index, dry_water_balance_df['infiltration(cu.m)'], label='Infiltration (cu.m)', c=dry_water_balance_df['stage(m)'], cmap=cmap, norm=norm)
+plt.hlines(0, min(dry_water_balance_df.index), max(dry_water_balance_df.index))
+ax2.xaxis.tick_bottom()
+ax2.yaxis.tick_right()
+for t1 in ax2.get_yticklabels():
+    t1.set_color('r')
+# plt.legend(loc='upper right')
+# fig.autofmt_xdate(rotation=90)
+# fig.subplots_adjust(right=0.8)
+ax3 = ax2.twiny()
+line3 = ax3.plot(water_balance_df.index, water_balance_df['Evaporation (cu.m)'], '-g', label='Evaporation (cu.m)' )
+ax3.tick_params(axis='x',
+                which='both',
+                top='off',
+                bottom='off',
+                labeltop='off')
+# ax3.xaxis.tick_bottom()
+ax3.yaxis.tick_right()
+fig.autofmt_xdate(rotation=90)
+lns = line1+line3
+labs = [l.get_label() for l in lns]
+ax3.legend(lns, labs, loc='upper center', fancybox=True, ncol=3, bbox_to_anchor=(0.5, 1.15))
+# ax3.set_xlim([min(dry_water_balance_df.index), max(dry_water_balance_df.index)])
+fig.subplots_adjust(right=0.8)
+cbar_ax = fig.add_axes([0.85, 0.50, 0.05, 0.3])  #first one distance from plot, second height
+# cax, kw = mpl.colorbar.make_axes([ax for ax in ax1.flat()])
+cbar = fig.colorbar(line2, cax=cbar_ax)
+cbar.ax.set_ylabel('Stage (m)')
+plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_591/dry_rain_infiltration_stage_591')
+plt.show()
+"""
 Fitting exponential function
 """
 stage_cal = dry_water_balance_df['stage(m)']
@@ -626,7 +671,7 @@ plt.plot(rain_water_balance_df['average_stage_m'], rain_water_balance_df['infilt
 plt.xlabel(r'\textbf{Stage} (m)')
 plt.ylabel(r'\textbf{Infiltration} ($m^3/day$)')
 plt.title(r"Inflow day's stage - infiltration relationship for 591 check dam")
-plt.show()
+# plt.show()
 
 """
 Inflow calculation

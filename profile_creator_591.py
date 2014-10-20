@@ -7,9 +7,12 @@ from scipy.interpolate import griddata
 import numpy as np
 from matplotlib import cm
 from matplotlib.path import *
-
+from matplotlib.collections import PolyCollection
+import matplotlib as mpl
+print mpl.__version__
 base_file = '/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/base_profile_591.csv'
 df_base = pd.read_csv(base_file, header=-1)
+# print df_base
 slope_file = '/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/slope_profile_1.csv'
 df_slope = pd.read_csv(slope_file, header=0)
 # print df_base
@@ -98,7 +101,8 @@ Z = data_1_df.z
 # plt.show()
 
 ## contour and 3d surface plotting
-# fig = plt.figure(figsize=plt.figaspect(0.5))
+fig = plt.figure(figsize=plt.figaspect(0.5))
+ax = fig.gca(projection='3d')
 # ax = fig.add_subplot(1, 2, 1, projection='3d')
 xi = np.linspace(X.min(), X.max(), 100)
 yi = np.linspace(Y.min(), Y.max(), 100)
@@ -119,13 +123,13 @@ zi = griddata((X, Y), Z, (xi[None, :], yi[:, None]), method='linear')    # creat
 # plt.gca().invert_xaxis()       # invert x axis
 # fig.colorbar(CS, shrink=0.5, aspect=5)  # legend
 # ax = fig.add_subplot(1, 2, 2, projection='3d')
-# xig, yig = np.meshgrid(xi, yi)
-# surf = ax.plot_surface(xig, yig, zi, rstride=5, cstride=3, linewidth=0, cmap=cm.coolwarm, antialiased=False)   # 3d plot
+xig, yig = np.meshgrid(xi, yi)
+surf = ax.plot_surface(xig, yig, zi, rstride=5, cstride=3, linewidth=0, cmap=cm.coolwarm, antialiased=False)   # 3d plot
 # inter_1 = []
 # inter_1.append((xi, yi, zi))
 # inter = pd.DataFrame(inter_1, columns=['x', 'y', 'z'])
 # inter.to_csv('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/inter.csv')  # interpolation data output
-# fig.colorbar(surf, shrink=0.5, aspect=5)
+fig.colorbar(surf, shrink=0.5, aspect=5)
 rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica']})
 rc('text', usetex=True)
 # plt.rc('text', usetex=True)
@@ -133,20 +137,22 @@ rc('text', usetex=True)
 # plt.xlabel(r'\textbf{X} (m)')
 # plt.ylabel(r'\textbf{Y} (m)')
 # plt.title(r"Profile for 591", fontsize=16)
-# plt.gca().invert_xaxis()  # reverses x axis
+plt.gca().invert_xaxis()  # reverses x axis
 # # ax = fig
 # plt.savefig('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/linear_interpolation')
-# plt.show()
+plt.show()
 
 # ## trace contours
 # Refer: Nikolai Shokhirev http://www.numericalexpert.com/blog/area_calculation/
 
-levels = [0, 0.4, 0.8, 1.2, 1.4, 1.6, 1.9, 2.4]  #, 3.93]
+levels = [0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.4]  #, 3.93]
 plt.figure(figsize=(11.69, 8.27))
-CS = plt.contourf(xi, yi, zi, len(levels),alpha=.75, cmap=cm.hot, levels=levels)
+CS = plt.contourf(xi, yi, zi, len(levels), alpha=.75, cmap=cm.hot, levels=levels)
 C = plt.contour(xi, yi, zi, len(levels), colors='black', linewidth=.5, levels=levels)
 plt.clabel(C, inline=1, fontsize=10)
 plt.colorbar(CS, shrink=0.5, aspect=5)
+plt.yticks(np.arange(0,100, 5))
+plt.xticks(np.arange(-30,25, 5))
 plt.grid()
 plt.gca().invert_xaxis()
 plt.savefig('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/cont_2d')
@@ -168,7 +174,7 @@ def contour_area(mpl_obj):
     #Refer: Nikolai Shokhirev http://www.numericalexpert.com/blog/area_calculation/
     n_c = len(mpl_obj.collections)  # n_c = no of contours
     print 'No. of contours = %s' % n_c
-    area = 0
+    area = 0.0000
     cont_area_array = []
     for contour in range(n_c):
         # area = 0
@@ -178,11 +184,11 @@ def contour_area(mpl_obj):
             p = mpl_obj.collections[contour].get_paths()[path]
             v = p.vertices
             l = len(v)
-            s = 0
+            s = 0.0000
             for i in range(l):
                 j = (i+1) % l
                 s += (v[j, 0] - v[i, 0]) * (v[j, 1] + v[i, 1])
-                poly_area = abs(-0.5*s)
+                poly_area = 0.5*abs(s)
             area += poly_area
         cont_area_array.append((zc, area))
     return cont_area_array
@@ -191,7 +197,47 @@ def contour_area(mpl_obj):
 # contour_area(C)
 contour_a = contour_area(CS)
 
-# zero contour has two paths 0, 1
+
+def poly_plot(xy, titlestr = "", margin = 0.25):
+    """
+        Plots polygon. For arrow see:
+        http://matplotlib.org/examples/pylab_examples/arrow_simple_demo.html
+        x = xy[:,0], y = xy[:,1]
+    """
+    xmin = np.min(xy[:,0])
+    xmax = np.max(xy[:,0])
+    ymin = np.min(xy[:,1])
+    ymax = np.max(xy[:,1])
+    hl = 0.1
+    l = len(xy)
+    for i in range(l):
+        j = (i+1)%l  # keep index in [0,l)
+        dx = xy[j,0] - xy[i,0]
+        dy = xy[j,1] - xy[i,1]
+        dd = np.sqrt(dx*dx + dy*dy)
+        dx = dx*(1 - hl/dd)
+        dy = dy*(1 - hl/dd)
+        plt.arrow(xy[i,0], xy[i,1], dx, dy, head_width=0.05, head_length=0.1, fc='b', ec='b')
+        plt.xlim(xmin-margin, xmax+margin)
+        plt.ylim(ymin-margin, ymax+margin)
+    plt.title(titlestr)
+
+
+def poly_area(xy):
+    """
+    Calculates polygon area
+    x = xy[:,0], y[xy[:,1]
+    :param xy:
+    :return:
+    """
+    l = len(xy)
+    s = 0.0
+    for i in range(l):
+        j = (i+1) % l
+        s += (xy[j, 0] - xy[i, 0]) * (xy[j,1]+ xy[i,1])
+    return -0.5*s
+
+# # zero contour has two paths 0, 1
 # p_0_0 = CS.collections[0].get_paths()[0]    # CS.collections[index of contour].get_paths()[index of path]
 # p_0_1 = CS.collections[0].get_paths()[1]
 # v_0_0 = p_0_0.vertices
@@ -200,9 +246,10 @@ contour_a = contour_area(CS)
 # area_0_1 = abs(poly_area(v_0_1))
 # area_0 = area_0_0 + area_0_1
 # z_0 = CS.levels[0]
-# print z_0, area_0
-
-# 0.4 contour has three paths 0,1,2
+# # print z_0, area_0
+# plt.fill(v_0_0[:,0], v_0_0[:,1], facecolor='g')
+# plt.show()
+# # 0.4 contour has three paths 0,1,2
 # p_1_0 = CS.collections[1].get_paths()[0]
 # p_1_1 = CS.collections[1].get_paths()[1]
 # p_1_2 = CS.collections[1].get_paths()[2]
@@ -210,13 +257,43 @@ contour_a = contour_area(CS)
 # v_1_1 = p_1_1.vertices
 # v_1_2 = p_1_2.vertices
 # area_1_0 = poly_area(v_1_0)
+# print(area_1_0)
 # area_1_1 = poly_area(v_1_1)
 # area_1_2 = poly_area(v_1_2)
+# print area_1_1, area_1_2
 # area_1 = area_1_0 + area_1_1 + area_1_2
 # z_1 = CS.levels[1]
 # print z_1, area_1
+# plt.fill(v_1_0[:,0], v_1_0[:,1], facecolor='r')
+# plt.show()
+# plt.fill(v_1_1[:,0], v_1_1[:,1], facecolor='b')
+# plt.show()
+# plt.fill(v_1_2[:,0], v_1_2[:,1], facecolor='g')
+# plt.show()
+area = 0.0
 
-# 0.8 contour has three paths 0,1,2
+
+def areaofpolygon(polygon, i):
+    global area
+    if i == 0:
+        area = 0
+    try:
+        x1, y1 = polygon[i]
+        x2, y2 = polygon[i+1]
+        area += (x1*y2) - (x2*y1)
+    except IndexError, e:
+        x1, y1 = polygon[0]
+        x2, y2 = polygon[-1]
+        area += (x2*y1) - (x1*y2)
+        return abs(area/2.0)
+    return areaofpolygon(polygon, i+1)
+
+# new_area_0 = areaofpolygon(v_1_0, 0)
+# new_area_1 = areaofpolygon(v_1_1, 0)
+# new_area_2 = areaofpolygon(v_1_2, 0)
+# print new_area_0, new_area_1, new_area_2
+# # 0.8 contour has three paths 0,1,2
+# print len(CS.collections[2].get_paths())
 # p_2_0 = CS.collections[2].get_paths()[0]
 # p_2_1 = CS.collections[2].get_paths()[1]
 # p_2_2 = CS.collections[2].get_paths()[2]
@@ -224,11 +301,23 @@ contour_a = contour_area(CS)
 # v_2_1 = p_2_1.vertices
 # v_2_2 = p_2_2.vertices
 # area_2_0 = poly_area(v_2_0)
+# print(area_2_0)
 # area_2_1 = poly_area(v_2_1)
 # area_2_2 = poly_area(v_2_2)
+# print(area_2_1, area_2_2)
 # area_2 = area_2_0 + area_2_1 + area_2_2
 # z_2 = CS.levels[2]
 # print z_2, area_2
+# plt.fill(v_2_0[:,0], v_2_0[:,1], facecolor='b')
+# plt.show()
+# poly_plot(v_2_0, titlestr="1st path")
+# plt.show()
+# poly_plot(v_2_1, titlestr="2nd path")
+# plt.show()
+# poly_plot(v_2_2, titlestr="3rd path")
+# plt.show()
+
+
 
 # 0.8 contour has two paths 0,1
 # p_3_0 = CS.collections[3].get_paths()[0]
@@ -271,6 +360,7 @@ x = cont_area_df['Z']
 #calculate  2nd deg polynomial
 po = np.polyfit(x, y, 2)
 f = np.poly1d(po)
+print po
 print np.poly1d(f)
 #calculate new x, y
 x_new = np.linspace(min(x), max(x), 50)
@@ -281,6 +371,7 @@ plt.plot(x, y, 'o', x_new, y_new)
 plt.xlim([(min(x))-1, (max(x))+1])
 plt.xlabel(r'\textbf{Stage} (m)')
 plt.ylabel(r'\textbf{Area} ($m^2$)')
-plt.text(-0.8, 3000, r'\textbf{$y = 518.3x^2 + 335.3x + 391.7$}')
+plt.text(-0.8, 500, r"$y = {0:.2f}x^2 {1:.2f}x + {2:.2f}$".format(po[0], po[1], po[2]))
 plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/poly_2_deg_591')
 plt.show()
+
