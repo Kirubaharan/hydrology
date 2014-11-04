@@ -38,6 +38,13 @@ weather_df.set_index(weather_df['Date_Time'], inplace=True)
 weather_df.sort_index(inplace=True)
 # drop date time column
 weather_df = weather_df.drop('Date_Time', 1)
+"""
+Fill in missing values interpolate
+"""
+new_index = pd.date_range(start='2014-05-14 18:30:00', end='2014-09-10 23:30:00', freq='30min' )
+water_balance_df = water_balance_df.reindex(new_index, method=None)
+water_balance_df = water_balance_df.interpolate(method='time')
+
 # print weather_df.head()
 # Rain data frame
 rain_df = pd.read_csv(rain_file, sep=',', header=0)
@@ -136,12 +143,13 @@ water_level_4 = read_correct_ch_dam_data(block_4)
 # print water_level_4.tail()
 water_level = pd.concat([water_level_1, water_level_2, water_level_3, water_level_4], axis=0)
 # print water_level.head(20)
-
+water_level = water_level['2014-05-14':'2014-09-10']
 """
 Join weather and rain data
 """
 weather_df = weather_df.join(rain_df, how='right')
-weather_df = weather_df[min(water_level.index): max(water_level.index)]
+weather_df = weather_df['2014-05-14':'2014-09-10']
+# weather_df = weather_df[min(water_level.index): max(water_level.index)]
 weather_df = weather_df.join(water_level, how='right')
 # print weather_df.head(20)
 
@@ -249,6 +257,8 @@ weather_df['Solar Radiation (MJ/m2/30min)'] = (weather_df['Solar Radiation (W/mm
 Average Temperature Calculation
 """
 weather_df['Average Temp (C)'] = 0.5*(weather_df['Min Air Temperature (C)'] + weather_df['Max Air Temperature (C)'])
+
+
 
 """
 Open water evaporation function for half hour
@@ -551,7 +561,7 @@ for d1, d2 in pairwise(water_balance_df.index):
         # print diff
         if diff == 1800:
             water_balance_df['change_storage(cu.m)'][d2.strftime('%Y-%m-%d %H:%M:%S')] = water_balance_df['volume (cu.m)'][d2.strftime('%Y-%m-%d %H:%M:%S')] - water_balance_df['volume (cu.m)'][d1.strftime('%Y-%m-%d %H:%M:%S')]
-print water_balance_df.head(30)
+# print water_balance_df.head(30)
 # water_balance_df = water_balance_df[water_balance_df['change_storage(cu.m)'] < 0]
 
 
@@ -574,21 +584,33 @@ a = plot_date(water_balance_df, 'change_storage(cu.m)')
 
 
 # plt.show()
-#create average stage for two days
-water_balance_df['average_stage_m'] = 0.000
-for d1, d2 in pairwise(water_balance_df.index):
-    diff = abs((d2-d1).days)
-    if diff == 1:
-        water_balance_df['average_stage_m'][d2.strftime('%Y-%m-%d')] = (water_balance_df['stage(m)']
-                                                                        [d2.strftime('%Y-%m-%d')]
-                                                                        + water_balance_df['stage(m)']
-                                                                        [d1.strftime('%Y-%m-%d')])/2
+# #create average stage for two days
+# water_balance_df['average_stage_m'] = 0.000
+# for d1, d2 in pairwise(water_balance_df.index):
+#     diff = abs((d2-d1).days)
+#     if diff == 1:
+#         water_balance_df['average_stage_m'][d2.strftime('%Y-%m-%d %H:%M:%S')] = (water_balance_df['stage(m)']
+#                                                                         [d2.strftime('%Y-%m-%d %H:%M:%S')]
+#                                                                         + water_balance_df['stage(m)']
+#                                                                         [d1.strftime('%Y-%m-%d')])/2
+print water_balance_df.tail()
 print water_balance_df.head()
-# print water_balance_df
+# water_balance_df['2014-06-30 16:30:00'] = 0.5*(water_balance_df['2014-06-30 16:00:00':'2014-06-30 17:00:00'].sum(axis=0))
 
+# print water_balance_df['2014-06-30']
 """
 Separate inflow and no inflow time period
 """
+# no_rain_df = water_balance_df[water_balance_df['Rain Collection (mm)'] == 0]
+# no_rain_df['status'] = 'N'
+# for index in no_rain_df.index:
+#     initial_time_stamp = pd.to_datetime("2014-05-14 20:00:00", format='%Y-%m-%d %H:%M:%S')
+#     if index > initial_time_stamp:
+#         index_30 = index - timedelta(seconds=1800)
+#         if water_balance_df['Rain Collection (mm)'][index_30] == 0:
+#             print 'yes'
+
+# print no_rain_df.head(30)
 # dry_water_balance_df = water_balance_df[water_balance_df['change_storage(cu.m)'] < 0]
 # rain_water_balance_df = water_balance_df[water_balance_df['change_storage(cu.m)'] > 0]
 #
