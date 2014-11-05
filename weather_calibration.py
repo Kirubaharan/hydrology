@@ -59,7 +59,7 @@ def day_interpolate(dataframe, column_name, wrong_date_time):
     return dataframe
 
 
-base_file = '/media/kiruba/New Volume/ACCUWA_Data/weather_station/smgollahalli/smgoll_5_8_14.csv'
+base_file = '/media/kiruba/New Volume/ACCUWA_Data/weather_station/smgollahalli/smgoll_14_05_14_31_10_14.CSV'
 #read csv file
 df_base = pd.read_csv(base_file, header=0, sep='\t')
 #Drop seconds
@@ -83,14 +83,40 @@ df_base.columns.values[7] = 'Air Temperature (C)'
 df_base.columns.values[8] = 'Min Air Temperature (C)'
 df_base.columns.values[9] = 'Max Air Temperature (C)'
 df_base.columns.values[16] = 'Canopy Temperature (C)'
+# select values where ksndmc data is available
+df_base = df_base["2014-05-14 18:30":"2014-09-10 23:30"]
+# print df_base["2014-06-30"]
 
+"""
+Remove Duplicates
+"""
+# # print df_base.count()
+df_base['index'] = df_base.index
+df_base.drop_duplicates(subset='index', take_last=True, inplace=True)
+del df_base['index']
+df_base = df_base.sort()
+# print df_base.head()
+# print df_base.count()
+"""
+Fill in missing values interpolate
+"""
+# print .head()
+# print weather_df.tail()
+# # print weather_df.count()
+new_index = pd.date_range(start='2014-05-14 18:30', end='2014-09-10 23:30', freq='30min' )
+# # print len(new_index)
+# # print new_index
+# # print df_base.index.get_duplicates()
+df_base = df_base.reindex(index=new_index, method=None)
+# # print df_base.count()
+df_base = df_base.interpolate(method='time')
 #rain df
 rain_df = df_base[['Rain Collection (mm)']]
 # print rain_df.head()
 # remove unneccessary columns
 weather_df = df_base.drop(['Date',
                            'Time',
-                           'Date_Time',
+                           "Date_Time",
                            'Rain Collection (mm)',
                            'Barometric Pressure (KPa)',
                            'Soil Moisture',
@@ -101,6 +127,9 @@ weather_df = df_base.drop(['Date',
                            'Solar panel voltage',
                            'Network strength',
                            'Battery strength'], axis=1)
+
+
+
 
 #  raw data
 # Max Air temperature
@@ -147,12 +176,21 @@ col_cutoff_dict = {'Max Air Temperature (C)': [45, '>'],
                    'Min Air Temperature (C)': [0, '<'],
                     'Max Wind Speed (kmph)': [50, '>']}
 
+# weather_df.to_csv('/media/kiruba/New Volume/ACCUWA_Data/weather_station/smgollahalli/corrected_weather.csv')
 
 wrong_timestamps = pick_incorrect_value(weather_df, **col_cutoff_dict)
 #plot weather parameters
 # print weather_df.head()
 for column_name in weather_df.columns:
     weather_df = day_interpolate(weather_df, column_name, wrong_timestamps)
+
+weather_df.index.name = "Date_Time"
+# print weather_df.head()
+# print weather_df["2014-06-30"]
+weather_df.to_csv('/media/kiruba/New Volume/ACCUWA_Data/weather_station/smgollahalli/corrected_weather.csv')
+
+# print weather_df["2014-06-30"]
+
 
 
 def weather_interpolate(dataframe, column_name, cutoff_value, mode):
@@ -309,9 +347,9 @@ for wrong_datetime in wrong_timestamps:
 #
 # print rain_df['2014-05-20 19:00:00':'2014-05-20 21:00:00']
 # print rain_df['2014-05-08 01:00': '2014-05-08 02:30']
-
+print rain_df['2014-06-30']
 rain_df.to_csv('/media/kiruba/New Volume/ACCUWA_Data/weather_station/smgollahalli/corrected_rain.csv')
-
+# print rain_df.head()
 rain_df = rain_df.resample('3H', how=np.sum, label='right', closed='right')
 # Plot
 #check dam caliberation
@@ -414,6 +452,8 @@ water_level_3 = water_level_3.resample('3H', how=np.mean)
 # print water_level_3
 water_level = pd.concat([water_level_1, water_level_2, water_level_3], axis=0)
 # print water_level
+# weather_df.to_csv('/media/kiruba/New Volume/ACCUWA_Data/weather_station/smgollahalli/corrected_weather.csv')
+# rain_df.to_csv('/media/kiruba/New Volume/ACCUWA_Data/weather_station/smgollahalli/corrected_rain_data.csv')
 
 # select rain data where stage is available
 rain_df = rain_df[min(water_level.index): max(water_level.index)]
@@ -443,5 +483,5 @@ fig.autofmt_xdate(rotation=90)
 plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/rainfall_corr_3_H_591')
 # plt.show()
 
-weather_df.to_csv('/media/kiruba/New Volume/ACCUWA_Data/weather_station/smgollahalli/corrected_weather.csv')
-rain_df.to_csv('/media/kiruba/New Volume/ACCUWA_Data/weather_station/smgollahalli/corrected_rain_data.csv')
+# weather_df.to_csv('/media/kiruba/New Volume/ACCUWA_Data/weather_station/smgollahalli/corrected_weather.csv')
+# rain_df.to_csv('/media/kiruba/New Volume/ACCUWA_Data/weather_station/smgollahalli/corrected_rain_data.csv')
