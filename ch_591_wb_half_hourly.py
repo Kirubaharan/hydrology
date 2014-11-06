@@ -16,6 +16,7 @@ import meteolib as met
 import evaplib
 from bisect import bisect_left
 import matplotlib as mpl
+import Pysolar as ps
 
 # latex parameters
 rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica']})
@@ -247,7 +248,63 @@ def rext_calc(df, lat=float):
     rext = sp.array(rext)
     return rext
 
-weather_df['Rext (MJ/m2/30min)'] = rext_calc(weather_df, lat=13.260196)
+SC_default = 1367.0 # Solar constant in W/m^2 is 1367.0.
+
+
+def extraterrestrial_irrad(utc_datetime, latitude_deg, longitude_deg, SC=SC_default):
+    """Equation calculates Extratrestrial radiation. Solar radiation incident outside the earth's
+    atmosphere is called extraterrestrial radiation. On average the extraterrestrial irradiance
+    is 1367 Watts/meter2 (W/m2). This value varies by + or - 3 percent as the earth orbits the sun.
+    The earth's closest approach to the sun occurs around January 4th and it is furthest
+    from the sun around July 5th.
+    Parameters
+    ----------
+    utc_datetime : date_object
+    utc_datetime. UTC DateTime is for Universal Time ( i.e. like a GMT+0 )
+    latitude_deg : float
+    latitude in decimal degree. A geographical term denoting the north/south angular location
+    of a place on a sphere.
+    longitude_deg : float
+    longitude in decimal degree. Longitude shows your location in an east-west direction,relative
+    to the Greenwich meridian.
+    SC : float
+    The solar constant is the amount of incoming solar electromagnetic radiation per unit area, measured
+    on the outer surface of Earth's atmosphere in a plane perpendicular to the rays.It is measured by
+    satellite to be roughly 1366 watts per square meter (W/m^2)
+    Returns
+    -------
+    EXTR1 : float
+    Extraterrestrial irradiation(W/m2)
+    References
+    ----------
+    .. [1] http://solardat.uoregon.edu/SolarRadiationBasics.html
+    .. [2] Dr. J. Schumacher and et al,"INSEL LE(Integrated Simulation Environment Language)Block reference",p.68
+     [3] Copied from https://github.com/pingswept/pysolar/blob/master/Pysolar/util.py
+    """
+    day = ps.solar.GetDayOfYear(utc_datetime)
+    ab = math.cos(2 * math.pi * (ps.solar.GetDayOfYear(utc_datetime) - 1.0)/(365.0))
+    bc = math.sin(2 * math.pi * (ps.solar.GetDayOfYear(utc_datetime) - 1.0)/(365.0))
+    cd = math.cos(2 * (2 * math.pi * (ps.solar.GetDayOfYear(utc_datetime) - 1.0)/(365.0)))
+    df = math.sin(2 * (2 * math.pi * (ps.solar.GetDayOfYear(utc_datetime) - 1.0)/(365.0)))
+    decl = ps.solar.GetDeclination(day)
+    ha = ps.solar.GetHourAngle(utc_datetime, longitude_deg)
+    ZA = math.sin(latitude_deg) * math.sin(decl) + math.cos(latitude_deg) * math.cos(decl) * math.cos(ha)
+    return SC * ZA * (1.00010 + 0.034221 * ab + 0.001280 * bc + 0.000719 * cd + 0.000077 * df)
+
+ch_591_lat = 13.260196
+ch_591_long = -77.512085
+weather_df['Rext (MJ/m2/30min)'] = 0.000
+for i in weather_df.index:
+    utc_datetime = i - timedelta(seconds=19800)
+    print i, utc_datetime
+    weather_df['Rext (MJ/m2/30min)'][i.strftime('%Y-%m-%d %H:%M:%S')] = (1800*extraterrestrial_irrad(utc_datetime=utc_datetime,
+                                                                                                            latitude_deg=ch_591_lat,
+                                                                                                            longitude_deg=ch_591_long,
+                                                                                                            SC=SC_default))/(10**6)
+
+
+# weather_df['Rext (MJ/m2/30min)'] =
+# weather_df.to_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/weather.csv')
 """
 wind speed from km/h to m/s
 1 kmph = 0.277778 m/s
@@ -266,6 +323,7 @@ Average Temperature Calculation
 """
 weather_df['Average Temp (C)'] = 0.5*(weather_df['Min Air Temperature (C)'] + weather_df['Max Air Temperature (C)'])
 
+weather_df.to_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/weather.csv')
 
 
 """
@@ -570,7 +628,7 @@ water_balance_df['Evaporation (cu.m)'] = (water_balance_df['Evaporation (mm/30mi
 """
 Daily Totals of Rain, Evaporation, Overflow
 """
-sum_df = water_balance_df[['Rain Collection (mm)', 'Evaporation (cu.m)', 'overflow(cu.m)']]
+sum_df = water_balance_df[['Rain Collection (mm)', 'Evaporation (cu.m)', 'Evaporation (mm/30min)', 'overflow(cu.m)']]
 sum_df = sum_df.resample('D', how=np.sum)
 # print sum_df.head(10)
 """
