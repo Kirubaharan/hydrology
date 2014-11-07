@@ -42,6 +42,7 @@ weather_df.set_index(weather_df['Date_Time'], inplace=True)
 weather_df.sort_index(inplace=True)
 # drop date time column
 weather_df = weather_df.drop('Date_Time', 1)
+print weather_df.head()
 # print weather_df['2014-06-30']
 
 
@@ -251,56 +252,45 @@ def rext_calc(df, lat=float):
 SC_default = 1367.0 # Solar constant in W/m^2 is 1367.0.
 
 
-def extraterrestrial_irrad(utc_datetime, latitude_deg, longitude_deg, SC=SC_default):
-    """Equation calculates Extratrestrial radiation. Solar radiation incident outside the earth's
-    atmosphere is called extraterrestrial radiation. On average the extraterrestrial irradiance
-    is 1367 Watts/meter2 (W/m2). This value varies by + or - 3 percent as the earth orbits the sun.
-    The earth's closest approach to the sun occurs around January 4th and it is furthest
-    from the sun around July 5th.
-    Parameters
-    ----------
-    utc_datetime : date_object
-    utc_datetime. UTC DateTime is for Universal Time ( i.e. like a GMT+0 )
-    latitude_deg : float
-    latitude in decimal degree. A geographical term denoting the north/south angular location
-    of a place on a sphere.
-    longitude_deg : float
-    longitude in decimal degree. Longitude shows your location in an east-west direction,relative
-    to the Greenwich meridian.
-    SC : float
-    The solar constant is the amount of incoming solar electromagnetic radiation per unit area, measured
-    on the outer surface of Earth's atmosphere in a plane perpendicular to the rays.It is measured by
-    satellite to be roughly 1366 watts per square meter (W/m^2)
-    Returns
-    -------
-    EXTR1 : float
-    Extraterrestrial irradiation(W/m2)
-    References
-    ----------
-    .. [1] http://solardat.uoregon.edu/SolarRadiationBasics.html
-    .. [2] Dr. J. Schumacher and et al,"INSEL LE(Integrated Simulation Environment Language)Block reference",p.68
-     [3] Copied from https://github.com/pingswept/pysolar/blob/master/Pysolar/util.py
+def extraterrestrial_irrad(local_datetime, latitude_deg, longitude_deg):
     """
-    day = ps.solar.GetDayOfYear(utc_datetime)
-    ab = math.cos(2 * math.pi * (ps.solar.GetDayOfYear(utc_datetime) - 1.0)/(365.0))
-    bc = math.sin(2 * math.pi * (ps.solar.GetDayOfYear(utc_datetime) - 1.0)/(365.0))
-    cd = math.cos(2 * (2 * math.pi * (ps.solar.GetDayOfYear(utc_datetime) - 1.0)/(365.0)))
-    df = math.sin(2 * (2 * math.pi * (ps.solar.GetDayOfYear(utc_datetime) - 1.0)/(365.0)))
-    decl = ps.solar.GetDeclination(day)
-    ha = ps.solar.GetHourAngle(utc_datetime, longitude_deg)
-    ZA = math.sin(latitude_deg) * math.sin(decl) + math.cos(latitude_deg) * math.cos(decl) * math.cos(ha)
-    return SC * ZA * (1.00010 + 0.034221 * ab + 0.001280 * bc + 0.000719 * cd + 0.000077 * df)
+    Calculates extraterrestrial radiation in MJ/m2/timeperiod
+    :param local_datetime: datetime object
+    :param latitude_deg: in decimal degree
+    :param longitude_deg: in decimal degree
+    :return: Extra terrestrial radiation in MJ/m2/timeperiod
+    """
+
+    S = 0.0820  # MJ m-2 min-1
+    lat_rad = latitude_deg*(math.pi/180)
+    day = ps.solar.GetDayOfYear(local_datetime)
+    hour = float(local_datetime.hour)
+    minute = float(local_datetime.minute)
+    b = ((2*math.pi)*(day-81))/364
+    sc = 0.1645*(math.sin(2*b)) - 0.1255*(math.cos(b)) - 0.025*(math.sin(b))  # seasonal correction in hour
+    lz = 270   # for India longitude of local time zone in degrees west of greenwich
+    lm = (180+(180-longitude_deg))  # longitude of measurement site
+    t = (hour + (minute/60)) - 0.25
+    t1 = 0.5  # 0.5 for 30 minute 1 for hourly period
+    w = (math.pi/12)*((t + (0.0667*(lz-lm))+ sc) - 12)
+    w1 = w - ((math.pi*t1)/24)  # solar time angle at beginning of period [rad]
+    w2 = w + ((math.pi*t1)/24)  # solar time angle at end of period [rad]
+    dr = 1 + (0.033*math.cos((2*math.pi*day)/365))  # inverse relative distance Earth-Sun
+    dt = 0.409*math.sin(((2*math.pi*day)/365) - 1.39) # solar declination in radian
+    ws = math.acos(-math.tan(lat_rad)*math.tan(dt))
+    if (w > ws) or (w < -ws):
+        Rext = 0.0
+    else:
+        Rext = ((12*60)/math.pi)*S*dr*(((w2-w1)*math.sin(lat_rad)*math.sin(dt))+(math.cos(lat_rad)*math.cos(dt)*(math.sin(w2) - math.sin(w1))))  # MJm-2(30min)-1
+    return Rext
 
 ch_591_lat = 13.260196
-ch_591_long = -77.512085
+ch_591_long = 77.512085
 weather_df['Rext (MJ/m2/30min)'] = 0.000
 for i in weather_df.index:
-    utc_datetime = i - timedelta(seconds=19800)
-    print i, utc_datetime
-    weather_df['Rext (MJ/m2/30min)'][i.strftime('%Y-%m-%d %H:%M:%S')] = (1800*extraterrestrial_irrad(utc_datetime=utc_datetime,
-                                                                                                            latitude_deg=ch_591_lat,
-                                                                                                            longitude_deg=ch_591_long,
-                                                                                                            SC=SC_default))/(10**6)
+    weather_df['Rext (MJ/m2/30min)'][i.strftime('%Y-%m-%d %H:%M:%S')] = (extraterrestrial_irrad(local_datetime=i,
+                                                                                                latitude_deg=ch_591_lat,
+                                                                                                longitude_deg=ch_591_long))
 
 
 # weather_df['Rext (MJ/m2/30min)'] =
@@ -333,6 +323,27 @@ http://python.hydrology-amsterdam.nl/moduledoc/index.html#module-evaplib
 """
 
 
+def delta_calc(airtemp):
+    """
+    Calculates slope of saturation vapour pressure curve at air temperature [kPa/Celsius]
+    http://www.fao.org/docrep/x0490e/x0490e07.htm
+    :param airtemp: Temperature in Celsius
+    :return: slope of saturation vapour pressure curve [kPa/Celsius]
+    """
+    l = sp.size(airtemp)
+    if l < 2:
+        temp_kelvin = airtemp + 237.3
+        b = 0.6108*(math.exp((17.27*airtemp)/temp_kelvin))
+        delta = (4098*b)/(temp_kelvin**2)
+    else:
+        delta = sp.zeros(l)
+        for i in range(0, l):
+            temp_kelvin = airtemp[i] + 237.3
+            b = 0.6108*(math.exp(17.27*airtemp[i])/temp_kelvin)
+            delta[i] = (4098*b)/(temp_kelvin**2)
+    return delta
+
+
 def half_hour_E0(airtemp = sp.array([]),
                  rh = sp.array([]),
                  airpress = sp.array([]),
@@ -341,11 +352,10 @@ def half_hour_E0(airtemp = sp.array([]),
                  u =sp.array([]),
                  Z=0.0):
     """
-     Function to calculate daily Penman open water evaporation (in mm/30min).
-    Equation according to J.D. Valiantzas (2006). Simplified versions
-    for the Penman evaporation equation using routine weather data.
-    J. Hydrology 331: 690-702. Following Penman (1948,1956). Albedo set
-    at 0.06 for open water.
+    Function to calculate daily Penman open water evaporation (in mm/30min).
+    Equation according to
+    Shuttleworth, W. J. 2007. "Putting the 'Vap' into Evaporation."
+    Hydrology and Earth System Sciences 11 (1): 210-44. doi:10.5194/hess-11-210-2007.
 
     :param airtemp: average air temperature [Celsius]
     :param rh: relative humidity[%]
@@ -363,9 +373,11 @@ def half_hour_E0(airtemp = sp.array([]),
     # sigma = 5.670373*(10**-8)  # J/m2/K4/s
     sigma = (1.02066714*(10**-10))  #Stefan Boltzmann constant MJ/m2/K4/30min
     # Calculate Delta, gamma and lambda
-    DELTA = met.Delta_calc(airtemp)     # [Pa/K]
-    gamma = met.gamma_calc(airtemp, rh, airpress)   # [Pa/K]
-    Lambda = (met.L_calc(airtemp))/(10**6)      # [MJ/kg]
+    DELTA = delta_calc(airtemp)     # [Kpa/C]
+    # Lambda = met.L_calc(airtemp)/(10**6) # [MJ/Kg]
+    # gamma = met.gamma_calc(airtemp, rh, airpress)/1000
+    # Lambda = 2.501 -(0.002361*airtemp)     # [MJ/kg]
+    # gamma = (0.0016286 *(airpress/1000))/Lambda
     # Calculate saturated and actual water vapour pressure
     es = met.es_calc(airtemp)  # [Pa]
     ea = met.ea_calc(airtemp,rh)  # [Pa]
@@ -373,6 +385,8 @@ def half_hour_E0(airtemp = sp.array([]),
     l = sp.size(airtemp)
     #Check if we have a single value or an array
     if l < 2:
+        Lambda = 2.501 -(0.002361*airtemp)     # [MJ/kg]
+        gamma = (0.0016286 *(airpress/1000))/Lambda
         Rns = (1.0 - albedo)* Rs  # shortwave component [MJ/m2/30min]
         #calculate clear sky radiation Rs0
         Rs0 = (0.75+(2E-5*Z))*Rext
@@ -392,7 +406,11 @@ def half_hour_E0(airtemp = sp.array([]),
         Rnl = sp.zeros(l)
         Rnet = sp.zeros(l)
         Ea = sp.zeros(l)
+        Lambda = sp.zeros(l)
+        gamma = sp.zeros(l)
         for i in range(0,l):
+            Lambda[i] = 2.501 -(0.002361*airtemp[i])
+            gamma[i] = (0.0016286 *(airpress[i]/1000))/Lambda[i]
             # calculate longwave radiation (MJ/m2/30min)
             Rns[i] = (1.0 - albedo) * Rs[i]
             # calculate clear sky radiation Rs0
@@ -749,7 +767,7 @@ for t1 in ax2.get_yticklabels():
 #                 labeltop='off')
 # # ax3.xaxis.tick_bottom()
 # ax3.yaxis.tick_right()
-# fig.autofmt_xdate(rotation=90)
+fig.autofmt_xdate(rotation=90)
 # lns = line1+line3
 # labs = [l.get_label() for l in lns]
 # ax3.legend(lns, labs, loc='upper center', fancybox=True, ncol=3, bbox_to_anchor=(0.5, 1.15))
@@ -798,11 +816,11 @@ plt.plot(stage_cal, inf_cal, 'bo', label=r'Observation')
 plt.plot(stage_cal_new, inf_cal_new, 'r-', label='Prediction')
 plt.vlines(1.9, 0, max(inf_cal), 'g')
 plt.hlines(0, min(stage_cal), max(stage_cal), 'y')
-plt.legend(loc='upper right')
+plt.legend(loc='upper left')
 plt.xlabel(r'\textbf{Stage} (m)')
 plt.ylabel(r'\textbf{Infiltration} ($m^3/day$)')
 plt.title(r"No inflow day's stage - infiltration relationship for 591 check dam")
-plt.text(x=0.15, y=-20, fontsize=15, s=r'$Infiltration = {0:.2f}{{h_{{av}}}}^{{{1:.2f}}}$'.format(popt[0], popt[1]))
+plt.text(x=0.15, y=20, fontsize=15, s=r'$Infiltration = {0:.2f}{{h_{{av}}}}^{{{1:.2f}}}$'.format(popt[0], popt[1]))
 plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_591/stage_inf_exp_dry_591_30min')
 # plt.show()
 # print dry_water_balance_df
