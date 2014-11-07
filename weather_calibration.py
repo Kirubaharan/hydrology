@@ -21,6 +21,8 @@ def pick_incorrect_value(dataframe, **param):
     """
     wrong_date_time = []
     unique_list = []
+    first_time = pd.to_datetime('2014-05-15 18:00:00', format='%Y-%m-%d %H:%M:%S')
+    final_time = pd.to_datetime('2014-09-09 23:00:00', format='%Y-%m-%d %H:%M:%S')
     for key, value in param.items():
         # print key
         # print len(wrong_date_time)
@@ -28,8 +30,11 @@ def pick_incorrect_value(dataframe, **param):
             wrong_df = dataframe[dataframe[key] > value[0]]
         if value[1] == '<':
             wrong_df = dataframe[dataframe[key] < value[0]]
+        if value[1] ==  '=':
+            wrong_df = dataframe[dataframe[key] == value[0]]
         for wrong_time in wrong_df.index:
-            wrong_date_time.append(wrong_time)
+            if final_time > wrong_time > first_time:
+                wrong_date_time.append(wrong_time)
 
     for i in wrong_date_time:
         if i not in unique_list:
@@ -83,23 +88,25 @@ df_base.columns.values[7] = 'Air Temperature (C)'
 df_base.columns.values[8] = 'Min Air Temperature (C)'
 df_base.columns.values[9] = 'Max Air Temperature (C)'
 df_base.columns.values[16] = 'Canopy Temperature (C)'
-# select values where ksndmc data is available
-df_base = df_base["2014-05-14 18:30":"2014-09-10 23:30"]
-# print df_base["2014-06-30"]
+print df_base.head()
 
 """
 Remove Duplicates
 """
 # # print df_base.count()
+
+# print df_base.head()
+# print df_base.count()
+
 df_base['index'] = df_base.index
 df_base.drop_duplicates(subset='index', take_last=True, inplace=True)
 del df_base['index']
 df_base = df_base.sort()
-# print df_base.head()
-# print df_base.count()
+df_base = df_base["2014-05-14 18:30":"2014-09-10 23:30"]
 """
 Fill in missing values interpolate
 """
+
 # print .head()
 # print weather_df.tail()
 # # print weather_df.count()
@@ -110,8 +117,6 @@ new_index = pd.date_range(start='2014-05-14 18:30', end='2014-09-10 23:30', freq
 df_base = df_base.reindex(index=new_index, method=None)
 # # print df_base.count()
 df_base = df_base.interpolate(method='time')
-#rain df
-rain_df = df_base[['Rain Collection (mm)']]
 # print rain_df.head()
 # remove unneccessary columns
 weather_df = df_base.drop(['Date',
@@ -128,8 +133,11 @@ weather_df = df_base.drop(['Date',
                            'Network strength',
                            'Battery strength'], axis=1)
 
+# select values where ksndmc data is available
 
-
+# print df_base["2014-06-30"]
+#rain df
+rain_df = df_base[['Rain Collection (mm)']]
 
 #  raw data
 # Max Air temperature
@@ -170,19 +178,22 @@ fig.autofmt_xdate(rotation=90)
 # plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/solar_rad')
 # fig.autofmt_xdate(rotation=90)
 # plt.show()
-
-
 col_cutoff_dict = {'Max Air Temperature (C)': [45, '>'],
                    'Min Air Temperature (C)': [0, '<'],
-                    'Max Wind Speed (kmph)': [50, '>']}
+                    'Max Wind Speed (kmph)': [50, '>'],
+                    'Wind Speed (kmph)': [0.0, '=']}
 
 # weather_df.to_csv('/media/kiruba/New Volume/ACCUWA_Data/weather_station/smgollahalli/corrected_weather.csv')
 
-wrong_timestamps = pick_incorrect_value(weather_df, **col_cutoff_dict)
+wrong_timestamps = pick_incorrect_value(df_base, **col_cutoff_dict)
 #plot weather parameters
 # print weather_df.head()
-for column_name in weather_df.columns:
-    weather_df = day_interpolate(weather_df, column_name, wrong_timestamps)
+for column_name in ['Max Air Temperature (C)', 'Min Air Temperature (C)', 'Max Wind Speed (kmph)', 'Wind Speed (kmph)']:
+    day_interpolate(weather_df, column_name, wrong_timestamps)
+
+
+
+
 
 weather_df.index.name = "Date_Time"
 # print weather_df.head()
