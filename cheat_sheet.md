@@ -33,6 +33,10 @@ x = column no
 my_columns = ['a', 'b', 'c']
 df.columns = my_columns
 ```
+#### Change index name
+```python
+df.index.name = 'new_name'
+```
 ### Select column pandas
 #### Access column name by column no(position starting from 0)
 ```python
