@@ -42,8 +42,8 @@ weather_df.set_index(weather_df['Date_Time'], inplace=True)
 weather_df.sort_index(inplace=True)
 # drop date time column
 weather_df = weather_df.drop('Date_Time', 1)
-print weather_df.head()
-# print weather_df['2014-06-30']
+# print weather_df.head()
+# print weather_df['2014-b06-30']
 
 
 # print weather_df.head()
@@ -152,6 +152,7 @@ Fill in missing values interpolate
 new_index = pd.date_range(start='2014-05-14 18:30:00', end='2014-09-10 23:30:00', freq='30min' )
 water_level = water_level.reindex(new_index, method=None)
 water_level = water_level.interpolate(method='time')
+water_level.to_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/stage_30min.CSV')
 """
 Join weather and rain data
 """
@@ -529,10 +530,11 @@ sum_df = sum_df.resample('D', how=np.sum)
 """
 Daily average of Stage
 """
-stage_df = water_balance_df[['stage(m)']]
+stage_df = water_balance_df[['stage(m)', 'ws_area(sq.m)']]
 stage_df = stage_df.resample('D', how=np.mean)
 # print stage_df.head()
 water_balance_daily_df = sum_df.join(stage_df, how='left')
+print water_balance_daily_df.head(10)
 """
 Change in storage
 """
@@ -573,12 +575,12 @@ for index in no_rain_df.index:
         two_days_rain_df = water_balance_daily_df['Rain Collection (mm)'][start_date.strftime('%Y-%m-%d'):index.strftime('%Y-%m-%d')]
         sum_df = two_days_rain_df.sum(axis=0)
         if sum_df == 0:
-            no_rain_df['status'][index.strftime('%Y-%m-%d')] = "N"
+            water_balance_daily_df['status'][index.strftime('%Y-%m-%d')] = "N"
 
 # print no_rain_df.head()
 water_balance_daily_df.to_csv("/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/water_bal.csv")
 no_rain_df.to_csv("/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/no_rain_df.csv")
-dry_water_balance_df = no_rain_df[no_rain_df['status'] == "N"]
+dry_water_balance_df = water_balance_daily_df[water_balance_daily_df['status'] == "N"]
 rain_water_balance_df = water_balance_daily_df[water_balance_daily_df['status'] == "Y"]
 # print dry_water_balance_df.head()
 # print rain_water_balance_df.head()
@@ -615,6 +617,8 @@ for index, row in dry_water_balance_df.iterrows():
 # # fig = plt.figure(figsize=(11.69, 8.27))
 # # plt.plot(dry_water_balance_df['average_stage_m'], dry_water_balance_df['infiltration(cu.m)'], 'bo')
 # # plt.show()
+dry_water_balance_df['infiltration rate (m/day)'] = dry_water_balance_df['infiltration(cu.m)']/dry_water_balance_df['ws_area(sq.m)']
+print dry_water_balance_df.head(10)
 """
 Dry infiltration vs rainfall
 """
@@ -662,9 +666,10 @@ plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_591/dry
 """
 Fitting exponential function
 """
+# dry_water_balance_df = dry_water_balance_df[dry_water_balance_df['stage(m)'] > 0.1]
 stage_cal = dry_water_balance_df['stage(m)']
 # stage_cal = dry_water_balance_df['average_stage_m']
-inf_cal = dry_water_balance_df['infiltration(cu.m)']
+inf_cal = dry_water_balance_df['infiltration rate (m/day)']
 # print dry_water_balance_df.shape
 
 # fig = plt.figure(figsize=(11.69, 8.27))
@@ -679,14 +684,29 @@ inf_cal = dry_water_balance_df['infiltration(cu.m)']
 # plt.show()
 
 def func(h, alpha, beta):
-    return alpha*(h**beta)
+    return (alpha*(h**beta))
 
-popt, pcov = curve_fit(func, stage_cal, inf_cal, maxfev=6000)
+popt, pcov = curve_fit(f=func, xdata=stage_cal, ydata=inf_cal)
 
 # print popt
 # print pcov
 # # print np.diag(pcov)
 # print np.sqrt(np.diag(pcov))
+###Log plot
+
+
+def polyfit(x, y, degree):
+    results = {}
+    coeffs = np.polyfit(x, y, degree)
+    results['polynomial'] = coeffs.tolist()
+    #r squared
+    p = np.poly1d(coeffs)
+    yhat = p(x)
+    ybar = np.sum(y)/len(y)
+    ssreg = np.sum((yhat-ybar)**2)
+    sstot = np.sum((y-ybar)**2)
+    results['determination'] = ssreg/sstot
+    return results
 
 # plot
 stage_cal_new = np.linspace(min(stage_cal), max(stage_cal), 50)
@@ -697,11 +717,16 @@ plt.plot(stage_cal_new, inf_cal_new, 'r-', label='Prediction')
 plt.vlines(1.9, 0, max(inf_cal), 'g')
 plt.hlines(0, min(stage_cal), max(stage_cal), 'y')
 plt.legend(loc='upper left')
-plt.xlabel(r'\textbf{Stage} (m)')
-plt.ylabel(r'\textbf{Infiltration} ($m^3/day$)')
+plt.xlabel(r'\textbf{Stage} (m))')
+plt.ylabel(r'\textbf{Infiltration Rate} ($m/day$)')
 plt.title(r"No inflow day's stage - infiltration relationship for 591 check dam")
-plt.text(x=0.15, y=20, fontsize=15, s=r'$Infiltration = {0:.2f}{{h_{{av}}}}^{{{1:.2f}}}$'.format(popt[0], popt[1]))
+plt.text(x=0.75, y=.03, fontsize=15, s=r'$Infiltration = {0:.2f}{{h_{{av}}}}^{{{1:.2f}}}$'.format(popt[0], popt[1]))
 plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_591/stage_inf_exp_dry_591_30min')
+
+
+
+
+
 # plt.show()
 # print dry_water_balance_df
 # print dry_water_balance_df[dry_water_balance_df['infiltration(cu.m)'] < 0]
@@ -725,12 +750,12 @@ plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_591/sta
 """
 Rainy day infiltration
 """
-rain_water_balance_df['infiltration(cu.m)'] = popt[0]*(rain_water_balance_df['stage(m)']**popt[1])
+rain_water_balance_df['infiltration(cu.m)'] = (popt[0]*(rain_water_balance_df['stage(m)']**popt[1]))* rain_water_balance_df['ws_area(sq.m)']
 fig = plt.figure(figsize=(11.69, 8.27))
 plt.plot(rain_water_balance_df['stage(m)'], rain_water_balance_df['infiltration(cu.m)'], 'bo', label='Predicted Infiltration' )
-# # plt.vlines(1.9, 0, 100, 'g')
-# # plt.xlim([-1, 2.0])
-# # plt.legend(loc='upper left')
+plt.vlines(1.9, 0, 100, 'g')
+# plt.xlim([-1, 2.0])
+plt.legend(loc='upper left')
 plt.xlabel(r'\textbf{Stage} (m)')
 plt.ylabel(r'\textbf{Infiltration} ($m^3/day$)')
 plt.title(r"Inflow day's stage - infiltration relationship for 591 check dam")
@@ -747,7 +772,9 @@ delta_s_rain = rain_water_balance_df['change_storage(cu.m)']
 inf_rain = rain_water_balance_df['infiltration(cu.m)']
 evap_rain = rain_water_balance_df['Evaporation (cu.m)']
 outflow_rain = rain_water_balance_df['overflow(cu.m)']
-rain_water_balance_df['Inflow (cu.m)'] = (delta_s_rain + inf_rain + evap_rain + outflow_rain)
+for i in rain_water_balance_df.index:
+    rain_water_balance_df['Inflow (cu.m)'][i.strftime("%Y-%m-%d")] = (delta_s_rain[i.strftime("%Y-%m-%d")] + inf_rain[i.strftime("%Y-%m-%d")] + evap_rain[i.strftime("%Y-%m-%d")] + outflow_rain[i.strftime("%Y-%m-%d")])
+
 fig = plt.figure(figsize=(11.69, 8.27))
 plt.plot(rain_water_balance_df['Rain Collection (mm)'], rain_water_balance_df['Inflow (cu.m)'], 'bo', label='Predicted Inflow' )
 # # plt.vlines(1.9, 0, 100, 'g')
@@ -763,7 +790,7 @@ Inflow vs Rainfall
 """
 fig, ax1 = plt.subplots(nrows=1, ncols=1, figsize=(11.69, 8.27))
 # fig.subplots_adjust(right=0.8)
-line1 = ax1.bar(rain_water_balance_df.index, rain_water_balance_df['Rain Collection (mm)'],  0.35, label=r'Rainfall(mm)')
+line1 = ax1.bar(rain_water_balance_df.index, rain_water_balance_df['Rain Collection (mm)'],  0.45, label=r'Rainfall(mm)')
 plt.gca().invert_yaxis()
 ax1.xaxis.tick_bottom()
 ax1.yaxis.tick_left()
@@ -771,7 +798,7 @@ for t1 in ax1.get_yticklabels():
     t1.set_color('b')
 # plt.legend(loc='upper left')
 ax2 = ax1.twinx()
-line2 = ax2.bar(rain_water_balance_df.index, rain_water_balance_df['Inflow (cu.m)'], 0.35, color='r', label=r'\textbf{Inflow ($m^3/day$)}')
+line2 = ax2.bar(rain_water_balance_df.index, rain_water_balance_df['Inflow (cu.m)'], 0.45, color='r', label=r'\textbf{Inflow ($m^3/day$)}')
 plt.hlines(0, min(rain_water_balance_df.index), max(rain_water_balance_df.index))
 ax2.xaxis.tick_bottom()
 ax2.yaxis.tick_right()
@@ -797,16 +824,29 @@ Evaporation vs infiltration
 """
 fig, ax1 = plt.subplots(figsize=(11.69, 8.27))
 line1 = ax1.bar(merged_water_balance.index, merged_water_balance['Evaporation (cu.m)'], 0.45, color='r', label=r"\textbf{Evaporation ($m^3/day$)}")
-plt.title("Evaporation vs Infiltration for Check dam 591")
+# plt.title("Evaporation vs Infiltration for Check dam 591")
 for t1 in ax1.get_yticklabels():
     t1.set_color('r')
-ax2 = ax1.twinx()
+ax2 = ax1.twiny()
 line2 = ax2.bar(merged_water_balance.index, merged_water_balance['infiltration(cu.m)'], 0.45, color='g', alpha=0.5, label=r"\textbf{Infiltration ($m^3/day$}")
 for t1 in ax2.get_yticklabels():
     t1.set_color('g')
 lns = [line1, line2]
 lab = [r"\textbf{Evaporation ($m^3/day$)}", r"\textbf{Infiltration ($m^3/day$}" ]
-ax2.legend(lns, lab, loc='upper center', fancybox=True, ncol=2, bbox_to_anchor=(0.5, 1.15))
+# ax2.legend(lns, lab, loc='upper center', fancybox=True, ncol=2, bbox_to_anchor=(0.5, 1.15))
 fig.autofmt_xdate(rotation=90)
 plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_591/evap_infilt_591_30min')
-plt.show()
+# plt.show()
+"""
+half hour stage vs daily inflow
+"""
+# print weather_df.head()
+# print merged_water_balance.head()  # Inflow (cu.m)
+stage_30min_df = weather_df[['stage(m)']]
+fig1, ax1 = plt.subplots(figsize=(11.69, 8.27))
+line1 = ax1.plot(weather_df.index, weather_df['Rain Collection (mm)'],'r-')
+ax2 = ax1.twinx()
+line2 = ax2.plot(stage_30min_df.index, stage_30min_df['stage(m)'], 'b-')
+fig1.autofmt_xdate(rotation=90)
+plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_591/inflow_stage_591_30min')
+plt.show(fig1)
