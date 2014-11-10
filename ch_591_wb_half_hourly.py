@@ -198,56 +198,6 @@ weather_df['AirPr(Pa)'] = air_p_pa
 """
 Half hourly Extraterrestrial Radiation Calculation(J/m2/30min)
 """
-# yet to work on
-
-def rext_calc(df, lat=float):
-    """
-    Function to calculate extraterrestrial radiation output in MJ/m2/30 min
-    Ref:http://www.fao.org/docrep/x0490e/x0490e07.htm
-
-    :param df: dataframe with datetime index
-    :param lat: latitude (negative for Southern hemisphere)
-    :return: Rext (MJ/m2/30min)
-    """
-    # set solar constant [MJ m^-2 min^-1]
-    s = 0.08166
-    #convert latitude [degrees] to radians
-    latrad = lat*math.pi / 180.0
-    #have to add in function for calculating single value here
-    # extract date, month, year from index
-    date = pd.DatetimeIndex(df.index).day
-    month = pd.DatetimeIndex(df.index).month
-    year = pd.DatetimeIndex(df.index).year
-    doy = met.date2doy(dd=date, mm=month, yyyy=year)  # create day of year(1-366) acc to date
-    l = sp.size(doy)
-    if l < 2:
-        dt = 0.409 * math.sin(2 * math.pi / 365 * doy - 1.39)
-        ws = sp.arccos(-math.tan(latrad) * math.tan(dt))
-        j = 2 * math.pi / 365.25 * doy
-        dr = 1.0 + 0.03344 * math.cos(j - 0.048869)
-        rext = s * 1440 / math.pi * dr * (ws * math.sin(latrad) * math.sin(dt) + math.sin(ws) * math.cos(latrad) * math.cos(dt))
-    #Create dummy output arrays sp refers to scipy
-    else:
-        rext = sp.zeros(l)
-        dt = sp.zeros(l)
-        ws = sp.zeros(l)
-        j = sp.zeros(l)
-        dr = sp.zeros(l)
-        #calculate Rext
-        for i in range(0, l):
-            #Calculate solar decimation dt(d in FAO) [rad]
-            dt[i] = 0.409 * math.sin(2 * math.pi / 365 * doy[i] - 1.39)
-            #calculate sunset hour angle [rad]
-            ws[i] = sp.arccos(-math.tan(latrad) * math.tan(dt[i]))
-            # calculate day angle j [radians]
-            j[i] = 2 * math.pi / 365.25 * doy[i]
-            # calculate relative distance to sun
-            dr[i] = 1.0 + 0.03344 * math.cos(j[i] - 0.048869)
-            #calculate Rext dt = d(FAO) and latrad = j(FAO)
-            rext[i] = (s * 30.0 / math.pi) * dr[i] * (ws[i] * math.sin(latrad) * math.sin(dt[i]) + math.sin(ws[i])* math.cos(latrad) * math.cos(dt[i]))
-
-    rext = sp.array(rext)
-    return rext
 
 SC_default = 1367.0 # Solar constant in W/m^2 is 1367.0.
 
@@ -472,82 +422,9 @@ def pairwise(iterable):
     a, b = itertools.tee(iterable)
     next(b, None)
     return itertools.izip(a, b)
-#function to create stage volume output
 
-
-# def calcvolume(profile, order, dy):
-#     """
-#     Profile = df.Y1,df.Y2,.. and order = 1,2,3
-#     :param profile: series of Z values
-#     :param order: distance from origin
-#     :param dy: thickness of profile in m
-#     :param dam_height: Height of check dam in m
-#     :return: output: pandas dataframe volume for profile
-#     """
-#
-#     # print 'profile length = %s' % len(profile)
-#     results = []
-#
-#     for stage in dz:
-#         water_area = 0
-#         for z1, z2 in pairwise(profile):
-#             delev = (z2 - z1) / 10
-#             elev = z1
-#             for b in range(1, 11, 1):
-#                 elev += delev
-#                 if stage > elev:
-#                     # print 'elev = %s' % elev
-#                     water_area += (0.1 * (stage-elev))
-#                     # print 'order = %s and dy = %s' %(order, dy)
-#                     # print 'area = %s' % water_area
-#
-#             calc_vol = water_area * dy
-#         # print 'calc vol = %s' % calc_vol
-#         results.append(calc_vol)
-#         # print 'results = %s' % results
-#         # print 'results length = %s' % len(results)
-#
-#     output[('Volume_%s' % order)] = results
-# #input parameters
-# base_file_591 = '/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/base_profile_591.csv'
-# check_dam_no = 591
-# check_dam_height = 1.9    # m
-# df_591 = pd.read_csv(base_file_591, sep=',')
-# df_591_trans = df_591.T  # Transpose
-# no_of_stage_interval = check_dam_height/.05
-# dz = list((spread(0.00, check_dam_height, int(no_of_stage_interval), mode=3)))
-# index = [range(len(dz))]  # no of stage intervals
-# columns = ['stage_m']
-# data = np.array(dz)
-# output = pd.DataFrame(data, index=index, columns=columns)
-# # print(df_591_trans)
-# # print len(df_591_trans.ix[1:, 0])
-# ### Renaming the column and dropping y values
-# y_name_list = []
-# for y_value in df_591_trans.ix[0, 0:]:
-#     y_name_list.append(('Y_%d' %y_value))
-#
-# df_591_trans.columns = y_name_list
-# # print df_591_trans
-# y_value_list = df_591_trans.ix[0, 0:]
-# # print y_value_list
-#
-# # drop the y values from data
-# final_data = df_591_trans.ix[1:, 0:]
-# # print final_data
-#
-# #volume calculation
-# for l1, l2 in pairwise(y_value_list):
-#     calcvolume(profile=final_data["Y_%d" % l1], order=l1, dy=int(l2-l1))
-#
-# output_series = output.filter(regex="Volume_")  # filter the columns that have Volume_
-# output["total_vol_cu_m"] = output_series.sum(axis=1)  # get total volume
-# # print output
-#
-# # select only stage and total volume
-# stage_vol_df = output[['stage_m', "total_vol_cu_m"]]
 """
-Select data where stage is available, Remove Overflowing days
+Select data where stage is available
 """
 weather_stage_avl_df = weather_df[min(water_level.index):max(water_level.index)]
 """
@@ -684,6 +561,9 @@ Separate out no inflow/ non rainy days
 two continuous days of no rain
 """
 water_balance_daily_df['status'] = "Y"
+# water_balance_daily_df['total_outflow (cu.m)'] = water_balance_daily_df['Evaporation (cu.m)'] + water_balance_daily_df['overflow(cu.m)']
+# dry_water_balance_df = water_balance_daily_df[water_balance_daily_df['total_outflow (cu.m)'] > water_balance_daily_df['change_storage(cu.m)']]
+# rain_water_balance_df = water_balance_daily_df[water_balance_daily_df['total_outflow (cu.m)'] < water_balance_daily_df['change_storage(cu.m)']]
 no_rain_df = water_balance_daily_df[water_balance_daily_df['Rain Collection (mm)'] == 0]
 # no_rain_df['status'] = "Y"
 for index in no_rain_df.index:
@@ -856,18 +736,55 @@ plt.ylabel(r'\textbf{Infiltration} ($m^3/day$)')
 plt.title(r"Inflow day's stage - infiltration relationship for 591 check dam")
 plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_591/rain_inf_591_30min')
 
-plt.show()
+# plt.show()
 
 """
 Inflow calculation
 """
-# print dry_water_balance_df.head()
-# dry_water_balance_df['status'] = 'D'
-# rain_water_balance_df['status'] = 'R'
-# dry_water_balance_df = dry_water_balance_df.drop(['Evaporation (mm/day)', 'ws_area(sq.m)'], inplace=True, axis=1)
-# rain_water_balance_df = rain_water_balance_df.drop(['Evaporation (mm/day)', 'ws_area(sq.m)'], inplace=True, axis=1)
-# merged_table = dry_water_balance_df.join(rain_water_balance_df, how='right')
-# print rain_water_balance_df.head()
+rain_water_balance_df['Inflow (cu.m)'] = 0.000
+dry_water_balance_df['Inflow (cu.m)'] = 0.000
+delta_s_rain = rain_water_balance_df['change_storage(cu.m)']
+inf_rain = rain_water_balance_df['infiltration(cu.m)']
+evap_rain = rain_water_balance_df['Evaporation (cu.m)']
+outflow_rain = rain_water_balance_df['overflow(cu.m)']
+rain_water_balance_df['Inflow (cu.m)'] = (delta_s_rain + inf_rain + evap_rain + outflow_rain)
+fig = plt.figure(figsize=(11.69, 8.27))
+plt.plot(rain_water_balance_df['Rain Collection (mm)'], rain_water_balance_df['Inflow (cu.m)'], 'bo', label='Predicted Inflow' )
+# # plt.vlines(1.9, 0, 100, 'g')
+# # plt.xlim([-1, 2.0])
+# # plt.legend(loc='upper left')
+plt.xlabel(r'\textbf{Rainfall} (mm)')
+plt.ylabel(r'\textbf{Inflow} ($m^3/day$)')
+plt.title(r"Inflow day's Rainfall-Inflow relationship for 591 check dam")
+plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_591/rain_inflow_591_30min')
+
+"""
+Inflow vs Rainfall
+"""
+fig, ax1 = plt.subplots(nrows=1, ncols=1, figsize=(11.69, 8.27))
+# fig.subplots_adjust(right=0.8)
+line1 = ax1.bar(rain_water_balance_df.index, rain_water_balance_df['Rain Collection (mm)'],  0.35, label=r'Rainfall(mm)')
+plt.gca().invert_yaxis()
+ax1.xaxis.tick_bottom()
+ax1.yaxis.tick_left()
+for t1 in ax1.get_yticklabels():
+    t1.set_color('b')
+# plt.legend(loc='upper left')
+ax2 = ax1.twinx()
+line2 = ax2.bar(rain_water_balance_df.index, rain_water_balance_df['Inflow (cu.m)'], 0.35, color='r', label=r'\textbf{Inflow ($m^3/day$)}')
+plt.hlines(0, min(rain_water_balance_df.index), max(rain_water_balance_df.index))
+ax2.xaxis.tick_bottom()
+ax2.yaxis.tick_right()
+for t1 in ax2.get_yticklabels():
+    t1.set_color('r')
+lns = [line1, line2]
+labs = [r'\textbf{Rainfall(mm)}', r'\textbf{Inflow ($m^3/day$)}']
+ax2.legend(lns, labs, loc='upper center', fancybox=True, ncol=3, bbox_to_anchor=(0.5, 1.15))
+fig.autofmt_xdate(rotation=90)
+plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_591/rain_inflow_591_30min')
+# plt.show()
+# plt.show()
+
 merged_water_balance = pd.concat([dry_water_balance_df, rain_water_balance_df])
 # pd.PeriodIndex(ch_storage_df.index, freq='D')
 merged_water_balance = merged_water_balance.join(ch_storage_df, how='left')
@@ -875,3 +792,21 @@ merged_water_balance.sort_index(inplace=True)
 dry_water_balance_df.to_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/dry_wb_30min.CSV')
 rain_water_balance_df.to_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/rain_wb_30min.CSV')
 merged_water_balance.to_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/wb_30min.CSV')
+"""
+Evaporation vs infiltration
+"""
+fig, ax1 = plt.subplots(figsize=(11.69, 8.27))
+line1 = ax1.bar(merged_water_balance.index, merged_water_balance['Evaporation (cu.m)'], 0.45, color='r', label=r"\textbf{Evaporation ($m^3/day$)}")
+plt.title("Evaporation vs Infiltration for Check dam 591")
+for t1 in ax1.get_yticklabels():
+    t1.set_color('r')
+ax2 = ax1.twinx()
+line2 = ax2.bar(merged_water_balance.index, merged_water_balance['infiltration(cu.m)'], 0.45, color='g', alpha=0.5, label=r"\textbf{Infiltration ($m^3/day$}")
+for t1 in ax2.get_yticklabels():
+    t1.set_color('g')
+lns = [line1, line2]
+lab = [r"\textbf{Evaporation ($m^3/day$)}", r"\textbf{Infiltration ($m^3/day$}" ]
+ax2.legend(lns, lab, loc='upper center', fancybox=True, ncol=2, bbox_to_anchor=(0.5, 1.15))
+fig.autofmt_xdate(rotation=90)
+plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_591/evap_infilt_591_30min')
+plt.show()
