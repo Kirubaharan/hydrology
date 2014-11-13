@@ -140,7 +140,7 @@ rc('text', usetex=True)
 plt.gca().invert_xaxis()  # reverses x axis
 # # ax = fig
 # plt.savefig('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/linear_interpolation')
-plt.show()
+# plt.show()
 
 # ## trace contours
 # Refer: Nikolai Shokhirev http://www.numericalexpert.com/blog/area_calculation/
@@ -156,7 +156,7 @@ plt.xticks(np.arange(-30,25, 5))
 plt.grid()
 plt.gca().invert_xaxis()
 plt.savefig('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/cont_2d')
-plt.show()
+# plt.show()
 # for i in range(len(CS.collections)):
 #     print CS.levels[i]
 #
@@ -373,5 +373,26 @@ plt.xlabel(r'\textbf{Stage} (m)')
 plt.ylabel(r'\textbf{Area} ($m^2$)')
 plt.text(-0.8, 500, r"$y = {0:.2f}x^2 {1:.2f}x + {2:.2f}$".format(po[0], po[1], po[2]))
 plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/poly_2_deg_591')
-plt.show()
+# plt.show()
 
+
+def set_column_sequence(dataframe, seq):
+    '''Takes a dataframe and a subsequence of its columns, returns dataframe with seq as first columns'''
+    cols = seq[:] # copy so we don't mutate seq
+    for x in dataframe.columns:
+        if x not in cols:
+            cols.append(x)
+    return dataframe[cols]
+
+
+df_base_trans.columns = df_base_trans.iloc[0, 0:]
+# print df_base_trans
+sorted_df = df_base_trans.iloc[1:, 1:]
+sorted_df = sorted_df[sorted(sorted_df.columns)]
+# print sorted_df
+# print df_base_trans.iloc[0:, 0]
+sorted_df = sorted_df.join(df_base_trans.iloc[0:, 0], how='left')
+df_base_trans = set_column_sequence(sorted_df, [1500])
+df_base_trans.iloc[0] = df_base_trans.columns
+print df_base_trans
+df_base_trans.to_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/created_profile_591.csv')
