@@ -65,7 +65,7 @@ columns = ['stage_m']
 data = np.array(dz)
 output = pd.DataFrame(data, index=index, columns=columns)
 
-print(df_599_trans)
+# print(df_59_trans)
 # print len(df_591_trans.ix[1:, 0])
 ### Renaming the column and dropping y values
 y_name_list = []
