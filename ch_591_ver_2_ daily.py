@@ -564,7 +564,7 @@ weather_stage_avl_df = weather_df[min(water_level.index):max(water_level.index)]
 Convert observed stage to volume by linear interpolation
 """
 # set stage as index
-stage_vol_df = pd.read_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/stage_vol.csv',
+stage_vol_df = pd.read_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/stage_vol_new.csv',
                             sep=',', header=0, names=['sno', 'stage_m', 'total_vol_cu_m'])
 # print stage_vol_df
 
