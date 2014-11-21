@@ -154,7 +154,9 @@ Fill in missing values interpolate
 new_index = pd.date_range(start='2014-05-14 18:30:00', end='2014-09-10 23:30:00', freq='30min' )
 water_level = water_level.reindex(new_index, method=None)
 water_level = water_level.interpolate(method='time')
-# water_level = np.around(water_level, 2)
+
+# raise SystemExit(0)
+
 """
 Join weather and rain data
 """
@@ -482,21 +484,45 @@ for index, row in water_balance_df.iterrows():
 # plt.plot_date(water_balance_df.index, water_balance_df['volume (cu.m)'], '-g')
 # plt.hlines(stage_vol_df['total_vol_cu_m'][1.9], min(water_balance_df.index), max(water_balance_df.index))
 # plt.title('before overflow correction')
+water_balance_df['pumping status'] = 0.00
+"""
+Pumping
+"""
+for index, row in water_balance_df.iterrows():
+    if index > min(water_balance_df.index):
+        previous_time = index - timedelta(seconds=1800)
+        obs_stage = row['stage(m)']
+        v1 = water_balance_df['volume (cu.m)'][previous_time.strftime('%Y-%m-%d %H:%M:%S')]
+        v2 = water_balance_df['volume (cu.m)'][index.strftime('%Y-%m-%d %H:%M:%S')]
+        if ((v1 -v2) > 14) and obs_stage < 1.9:
+            water_balance_df['pumping status'][index.strftime(date_format)] = 1
+
 
 """
 Overflow
 """
 full_vol = stage_vol_df['total_vol_cu_m'][1.9]
 full_stage = 1.9
-width_check_dam = 17.0
-discharge_coeff = 1.84  # http://pubs.usgs.gov/wsp/0200/report.pdf page 9
-no_of_contractions = 2.0
+length_check_dam = 17
+width_check_dam = 0.3048
+# discharge_coeff = 1.704  # http://pubs.usgs.gov/wsp/0200/report.pdf page 9
+no_of_contractions = 0
 water_balance_df['overflow(cu.m)'] = 0.000
 for index in water_balance_df.index:
     obs_stage = water_balance_df['stage(m)'][index.strftime(date_format)]
-    if obs_stage > full_stage:
+    previous_time = index - timedelta(seconds=1800)
+    if (np.around(obs_stage, 2)) > full_stage:
         effective_head = obs_stage - full_stage
-        water_balance_df['overflow(cu.m)'][index.strftime(date_format)] = 1800*discharge_coeff*(width_check_dam -(0.1*no_of_contractions*effective_head))*(effective_head**1.5)
+        eff_head_width_ratio = effective_head/width_check_dam
+        if eff_head_width_ratio > 0.27:
+            discharge_coeff = (0.309*eff_head_width_ratio) + 0.796
+        else:
+            discharge_coeff = eff_head_width_ratio + 0.612
+        print effective_head
+        if np.around(water_balance_df['stage(m)'][previous_time.strftime(date_format)], 2) > full_stage:
+            water_balance_df['overflow(cu.m)'][index.strftime(date_format)] = 1800*discharge_coeff*length_check_dam*(effective_head**1.5)
+        else:
+            water_balance_df['overflow(cu.m)'][index.strftime(date_format)] = 900*discharge_coeff*length_check_dam*(effective_head**1.5)
 
 # for index, row in water_balance_df.iterrows():
 #     # obs_stage = row['volu']
@@ -548,7 +574,7 @@ water_balance_df['Evaporation (cu.m)'] = (water_balance_df['Evaporation (mm/30mi
 """
 Daily Totals of Rain, Evaporation, Overflow
 """
-sum_df = water_balance_df[['Rain Collection (mm)', 'Evaporation (cu.m)', 'Evaporation (mm/30min)', 'overflow(cu.m)']]
+sum_df = water_balance_df[['Rain Collection (mm)', 'Evaporation (cu.m)', 'Evaporation (mm/30min)', 'overflow(cu.m)', 'pumping status']]
 sum_df = sum_df.resample('D', how=np.sum)
 # print sum_df.head(10)
 """
@@ -616,7 +642,7 @@ for index in water_balance_daily_df.index:
         start_date = index - timedelta(days=1)
         two_days_rain_df = water_balance_daily_df['Rain Collection (mm)'][start_date.strftime('%Y-%m-%d'):index.strftime('%Y-%m-%d')]
         sum_df = two_days_rain_df.sum(axis=0)
-        if (sum_df == 0) and (water_balance_daily_df['change_storage(cu.m)'][index.strftime('%Y-%m-%d')] < 0) and (water_balance_daily_df['overflow(cu.m)'][index.strftime(daily_format)] == 0):
+        if (sum_df == 0) and (water_balance_daily_df['change_storage(cu.m)'][index.strftime('%Y-%m-%d')] < 0) and (water_balance_daily_df['overflow(cu.m)'][index.strftime(daily_format)] == 0) and (water_balance_daily_df['pumping status'][index.strftime(daily_format)] == 0):
             water_balance_daily_df['status'][index.strftime('%Y-%m-%d')] = "N"
 
 # print no_rain_df.head()
@@ -790,24 +816,41 @@ plt.ylabel(r'\textbf{Infiltration} ($m^3/day$)')
 plt.title(r"Inflow day's stage - infiltration relationship for 591 check dam")
 plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_591/new_rain_inf_591_30min')
 
-# plt.show()
+"""
+Pumping calculation
+"""
 
+merged_water_balance = pd.concat([dry_water_balance_df, rain_water_balance_df])
+pump_df = merged_water_balance[merged_water_balance['pumping status'] > 0]
+print pump_df
+merged_water_balance['pumping (cu.m)'] = 0.000
+for index in pump_df.index:
+    merged_water_balance['pumping (cu.m)'][index.strftime(daily_format)] = -1.0*(merged_water_balance['change_storage(cu.m)'][index.strftime(daily_format)] +
+                                                                                 merged_water_balance['infiltration(cu.m)'][index.strftime(daily_format)] +
+                                                                                 merged_water_balance['Evaporation (cu.m)'][index.strftime(daily_format)] +
+                                                                                 merged_water_balance['overflow(cu.m)'][index.strftime(daily_format)])
+# raise SystemExit(0)
 """
 Inflow calculation
 """
-merged_water_balance = pd.concat([dry_water_balance_df, rain_water_balance_df])
+# merged_water_balance = pd.concat([dry_water_balance_df, rain_water_balance_df])
 merged_water_balance['Inflow (cu.m)'] = 0.000
 delta_s_rain = water_balance_daily_df['change_storage(cu.m)']
 inf_rain = merged_water_balance['infiltration(cu.m)']
 evap_rain = water_balance_daily_df['Evaporation (cu.m)']
 outflow_rain = water_balance_daily_df['overflow(cu.m)']
+pump_rain = merged_water_balance['pumping (cu.m)']
 for i, row in merged_water_balance.iterrows():
     if i > min(merged_water_balance.index):
         string1 = intern(row['status'])
         string2 = intern('N')
         if string1 != string2:
-            i_1 = i - timedelta(days=1)
-            merged_water_balance['Inflow (cu.m)'][i.strftime("%Y-%m-%d")] = (delta_s_rain[i.strftime(daily_format)] + inf_rain[i.strftime(daily_format)] + evap_rain[i.strftime(daily_format)] + outflow_rain[i.strftime(daily_format)])
+            # i_1 = i - timedelta(days=1)
+            merged_water_balance['Inflow (cu.m)'][i.strftime(daily_format)] = (delta_s_rain[i.strftime(daily_format)] +
+                                                                               inf_rain[i.strftime(daily_format)] +
+                                                                               evap_rain[i.strftime(daily_format)] +
+                                                                               outflow_rain[i.strftime(daily_format)] +
+                                                                               pump_rain[i.strftime(daily_format)])
 
 
 # merged_water_balance = pd.concat([dry_water_balance_df, rain_water_balance_df])
@@ -839,9 +882,14 @@ lab = [r"\textbf{Evaporation ($m^3/day$)}", r"\textbf{Infiltration ($m^3/day$}" 
 # ax2.legend(lns, lab, loc='upper center', fancybox=True, ncol=2, bbox_to_anchor=(0.5, 1.15))
 fig.autofmt_xdate(rotation=90)
 plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_591/evap_infilt_591_30min_n')
-plt.show()
-print merged_water_balance.head()
+# plt.show()
+# print merged_water_balance.head()
 print merged_water_balance['Evaporation (cu.m)'].sum()
 print merged_water_balance['infiltration(cu.m)'].sum()
 print merged_water_balance['overflow(cu.m)'].sum()
 print merged_water_balance['Inflow (cu.m)'].sum()
+
+wb = (merged_water_balance['Evaporation (cu.m)'].sum()+
+      merged_water_balance['infiltration(cu.m)'].sum() +
+      merged_water_balance['overflow(cu.m)'].sum()+merged_water_balance['pumping (cu.m)'].sum()) - merged_water_balance['Inflow (cu.m)'].sum()
+print wb
