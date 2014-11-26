@@ -28,7 +28,8 @@ df_base_trans = df_base.T
 df_base_trans.columns = df_base_trans.ix[0, 0:]
 # print df_base_trans
 df_base_trans = df_base_trans.ix[1:, 1500:]
-# print df_base_trans
+print df_base_trans
+raise SystemExit(0)
 """
 Filling of profile
 """
