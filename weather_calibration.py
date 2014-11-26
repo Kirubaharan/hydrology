@@ -21,8 +21,8 @@ def pick_incorrect_value(dataframe, **param):
     """
     wrong_date_time = []
     unique_list = []
-    first_time = pd.to_datetime('2014-05-15 18:00:00', format='%Y-%m-%d %H:%M:%S')
-    final_time = pd.to_datetime('2014-09-09 23:00:00', format='%Y-%m-%d %H:%M:%S')
+    # first_time = pd.to_datetime('2014-05-15 18:00:00', format='%Y-%m-%d %H:%M:%S')
+    # final_time = pd.to_datetime('2014-09-09 23:00:00', format='%Y-%m-%d %H:%M:%S')
     for key, value in param.items():
         # print key
         # print len(wrong_date_time)
@@ -33,8 +33,10 @@ def pick_incorrect_value(dataframe, **param):
         if value[1] ==  '=':
             wrong_df = dataframe[dataframe[key] == value[0]]
         for wrong_time in wrong_df.index:
-            if final_time > wrong_time > first_time:
+            if max(dataframe.index) > wrong_time > min(dataframe.index):
                 wrong_date_time.append(wrong_time)
+            # if final_time > wrong_time > first_time:
+
 
     for i in wrong_date_time:
         if i not in unique_list:
@@ -53,18 +55,21 @@ def day_interpolate(dataframe, column_name, wrong_date_time):
     :type wrong_date_time: list
     :return: Corrected dataframe
     """
+    initial_cutoff = min(dataframe.index) + timedelta(days=1)
+    final_cutoff = max(dataframe.index) - timedelta(days=1)
     for date_time in wrong_date_time:
-        prev_date_time = date_time - timedelta(days=1)
-        next_date_time = date_time + timedelta(days=1)
-        prev_value = dataframe[column_name][prev_date_time.strftime('%Y-%m-%d %H:%M')]
-        next_value = dataframe[column_name][next_date_time.strftime('%Y-%m-%d %H:%M')]
-        average_value = (prev_value + next_value) / 2
-        dataframe[column_name][date_time.strftime('%Y-%m-%d %H:%M')] = average_value
+        if (date_time > initial_cutoff ) and (date_time < final_cutoff):
+            prev_date_time = date_time - timedelta(days=1)
+            next_date_time = date_time + timedelta(days=1)
+            prev_value = dataframe[column_name][prev_date_time.strftime('%Y-%m-%d %H:%M')]
+            next_value = dataframe[column_name][next_date_time.strftime('%Y-%m-%d %H:%M')]
+            average_value = 0.5*(prev_value + next_value)
+            dataframe[column_name][date_time.strftime('%Y-%m-%d %H:%M')] = average_value
 
     return dataframe
 
 
-base_file = '/media/kiruba/New Volume/ACCUWA_Data/weather_station/smgollahalli/smgoll_14_05_14_31_10_14.CSV'
+base_file = '/media/kiruba/New Volume/ACCUWA_Data/weather_station/smgollahalli/smgoll_08_05_11_25_2014.CSV'
 #read csv file
 df_base = pd.read_csv(base_file, header=0, sep='\t')
 #Drop seconds
@@ -102,7 +107,7 @@ df_base['index'] = df_base.index
 df_base.drop_duplicates(subset='index', take_last=True, inplace=True)
 del df_base['index']
 df_base = df_base.sort()
-df_base = df_base["2014-05-14 18:30":"2014-09-10 23:30"]
+# df_base = df_base["2014-05-14 18:30":"2014-09-10 23:30"]
 """
 Fill in missing values interpolate
 """
@@ -110,7 +115,7 @@ Fill in missing values interpolate
 # print .head()
 # print weather_df.tail()
 # # print weather_df.count()
-new_index = pd.date_range(start='2014-05-14 18:30', end='2014-09-10 23:30', freq='30min' )
+new_index = pd.date_range(start=min(df_base.index), end=max(df_base.index), freq='30min' )
 # # print len(new_index)
 # # print new_index
 # # print df_base.index.get_duplicates()
@@ -350,11 +355,12 @@ data_30min_df.to_csv('/media/kiruba/New Volume/ACCUWA_Data/weather_station/kanas
 # print np.sum(data_30min_df['diff'], axis=1)
 # print wrong_timestamps
 # print rain_df['2014-05-20 19:00:00':'2014-05-20 21:00:00']
-#
+initial_ksndmc_cutoff = min(data_30min_df.index)
+final_ksndmc_cutoff = max(data_30min_df.index)
 for wrong_datetime in wrong_timestamps:
-    # print wrong_datetime
-    a = wrong_datetime.strftime('%Y-%m-%d %H:%M')
-    rain_df['Rain Collection (mm)'][a] = data_30min_df['diff'][a]
+    if (wrong_datetime >= initial_ksndmc_cutoff) and (wrong_datetime <= final_ksndmc_cutoff):
+        a = wrong_datetime.strftime('%Y-%m-%d %H:%M')
+        rain_df['Rain Collection (mm)'][a] = data_30min_df['diff'][a]
 #
 # print rain_df['2014-05-20 19:00:00':'2014-05-20 21:00:00']
 # print rain_df['2014-05-08 01:00': '2014-05-08 02:30']
@@ -467,7 +473,7 @@ water_level = pd.concat([water_level_1, water_level_2, water_level_3], axis=0)
 # rain_df.to_csv('/media/kiruba/New Volume/ACCUWA_Data/weather_station/smgollahalli/corrected_rain_data.csv')
 
 # select rain data where stage is available
-rain_df = rain_df[min(water_level.index): max(water_level.index)]
+# rain_df = rain_df[min(water_level.index): max(water_level.index)]
 
 # plot 3 hourly
 
