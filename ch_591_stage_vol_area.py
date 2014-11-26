@@ -52,36 +52,38 @@ def calcvolume(profile, order, dy):
 
     output[('Volume_%s' % order)] = results
 #input parameters
-base_file_591 = '/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/base_profile_591.csv'
+base_file_591 = '/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/created_profile_591.csv'
 check_dam_no = 591
 check_dam_height = 1.9    # m
 df_591 = pd.read_csv(base_file_591, sep=',')
-df_591_trans = df_591.T  # Transpose
+print df_591
+df_591_trans = df_591.iloc[0:, 2:]  # Transpose
 no_of_stage_interval = check_dam_height/.05
 dz = list((spread(0.00, check_dam_height, int(no_of_stage_interval), mode=3)))
 index = [range(len(dz))]  # no of stage intervals
 columns = ['stage_m']
 data = np.array(dz)
 output = pd.DataFrame(data, index=index, columns=columns)
-# print(df_591_trans)
+print(df_591_trans)
 # print len(df_591_trans.ix[1:, 0])
 ### Renaming the column and dropping y values
+# print df_591_trans
 y_name_list = []
-for y_value in df_591_trans.ix[0, 0:]:
-    y_name_list.append(('Y_%d' %y_value))
+for y_value in df_591_trans.columns:
+    y_name_list.append(('Y_%s' %y_value))
 
 df_591_trans.columns = y_name_list
 # print df_591_trans
-y_value_list = df_591_trans.ix[0, 0:]
-# print y_value_list
+y_value_list = df_591_trans.ix[0, 1:]
+print y_value_list
 
 # drop the y values from data
 final_data = df_591_trans.ix[1:, 0:]
-# print final_data
+print final_data
 
 #volume calculation
 for l1, l2 in pairwise(y_value_list):
-    calcvolume(profile=final_data["Y_%d" % l1], order=l1, dy=int(l2-l1))
+    calcvolume(profile=final_data["Y_%s" % float(l1)], order=l1, dy=int(l2-l1))
 
 output_series = output.filter(regex="Volume_")  # filter the columns that have Volume_
 output["total_vol_cu_m"] = output_series.sum(axis=1)  # get total volume
@@ -90,4 +92,7 @@ output["total_vol_cu_m"] = output_series.sum(axis=1)  # get total volume
 # select only stage and total volume
 stage_vol_df = output[['stage_m', "total_vol_cu_m"]]
 
-stage_vol_df.to_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/stage_vol.csv')
+stage_vol_df.to_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/stage_vol_new.csv')
+fig=plt.figure()
+plt.plot(stage_vol_df.stage_m, stage_vol_df.total_vol_cu_m)
+plt.show()
