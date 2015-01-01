@@ -81,12 +81,17 @@ def polyfit(x, y, degree):
     return results
 
 #check dam calibration values
-y_cal = [10, 40, 100, 160, 225, 275, 300]
+y_cal = [0.1, 0.4, 1.0, 1.6, 2.25, 2.75, 3.0]
 x_cal = [2036, 2458, 3025, 4078, 5156, 5874, 6198]
 a_stage = polyfit(x_cal, y_cal, 1)
 # coefficients of polynomial are stored in following list
 coeff_cal = a_stage['polynomial']
 
+
+def myround(a, decimals=1):
+     return np.around(a-10**(-(decimals+5)), decimals=decimals)
+
+resolution_ody = 0.0008
 
 
 def read_correct_ch_dam_data(csv_file):
@@ -98,7 +103,7 @@ def read_correct_ch_dam_data(csv_file):
     """
     water_level = pd.read_csv(csv_file, skiprows=9, sep=',', header=0, names=['scan no', 'date', 'time', 'raw value', 'calibrated value'])
     water_level['calibrated value'] = (water_level['raw value'] *coeff_cal[0]) + coeff_cal[1] #in cm
-    water_level['calibrated value'] /= 100  #convert to metre
+    water_level['calibrated value'] = myround(a=((water_level['calibrated value'] / resolution_ody)* resolution_ody), decimals=4)
     # #change the column name
     water_level.columns.values[4] = 'stage(m)'
     # create date time index
@@ -271,7 +276,7 @@ Radiation unit conversion
 #  not in W/mm2 as given by weather station,
 # so multiply with 30*60 seconds
 # to convert to MJ divide by 10^6
-weather_df['Solar Radiation (MJ/m2/30min)'] = (weather_df['Solar Radiation (W/mm2)'] * 1800)/(10**6)
+weather_df['Solar Radiation (MJ/m2/30min)'] = (weather_df['Solar Radiation (W/m2)'] * 1800)/(10**6)
 """
 Average Temperature Calculation
 """
@@ -485,6 +490,7 @@ for index, row in water_balance_df.iterrows():
 # plt.hlines(stage_vol_df['total_vol_cu_m'][1.9], min(water_balance_df.index), max(water_balance_df.index))
 # plt.title('before overflow correction')
 water_balance_df['pumping status'] = 0.00
+# water_balance_df['pumping (cu.m)'] = 0.00
 """
 Pumping
 """
@@ -496,6 +502,7 @@ for index, row in water_balance_df.iterrows():
         v2 = water_balance_df['volume (cu.m)'][index.strftime('%Y-%m-%d %H:%M:%S')]
         if ((v1 -v2) > 14) and obs_stage < 1.9:
             water_balance_df['pumping status'][index.strftime(date_format)] = 1
+            # water_balance_df['pumping (cu.m)'][index.strftime(date_format)] = 14
 
 
 """
@@ -503,8 +510,8 @@ Overflow
 """
 full_vol = stage_vol_df['total_vol_cu_m'][1.9]
 full_stage = 1.9
-length_check_dam = 17
-width_check_dam = 0.3048
+length_check_dam = 17 # b
+width_check_dam = 0.5 # L
 # discharge_coeff = 1.704  # http://pubs.usgs.gov/wsp/0200/report.pdf page 9
 no_of_contractions = 0
 water_balance_df['overflow(cu.m)'] = 0.000
@@ -513,16 +520,16 @@ for index in water_balance_df.index:
     previous_time = index - timedelta(seconds=1800)
     if (np.around(obs_stage, 2)) > full_stage:
         effective_head = obs_stage - full_stage
-        eff_head_width_ratio = effective_head/width_check_dam
-        if eff_head_width_ratio > 0.27:
-            discharge_coeff = (0.309*eff_head_width_ratio) + 0.796
-        else:
-            discharge_coeff = eff_head_width_ratio + 0.612
-        print effective_head
+        # eff_head_width_ratio = effective_head/width_check_dam
+        # if eff_head_width_ratio > 0.27:
+        #     discharge_coeff = (0.309*eff_head_width_ratio) + 0.796
+        # else:
+        #     discharge_coeff = eff_head_width_ratio + 0.612
+        # print effective_head
         if np.around(water_balance_df['stage(m)'][previous_time.strftime(date_format)], 2) > full_stage:
-            water_balance_df['overflow(cu.m)'][index.strftime(date_format)] = 1800*discharge_coeff*length_check_dam*(effective_head**1.5)
+            water_balance_df['overflow(cu.m)'][index.strftime(date_format)] = 1800*1.84*width_check_dam*(effective_head**1.5)
         else:
-            water_balance_df['overflow(cu.m)'][index.strftime(date_format)] = 900*discharge_coeff*length_check_dam*(effective_head**1.5)
+            water_balance_df['overflow(cu.m)'][index.strftime(date_format)] = 900*1.84*width_check_dam*(effective_head**1.5)
 
 # for index, row in water_balance_df.iterrows():
 #     # obs_stage = row['volu']
@@ -850,7 +857,7 @@ for i, row in merged_water_balance.iterrows():
                                                                                inf_rain[i.strftime(daily_format)] +
                                                                                evap_rain[i.strftime(daily_format)] +
                                                                                outflow_rain[i.strftime(daily_format)] +
-                                                                               pump_rain[i.strftime(daily_format)])
+                                                                                  pump_rain[i.strftime(daily_format)])
 
 
 # merged_water_balance = pd.concat([dry_water_balance_df, rain_water_balance_df])
@@ -888,8 +895,12 @@ print merged_water_balance['Evaporation (cu.m)'].sum()
 print merged_water_balance['infiltration(cu.m)'].sum()
 print merged_water_balance['overflow(cu.m)'].sum()
 print merged_water_balance['Inflow (cu.m)'].sum()
+print merged_water_balance['pumping (cu.m)'].sum()
 
 wb = (merged_water_balance['Evaporation (cu.m)'].sum()+
       merged_water_balance['infiltration(cu.m)'].sum() +
       merged_water_balance['overflow(cu.m)'].sum()+merged_water_balance['pumping (cu.m)'].sum()) - merged_water_balance['Inflow (cu.m)'].sum()
 print wb
+merged_water_balance.index.name = 'Date'
+print merged_water_balance.head()
+merged_water_balance.to_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/et_infilt_591_w_of.csv')
