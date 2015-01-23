@@ -17,6 +17,10 @@ slope_file = '/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/slope
 df_slope = pd.read_csv(slope_file, header=0)
 # print df_base
 df_base_trans = df_base.T    # T refers to transpose
+rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica']})
+rc('text', usetex=True)
+plt.rc('text', usetex=True)
+plt.rc('font', family='serif', size=36)
 # print(df_base_trans)
 # print df_slope
 # check dam height = 1.9 m
@@ -101,7 +105,7 @@ Z = data_1_df.z
 # plt.show()
 
 ## contour and 3d surface plotting
-fig = plt.figure(figsize=plt.figaspect(0.5))
+fig = plt.figure(figsize=(16, 8))
 ax = fig.gca(projection='3d')
 # ax = fig.add_subplot(1, 2, 1, projection='3d')
 xi = np.linspace(X.min(), X.max(), 100)
@@ -116,22 +120,22 @@ zi = griddata((X, Y), Z, (xi[None, :], yi[:, None]), method='linear')    # creat
 # CS = plt.contour(xi, yi, zi, 36, linewidths=0.5, color='black')       # contour with .1 m interval
 # plt.rc('text', usetex=True)
 # plt.rc('font', family='serif')
-# plt.xlabel(r'\textbf{X} (m)')
-# plt.ylabel(r'\textbf{Y} (m)')
+ax.set_xlabel(r'\textbf{X} (m)', fontsize=34)
+ax.set_ylabel(r'\textbf{Y} (m)', fontsize=34)
+ax.set_zlabel(r'\textbf{Z} (m)', fontsize=34)
 # zc = CS.collections[0]
 # plt.setp(zc, linewidth=4)
 # plt.gca().invert_xaxis()       # invert x axis
 # fig.colorbar(CS, shrink=0.5, aspect=5)  # legend
 # ax = fig.add_subplot(1, 2, 2, projection='3d')
 xig, yig = np.meshgrid(xi, yi)
-surf = ax.plot_surface(xig, yig, zi, rstride=5, cstride=3, linewidth=0, cmap=cm.coolwarm, antialiased=False)   # 3d plot
+surf = ax.plot_surface(xig, yig, zi, rstride=5, cstride=3, linewidth=0, cmap=cm.coolwarm, antialiased=False, rasterized=True)   # 3d plot
 # inter_1 = []
 # inter_1.append((xi, yi, zi))
 # inter = pd.DataFrame(inter_1, columns=['x', 'y', 'z'])
 # inter.to_csv('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/inter.csv')  # interpolation data output
 fig.colorbar(surf, shrink=0.5, aspect=5)
-rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica']})
-rc('text', usetex=True)
+
 # plt.rc('text', usetex=True)
 # plt.rc('font', family='serif')
 # plt.xlabel(r'\textbf{X} (m)')
@@ -140,13 +144,13 @@ rc('text', usetex=True)
 plt.gca().invert_xaxis()  # reverses x axis
 # # ax = fig
 # plt.savefig('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/linear_interpolation')
-# plt.show()
+plt.show()
 
 # ## trace contours
 # Refer: Nikolai Shokhirev http://www.numericalexpert.com/blog/area_calculation/
 
-levels = [0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.4]  #, 3.93]
-plt.figure(figsize=(11.69, 8.27))
+levels = [0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.91, 2.4]  #, 3.93]
+plt.figure(figsize=(11.69, 8.27), facecolor='white' )
 CS = plt.contourf(xi, yi, zi, len(levels), alpha=.75, cmap=cm.hot, levels=levels)
 C = plt.contour(xi, yi, zi, len(levels), colors='black', linewidth=.5, levels=levels)
 plt.clabel(C, inline=1, fontsize=10)

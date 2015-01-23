@@ -124,19 +124,31 @@ block_3 = '/media/kiruba/New Volume/ACCUWA_Data/check_dam_water_level/2525_008_0
 water_level_3 = read_correct_ch_dam_data(block_3)
 block_4 = '/media/kiruba/New Volume/ACCUWA_Data/check_dam_water_level/2525_008_004.CSV'
 water_level_4 = read_correct_ch_dam_data(block_4)
-water_level = pd.concat([water_level_1, water_level_2, water_level_3, water_level_4], axis=0)
-water_level = water_level['2014-05-14 18:30:00':'2014-09-10 23:30:00']
+block_5 = '/media/kiruba/New Volume/ACCUWA_Data/check_dam_water_level/2525_008_005.CSV'
+water_level_5 = read_correct_ch_dam_data(block_5)
+block_6 = '/media/kiruba/New Volume/ACCUWA_Data/check_dam_water_level/2525_008_006.CSV'
+water_level_6 = read_correct_ch_dam_data(block_6)
+water_level = pd.concat([water_level_1, water_level_2, water_level_3, water_level_4, water_level_5, water_level_6], axis=0)
+water_level = water_level.sort()
+# water_level = water_level['2014-05-14 18:30:00':'2014-09-10 23:30:00']
 """
 Fill in missing values interpolate
 """
-new_index = pd.date_range(start='2014-05-14 18:30:00', end='2014-09-10 23:30:00', freq='30min')
+start_time = min(water_level.index)
+end_time = max(water_level.index)
+new_index = pd.date_range(start=start_time, end=end_time, freq='30min')
 water_level = water_level.reindex(new_index, method=None)
 water_level = water_level.interpolate(method='time')
+new_index = pd.date_range(start=start_time.strftime('%Y-%m-%d %H:%M'), end=end_time.strftime('%Y-%m-%d %H:%M'), freq='30Min')
+water_level = water_level.set_index(new_index)
+water_level.index.name = 'Date'
+# water_level.to_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/stage.csv')
+# raise SystemExit(0)
 """
 Join weather and rain data
 """
 weather_df = weather_df.join(rain_df, how='right')
-weather_df = weather_df['2014-05-14':'2014-09-10']
+weather_df = weather_df[min(water_level.index).strftime(daily_format):max(water_level.index).strftime(daily_format)]
 weather_df = weather_df.join(water_level, how='right')
 
 """
@@ -239,7 +251,7 @@ Radiation unit conversion
 #  not in W/mm2 as given by weather station,
 # so multiply with 30*60 seconds
 # to convert to MJ divide by 10^6
-weather_df['Solar Radiation (MJ/m2/30min)'] = (weather_df['Solar Radiation (W/mm2)'] * 1800)/(10**6)
+weather_df['Solar Radiation (MJ/m2/30min)'] = (weather_df['Solar Radiation (W/m2)'] * 1800)/(10**6)
 """
 Average Temperature Calculation
 """
@@ -608,6 +620,8 @@ merged_water_balance = pd.concat([dry_water_balance_df, rain_water_balance_df])
 Evaporation vs infiltration
 """
 merged_water_balance = merged_water_balance[merged_water_balance['stage(m)'] > stage_cutoff]
+merged_water_balance.index.name = 'Date'
+merged_water_balance.to_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/et_infilt_591.csv')
 fig, ax1 = plt.subplots(figsize=(11.69, 8.27))
 line1 = ax1.bar(merged_water_balance.index, merged_water_balance['Evaporation (cu.m)'], 0.45, color='r', label=r"\textbf{Evaporation ($m^3/day$)}")
 # plt.title("Evaporation vs Infiltration for Check dam 591")

@@ -54,7 +54,7 @@ def calcvolume(profile, order, dy):
 #input parameters
 base_file_591 = '/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/created_profile_591.csv'
 check_dam_no = 591
-check_dam_height = 1.9    # m
+check_dam_height = 1.91    # m
 df_591 = pd.read_csv(base_file_591, sep=',')
 print df_591
 df_591_trans = df_591.iloc[0:, 2:]  # Transpose
