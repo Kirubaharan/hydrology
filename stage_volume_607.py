@@ -53,6 +53,7 @@ dz = list((spread(0.00, check_dam_height, int(no_of_stage_interval), mode=3)))
 input_file = '/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/created_profile_607.csv'
 df = pd.read_csv(input_file, header=0)
 row = 17   # row of Y values
+print df
 
 index = [range(1, 42, 1)]  # no of stage intervals
 columns = ['stage_m']
