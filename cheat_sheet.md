@@ -137,8 +137,10 @@ plt.bar(df_1.index, df_1['column_name'],width=0.35, color='g')
 fig.autofmt_xdate(rotation=90)
 plt.show()
 ```
-[Time Seris Bar plot]\(http://i.imgur.com/KulaQ1R.png)
+![Time Series Bar plot](http://i.imgur.com/KulaQ1R.png)
+
 [Image in Markdown:](http://stackoverflow.com/questions/22428662/displaying-an-image-in-a-github-readme)
+
 [Bar plot:](http://stackoverflow.com/questions/5902371/matplotlib-bar-chart-with-dates)
 ### Exponential Curve Fitting
 [Ref :](http://stackoverflow.com/a/21421137/2632856)
