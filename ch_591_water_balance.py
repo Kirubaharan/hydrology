@@ -23,7 +23,7 @@ plt.rc('font', family='serif', size=18)
 # Weather file
 weather_file = '/media/kiruba/New Volume/ACCUWA_Data/weather_station/smgollahalli/corrected_weather.csv'
 # Rain file
-rain_file = '/media/kiruba/New Volume/ACCUWA_Data/weather_station/smgollahalli/corrected_rain_data.csv'
+rain_file = '/media/kiruba/New Volume/ACCUWA_Data/weather_station/smgollahalli/corrected_rain.csv'
 
 # convert to pandas dataframe
 weather_df = pd.read_csv(weather_file, sep=',', header=0)
@@ -40,7 +40,7 @@ weather_df = weather_df.drop('Date_Time', 1)
 rain_df = pd.read_csv(rain_file, sep=',', header=0)
 # set index
 
-rain_df['Date_Time'] = pd.to_datetime(rain_df['Date_Time'],format=date_format)
+rain_df['Date_Time'] = pd.to_datetime(rain_df['Date_Time'], format=date_format)
 rain_df.set_index(rain_df['Date_Time'], inplace=True)
 # sort based on index
 rain_df.sort_index(inplace=True)
@@ -94,7 +94,8 @@ floor division(//): http://www.tutorialspoint.com/python/python_basic_operators.
 #select radiation data separately
 sunshine_df = weather_df[['Solar Radiation (W/mm2)']]
 # give value 1 if there is radiation and rest 0
-sunshine_df['sunshine hours (h)'] = (sunshine_df['Solar Radiation (W/mm2)'] != 0).astype(int)  # gives 1 for true and 0 for false
+sunshine_df['sunshine hours (h)'] = (sunshine_df['Solar Radiation (W/mm2)'] != 0).astype(int)
+# gives 1 for true and 0 for false
 # print sunshine_df.head()
 #aggregate the values to daily and divide it by 2 to get sunshine hourly values
 sunshine_daily_df = sunshine_df.resample('D', how=np.sum) // 2  # // floor division
@@ -411,7 +412,6 @@ def find_range(array, ab):
         return min(array), max(array)
 
 
-
 # print weather_stage_avl_df.head()
 water_balance_df = weather_stage_avl_df[['Rain Collection (mm)', 'Evaporation (mm/day)', 'stage(m)']]
 # print find_range(stage_vol_df['stage_m'].tolist(), max(water_balance_df['stage(m)']))
@@ -453,7 +453,7 @@ for index, row in water_balance_df.iterrows():
 # plt.title('after overflow correction')
 """
 Stage vs area linear relationship
-"""
+"""wrong_date_time.append(wrong_time)
 stage_area_df = pd.read_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/cont_area.csv',
                             sep=',', header=0, names=['sno', 'stage_m', 'total_area_sq_m'])
 stage_area_df.drop('sno', inplace=True, axis=1)
@@ -568,7 +568,7 @@ Dry infiltration vs rainfall
 """
 fig, ax1 = plt.subplots(nrows=1, ncols=1, figsize=(11.69, 8.27))
 # fig.subplots_adjust(right=0.8)
-line1 = ax1.plot(water_balance_df.index, water_balance_df['Rain Collection (mm)'], '-b', label=r'Rainfall(mm)')
+line1 = ax1.bar(water_balance_df.index, water_balance_df['Rain Collection (mm)'], 0.35, label=r'Rainfall(mm)')
 plt.gca().invert_yaxis()
 ax1.xaxis.tick_bottom()
 ax1.yaxis.tick_left()
@@ -596,9 +596,9 @@ ax3.tick_params(axis='x',
 # ax3.xaxis.tick_bottom()
 ax3.yaxis.tick_right()
 fig.autofmt_xdate(rotation=90)
-lns = line1+line3
-labs = [l.get_label() for l in lns]
-ax3.legend(lns, labs, loc='upper center', fancybox=True, ncol=3, bbox_to_anchor=(0.5, 1.15))
+# lns = line1+line3
+# labs = [l.get_label() for l in lns]
+# ax3.legend(lns, labs, loc='upper center', fancybox=True, ncol=3, bbox_to_anchor=(0.5, 1.15))
 # ax3.set_xlim([min(dry_water_balance_df.index), max(dry_water_balance_df.index)])
 fig.subplots_adjust(right=0.8)
 cbar_ax = fig.add_axes([0.85, 0.50, 0.05, 0.3])  #first one distance from plot, second height
@@ -610,8 +610,8 @@ plt.show()
 """
 Fitting exponential function
 """
-stage_cal = dry_water_balance_df['stage(m)']
-# stage_cal = dry_water_balance_df['average_stage_m']
+# stage_cal = dry_water_balance_df['stage(m)']
+stage_cal = dry_water_balance_df['average_stage_m']
 inf_cal = dry_water_balance_df['infiltration(cu.m)']
 
 
@@ -637,7 +637,7 @@ plt.legend(loc='upper left')
 plt.xlabel(r'\textbf{Stage} (m)')
 plt.ylabel(r'\textbf{Infiltration} ($m^3/day$)')
 plt.title(r"No inflow day's stage - infiltration relationship for 591 check dam")
-plt.text(x=0.15, y=1250, fontsize=15, s=r'$Infiltration = {0:.2f}h^{{{1:.2f}}}$'.format(popt[0], popt[1]))
+plt.text(x=0.15, y=40, fontsize=15, s=r'$Infiltration = {0:.2f}{{h_{{av}}}}^{{{1:.2f}}}$'.format(popt[0], popt[1]))
 plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_591/stage_inf_exp_dry_591')
 # plt.show()
 # print dry_water_balance_df
@@ -671,7 +671,7 @@ plt.plot(rain_water_balance_df['average_stage_m'], rain_water_balance_df['infilt
 plt.xlabel(r'\textbf{Stage} (m)')
 plt.ylabel(r'\textbf{Infiltration} ($m^3/day$)')
 plt.title(r"Inflow day's stage - infiltration relationship for 591 check dam")
-# plt.show()
+plt.show()
 
 """
 Inflow calculation

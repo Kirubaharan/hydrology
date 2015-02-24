@@ -94,6 +94,8 @@ df_base.columns.values[8] = 'Min Air Temperature (C)'
 df_base.columns.values[9] = 'Max Air Temperature (C)'
 df_base.columns.values[16] = 'Canopy Temperature (C)'
 print df_base.head()
+# print df_base.tail()
+
 
 """
 Remove Duplicates
@@ -323,7 +325,7 @@ for row_no, row in ksndmc_df.iterrows():
 # create date time index
 data_df = pd.DataFrame(data, columns=['Date', 'Time', 'Rain(mm)'])
 # print data_df.head()
-date_format ="%d-%b-%Y %H:%M"
+date_format = "%d-%b-%Y %H:%M"
 data_df['Date_Time'] = pd.to_datetime(data_df['Date'] + ' ' + data_df['Time'], format=date_format)
 data_df.set_index(data_df['Date_Time'], inplace=True)
 data_df.sort_index(inplace=True)
@@ -355,6 +357,7 @@ data_30min_df = data_8h_df.resample('30Min', how=np.sum, label='right', closed='
 # print np.sum(data_30min_df['diff'], axis=1)
 # print wrong_timestamps
 # print rain_df['2014-05-20 19:00:00':'2014-05-20 21:00:00']
+
 initial_ksndmc_cutoff = min(data_30min_df.index)
 final_ksndmc_cutoff = max(data_30min_df.index)
 for wrong_datetime in wrong_timestamps:

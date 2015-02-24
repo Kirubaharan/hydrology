@@ -529,7 +529,7 @@ def Delta_calc(airtemp= scipy.array([])):
         # Convert es (Pa) to kPa
         es = es / 1000.0
         # Calculate Delta
-        Delta = es * 4098.0 / math.pow((airtemp + 237.3), 2) * 1000
+        Delta = es * 4098.0 / math.pow((airtemp + 237.3), 2)*1000
     else:   # Dealing with an array         
         # Initiate the output arrays
         Delta = scipy.zeros(n)
@@ -539,7 +539,7 @@ def Delta_calc(airtemp= scipy.array([])):
         es = es / 1000.0
         # Calculate Delta
         for i in range(0, n):
-            Delta[i] = es[i] * 4098.0 / math.pow((airtemp[i] + 237.3), 2) * 1000
+            Delta[i] = es[i] * 4098.0 / math.pow((airtemp[i] + 237.3), 2)*1000
     return Delta # in Pa/K
 
 

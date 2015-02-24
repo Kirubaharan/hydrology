@@ -39,7 +39,7 @@ dz = list((spread(0.00,check_dam_height,int(no_of_stage_interval), mode=3))) # d
 # y=1
 #empty list to store the results in the end
 results_1 = []
-
+print(len(dz), len(df.Y1))
 # for every value of 5 cm iteration
 for z in dz: 
 #for every iteration initial value needs to be set to 0
@@ -63,6 +63,7 @@ for z in dz:
     results_1.append(calc_vol_1)
 ##create pandas dataframe/array to store the values
 index = [range(1,15,1)]
+# print range(len(dz))
 columns = ['stage_m']
 data = np.array(dz)
 output = pd.DataFrame(data,index=index,columns=columns)

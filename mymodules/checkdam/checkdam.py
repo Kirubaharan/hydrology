@@ -1,10 +1,4 @@
 __author__ = 'kiruba'
-def pairwise(iterable):
-    """s -> (s0,s1), (s1,s2), (s2,s3), ..."""
-    a, b = itertools.tee(iterable)
-    next(b, None)
-    return itertools.izip(a, b)
-
 #function to create stage volume output
 
 def calcvolume(profile, order, dy):

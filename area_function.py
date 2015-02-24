@@ -55,6 +55,7 @@ def calcvolume(profile, order, dy):
         calc_vol = water_area * dy
         results.append(calc_vol)
     output[('Volume_%s' % order)] = results
+    return output
 
 calcvolume(df.Y1, 1, 1)
 calcvolume(df.Y2, 2, 2)

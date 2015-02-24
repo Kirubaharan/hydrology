@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib import rc
 import itertools
-# from mpl_toolkits.mplot3d import axes3d, Axes3D
-# from matplotlib import cm
+from mpl_toolkits.mplot3d import axes3d, Axes3D
+from matplotlib import cm
 
 slope_profile_csv = '/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/slope_profile_607.csv'
 df_profile = pd.read_csv(slope_profile_csv, header=0)
@@ -44,22 +44,22 @@ X = data_df.x
 Y = data_df.y
 Z = data_df.z
 
-fig = plt.figure()
-# ax = fig.add_subplot(111, projection = '3d')
+# fig = plt.figure()
+# ax = fig.add_subplot(111, projection='3d')
 # ax.plot_wireframe(X,Y,Z, rstride=100, cstride=50)
-ax = fig.gca(projection='3d')
+# ax = fig.gca(projection='3d')
 # ax.plot_trisurf(X,Y,Z,cmap =cm.jet,linewidth =0.2)
-ax.plot_surface(X, Y, Z, rstride=8, cstride=8, alpha=0.3)
+# ax.plot_surface(X, Y, Z, rstride=8, cstride=8, alpha=0.3)
 # cset = ax.contour(X,Y,Z, zdir='z', offset=-100, cmap=cm.coolwarm)
 # cset = ax.contour(X,Y,Z, zdir='x', offset=-40, cmap=cm.coolwarm)
 # cset = ax.contour(X,Y,Z, zdir='y', offset=40, cmap=cm.coolwarm)
 
-rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica']})
-rc('text', usetex=True)
-plt.rc('text', usetex=True)
-plt.rc('font', family='serif')
-plt.xlabel(r'\textbf{X} (m)')
-plt.ylabel(r'\textbf{Y} (m)')
-plt.title(r"Profile for 607", fontsize=16)
-plt.show()
-plt.savefig('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/607_created_profile')
+# rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica']})
+# rc('text', usetex=True)
+# plt.rc('text', usetex=True)
+# plt.rc('font', family='serif')
+# plt.xlabel(r'\textbf{X} (m)')
+# plt.ylabel(r'\textbf{Y} (m)')
+# plt.title(r"Profile for 607", fontsize=16)
+# plt.show()
+# plt.savefig('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/607_created_profile')

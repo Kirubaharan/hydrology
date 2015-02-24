@@ -122,11 +122,15 @@ def datesep(df):
 x +=y
 #<x> <operator>= y
 ```
-### 
-#### Slicing dataframe
-### Using .ix
+### Slicing dataframe
+#### Using .ix
 ```python
 df.ix[row,column]
+```
+### Convert a series/sliced series from dataframe to dataframe
+```python
+series = df['column_name']['2014-09-01':'2014-09-15']
+df_new = pd.Dataframe([series[i] for i in range(len(series))], columns=['column_name'], index=series.index)
 ```
 ##Matplotlib Plots
 ###Time Series Bar plots with dates in X-axis
@@ -137,7 +141,7 @@ plt.bar(df_1.index, df_1['column_name'],width=0.35, color='g')
 fig.autofmt_xdate(rotation=90)
 plt.show()
 ```
-![Time Series Bar plot](http://i.imgur.com/KulaQ1R.png)
+[Time Series Bar plot](http://i.imgur.com/KulaQ1R.png)
 
 [Image in Markdown:](http://stackoverflow.com/questions/22428662/displaying-an-image-in-a-github-readme)
 
@@ -184,12 +188,20 @@ def f2(seq):
             checked.append(e)
     return checked
 ```
-### Date time 
+## Date time 
+###Formats
 -`%d` is the day number
 -`%m` is the month number
 -`%b` is the month abbreviation
 -`%y` is the year last two digits
 -`%Y` is the all year
+### Get no of days between two datetime objects
+```python
+delta = date_1 - date_2
+print delta.days
+```
+date_1, date_2 should be a datetime object, or use date(2009, 09, 24)
+[Ref:](http://stackoverflow.com/a/151211/2632856)
 ## Function
 ### Basic Function
 ```python

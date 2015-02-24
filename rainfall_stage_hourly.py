@@ -14,6 +14,7 @@ date_format = '%d/%m/%y %H:%M:%S'
 df_base['Date_Time'] = pd.to_datetime(df_base['Date'] + ' ' + df_base['Time'], format=date_format)
 # set index
 df_base.set_index(df_base['Date_Time'], inplace=True)
+print df_base.head()
 # sort based on index
 df_base.sort_index(inplace=True)
 cols = df_base.columns.tolist()

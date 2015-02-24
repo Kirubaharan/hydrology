@@ -19,7 +19,7 @@ plt.rc('font', family='serif', size=18)
 """
 Variables
 """
-full_stage = 1.96  # check dam height, above this it is assumed check dam will overflow
+full_stage = 1.88  # check dam height, above this it is assumed check dam will overflow
 date_format = '%Y-%m-%d %H:%M:%S'
 daily_format = '%Y-%m-%d'
 resolution_ody = 0.0008
@@ -241,6 +241,13 @@ slope = y_diff / x_diff
 y_intercept = y2 - (slope * x2)
 full_volume = (slope*full_stage) + y_intercept
 print full_volume
+overflow_check_df = water_balance_df['2014-08-21']
+fig = plt.figure()
+plt.plot_date(overflow_check_df.index, overflow_check_df['stage(m)'], 'bo-')
+plt.hlines(y=full_stage, xmin=min(overflow_check_df.index), xmax=max(overflow_check_df.index))
+plt.show()
+# raise SystemExit(0)
+
 """
 Overflow
 """
@@ -250,26 +257,36 @@ water_balance_df['overflow(cu.m)'] = 0.000
 # cd_wall_length_df = pd.read_csv(cd_wall_length_file, sep=',', header=0)
 # cd_wall_length_df.set_index(cd_wall_length_df['elevation'], inplace=True)
 # coeff_discharge = 0.6
-
+#
 # for index, row in water_balance_df.iterrows():
 #     obs_stage = cd.myround(a=row['stage(m)'], decimals=2)
 #     if obs_stage > full_stage:
 #         effective_head = obs_stage - full_stage
 #         previous_time = index - timedelta(minutes=30)
 #         previous_stage = cd.myround(a=water_balance_df['stage(m)'][previous_time.strftime(date_format)], decimals=2)
-#         if obs_stage < max(cd_wall_length_df.index):
-#             effective_length = cd_wall_length_df['length'][obs_stage]
-#         else:
-#             effective_length = length_check_dam
 #         if previous_stage > full_stage:
+#             print full_stage, previous_stage
 #             overflow_volume = 0.0
 #             effective_head_1 = previous_stage - full_stage
 #             diff_eff_head = list(cd.spread(effective_head_1, effective_head, 1800, mode=3))
+#             # print diff_eff_head
 #             for eff_head in diff_eff_head:
+#                 print 'eff head  =  %0.04f'  % eff_head
+#                 true_head = cd.myround(a=(eff_head + full_stage), decimals=2)
+#                 if true_head < max(cd_wall_length_df.index):
+#                     effective_length = cd_wall_length_df['length'][true_head]
+#                 else:
+#                     effective_head = length_check_dam
 #                 d_vol = (2.0/3.0)*coeff_discharge*effective_length*(math.sqrt(2.*9.81))*(eff_head**1.5)
+#                 print d_vol
+#                 print overflow_volume
 #                 overflow_volume += d_vol
 #             water_balance_df['overflow(cu.m)'][index.strftime(date_format)] = overflow_volume
 #         else:
+#             if obs_stage < max(cd_wall_length_df.index):
+#                 effective_length = cd_wall_length_df['length'][obs_stage]
+#             else:
+#                 effective_length = length_check_dam
 #             x1 = 0
 #             x2 = 1800
 #             y1 = cd.myround(a=water_balance_df['stage(m)'][previous_time.strftime(date_format)], decimals=2)
@@ -286,6 +303,7 @@ for index, row in water_balance_df.iterrows():
         water_balance_df['overflow(cu.m)'][index.strftime(date_format)] = obs_volume - full_volume
 
 print water_balance_df['overflow(cu.m)'].sum()
+raise SystemExit(0)
 water_balance_df = water_balance_df["2014-05-15":]
 water_balance_df.to_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/overflow_check.csv')
 

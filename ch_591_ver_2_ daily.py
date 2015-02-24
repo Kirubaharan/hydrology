@@ -81,7 +81,7 @@ def polyfit(x, y, degree):
     return results
 
 #check dam calibration values
-y_cal = [0.1, 0.4, 1.0, 1.6, 2.25, 2.75, 3.0]
+y_cal = [100, 400, 1000, 1600, 2250, 2750, 3000]
 x_cal = [2036, 2458, 3025, 4078, 5156, 5874, 6198]
 a_stage = polyfit(x_cal, y_cal, 1)
 # coefficients of polynomial are stored in following list
@@ -103,7 +103,9 @@ def read_correct_ch_dam_data(csv_file):
     """
     water_level = pd.read_csv(csv_file, skiprows=9, sep=',', header=0, names=['scan no', 'date', 'time', 'raw value', 'calibrated value'])
     water_level['calibrated value'] = (water_level['raw value'] *coeff_cal[0]) + coeff_cal[1] #in cm
-    water_level['calibrated value'] = myround(a=((water_level['calibrated value'] / resolution_ody)* resolution_ody), decimals=4)
+    water_level['calibrated value'] = np.round(water_level['calibrated value']/resolution_ody)*resolution_ody
+    water_level['calibrated value'] /= 1000.0
+    water_level['calibrated value'] = myround(a=water_level['calibrated value'], decimals=2)
     # #change the column name
     water_level.columns.values[4] = 'stage(m)'
     # create date time index
@@ -133,40 +135,37 @@ def read_correct_ch_dam_data(csv_file):
 ## Read check dam data
 block_1 = '/media/kiruba/New Volume/ACCUWA_Data/check_dam_water_level/2525_008_001.CSV'
 water_level_1 = read_correct_ch_dam_data(block_1)
-# print min(water_level_1.index), max(water_level_1.index)
-# print water_level_1['stage(m)'][max(water_level_1.index)]
-# print water_level_1.tail(20)
-# water_level_1['stage(m)'][max(water_level_1.index)] = 0.5*(water_level_1['stage(m)'][max(water_level_1.index)])
 block_2 = '/media/kiruba/New Volume/ACCUWA_Data/check_dam_water_level/2525_008_002.CSV'
 water_level_2 = read_correct_ch_dam_data(block_2)
-# print water_level_2.head()
-# print water_level_2.tail()
 block_3 = '/media/kiruba/New Volume/ACCUWA_Data/check_dam_water_level/2525_008_003.CSV'
 water_level_3 = read_correct_ch_dam_data(block_3)
-# print water_level_3.head()
-# print water_level_3.tail()
 block_4 = '/media/kiruba/New Volume/ACCUWA_Data/check_dam_water_level/2525_008_004.CSV'
 water_level_4 = read_correct_ch_dam_data(block_4)
-# print water_level_4.head()
-# print water_level_4.tail()
-water_level = pd.concat([water_level_1, water_level_2, water_level_3, water_level_4], axis=0)
-# print water_level.head(20)
-water_level = water_level['2014-05-14 18:30:00':'2014-09-10 23:30:00']
-
+block_5 = '/media/kiruba/New Volume/ACCUWA_Data/check_dam_water_level/2525_008_005.CSV'
+water_level_5 = read_correct_ch_dam_data(block_5)
+block_6 = '/media/kiruba/New Volume/ACCUWA_Data/check_dam_water_level/2525_008_006.CSV'
+water_level_6 = read_correct_ch_dam_data(block_6)
+water_level = pd.concat([water_level_1, water_level_2, water_level_3, water_level_4, water_level_5, water_level_6], axis=0)
+water_level = water_level.sort()
+# water_level = water_level['2014-05-14 18:30:00':'2014-09-10 23:30:00']
 """
 Fill in missing values interpolate
 """
-new_index = pd.date_range(start='2014-05-14 18:30:00', end='2014-09-10 23:30:00', freq='30min' )
+start_time = min(water_level.index)
+end_time = max(water_level.index)
+new_index = pd.date_range(start=start_time, end=end_time, freq='30min')
 water_level = water_level.reindex(new_index, method=None)
 water_level = water_level.interpolate(method='time')
-
+new_index = pd.date_range(start=start_time.strftime('%Y-%m-%d %H:%M'), end=end_time.strftime('%Y-%m-%d %H:%M'), freq='30Min')
+water_level = water_level.set_index(new_index)
+water_level.index.name = 'Date'
 # raise SystemExit(0)
 
 """
 Join weather and rain data
 """
 weather_df = weather_df.join(rain_df, how='right')
-weather_df = weather_df['2014-05-14':'2014-09-10']
+weather_df = weather_df[min(water_level.index).strftime(daily_format): max(water_level.index).strftime(daily_format)]
 # print weather_df['2014-06-30']
 # weather_df = weather_df[min(water_level.index): max(water_level.index)]
 weather_df = weather_df.join(water_level, how='right')

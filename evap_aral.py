@@ -305,7 +305,7 @@ rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica']})
 rc('text', usetex=True)
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
-plt.ylabel(r'\textbf{Evaporation} ($mm/day$)')
+plt.ylabel(r'\textbf{Evaporation ($mm/day$)}')
 plt.title(r"Daily Evaporation for Check Dam - 591", fontsize=16)
 plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/591_evap')
 # plt.show()
@@ -343,7 +343,7 @@ plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_evap/so
 fig.autofmt_xdate(rotation=90)
 plt.show()
 """
-#check dam caliberation
+#check dam calibration
 y_cal = [10, 40, 100, 160, 225, 275, 300]
 x_cal = [2036, 2458, 3025, 4078, 5156, 5874, 6198]
 

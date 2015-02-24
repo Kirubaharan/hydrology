@@ -14,6 +14,7 @@ import meteolib as met
 from bisect import bisect_left
 import matplotlib as mpl
 import Pysolar as ps
+import pickle
 
 # latex parameters
 rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica']})
@@ -145,6 +146,12 @@ water_level_3_index = pd.date_range(initial_time_stamp_3, final_time_stamp_3, fr
 water_level_3_array = [0.0] * len(water_level_3_index)
 water_level_3 = pd.DataFrame(data=water_level_3_array, index=water_level_3_index, columns=['stage(m)'])
 # water_level_3 =
+print initial_time_stamp_3
+print final_time_stamp_3
+with open("/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/ch_599/initial_time.pickle", "wb") as f:
+    f.write(pickle.dumps(initial_time_stamp_3))
+with open("/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/ch_599/final_time.pickle", "wb") as f:
+    f.write(pickle.dumps(final_time_stamp_3))
 # raise SystemExit(0)
 print water_level_1.tail()
 print water_level_3.head()
@@ -173,6 +180,9 @@ Fill in missing values interpolate
 new_index = pd.date_range(start=min(water_level.index), end=max(water_level.index), freq='30min')
 water_level = water_level.reindex(new_index, method=None)
 water_level = water_level.interpolate(method='time')
+water_level.index.name = 'Date'
+water_level.to_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/ch_599/water_level.csv')
+raise SystemExit(0)
 """
 Join weather and rain data
 """
@@ -214,7 +224,7 @@ http://www.engineeringtoolbox.com/air-altitude-pressure-d_462.html
 mean elevation over watershed = 803.441589 m
 Elevation at the check dam = 799 m
 """
-z = 799
+z = 797
 p = (1-(2.25577*(10**-5)*z))
 air_p_pa = 101325*(p**5.25588)
   # give air pressure value
@@ -658,4 +668,5 @@ lab = [r"\textbf{Evaporation ($m^3/day$)}", r"\textbf{Infiltration ($m^3/day$}" 
 fig.autofmt_xdate(rotation=90)
 plt.savefig('/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_599/evap_infilt_599_30min_n')
 plt.show()
+merged_water_balance.index.name = 'Date'
 merged_water_balance.to_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/ch_599/daily_wb_599.CSV')

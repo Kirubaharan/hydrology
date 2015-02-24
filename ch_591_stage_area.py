@@ -12,7 +12,10 @@ import matplotlib as mpl
 # print mpl.__version__
 base_file = '/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/base_profile_591.csv'
 df_base = pd.read_csv(base_file, header=-1)
-# print df_base
+# print df_base.head()
+# print(df_base.ix[1:, 1:])
+df_base.ix[1:, 1:] = df_base.ix[1:, 1:].add(0.03)
+# raise SystemExit(0)
 slope_file = '/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/slope_profile_1.csv'
 df_slope = pd.read_csv(slope_file, header=0)
 # print df_base
@@ -62,7 +65,8 @@ diff = z38 - z30
 profile_38 = template_30 + diff
 df_base_trans[20] = profile_38
 df_base_trans.ix[0, 20] = 38
-# print df_base_trans
+# print df_base_trans.head()
+# raise SystemExit(0)
 ################################################
 x1 = df_base_trans.ix[1:, 0]   # separate out x, y, z values
 y1 = df_base_trans.ix[0, 1:]
@@ -149,7 +153,7 @@ plt.show()
 # ## trace contours
 # Refer: Nikolai Shokhirev http://www.numericalexpert.com/blog/area_calculation/
 
-levels = [0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.91, 2.4]  #, 3.93]
+levels = [0, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.96, 2, 2.5, 3.0]
 plt.figure(figsize=(11.69, 8.27), facecolor='white' )
 CS = plt.contourf(xi, yi, zi, len(levels), alpha=.75, cmap=cm.hot, levels=levels)
 C = plt.contour(xi, yi, zi, len(levels), colors='black', linewidth=.5, levels=levels)
@@ -161,12 +165,6 @@ plt.grid()
 plt.gca().invert_xaxis()
 plt.savefig('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/cont_2d')
 # plt.show()
-# for i in range(len(CS.collections)):
-#     print CS.levels[i]
-#
-# for i in range(len(C.collections)):
-#     print(C.levels[i])
-
 
 def contour_area(mpl_obj):
     """
@@ -183,7 +181,9 @@ def contour_area(mpl_obj):
     for contour in range(n_c):
         # area = 0
         n_p = len(mpl_obj.collections[contour].get_paths())
-        zc = mpl_obj.levels[contour]
+        zc = mpl_obj.levels[contour + 1]
+        print contour
+        print zc
         for path in range(n_p):
             p = mpl_obj.collections[contour].get_paths()[path]
             v = p.vertices
@@ -194,6 +194,7 @@ def contour_area(mpl_obj):
                 s += (v[j, 0] - v[i, 0]) * (v[j, 1] + v[i, 1])
                 poly_area = 0.5*abs(s)
             area += poly_area
+        print area
         cont_area_array.append((zc, area))
     return cont_area_array
 
@@ -254,11 +255,16 @@ def poly_area(xy):
 # plt.fill(v_0_0[:,0], v_0_0[:,1], facecolor='g')
 # plt.show()
 # # 0.4 contour has three paths 0,1,2
-# p_1_0 = CS.collections[1].get_paths()[0]
-# p_1_1 = CS.collections[1].get_paths()[1]
-# p_1_2 = CS.collections[1].get_paths()[2]
-# v_1_0 = p_1_0.vertices
-# v_1_1 = p_1_1.vertices
+# print len(CS.collections[21].get_paths())
+print(levels)
+print(CS.levels[22])
+print len(CS.levels)
+
+p_1_0 = CS.collections[21].get_paths()[0]
+p_1_1 = CS.collections[21].get_paths()[1]
+# p_1_2 = CS.collections[21].get_paths()[2]
+v_1_0 = p_1_0.vertices
+v_1_1 = p_1_1.vertices
 # v_1_2 = p_1_2.vertices
 # area_1_0 = poly_area(v_1_0)
 # print(area_1_0)
@@ -268,12 +274,27 @@ def poly_area(xy):
 # area_1 = area_1_0 + area_1_1 + area_1_2
 # z_1 = CS.levels[1]
 # print z_1, area_1
-# plt.fill(v_1_0[:,0], v_1_0[:,1], facecolor='r')
+fig = plt.figure(figsize=(11.69, 8.27), facecolor='white')
+plt.fill(v_1_0[:,0], v_1_0[:,1], facecolor='r')
+plt.yticks(np.arange(0,100, 5))
+plt.xticks(np.arange(-30,25, 5))
+plt.grid()
+plt.gca().invert_xaxis()
 # plt.show()
-# plt.fill(v_1_1[:,0], v_1_1[:,1], facecolor='b')
+fig = plt.figure(figsize=(11.69, 8.27), facecolor='white')
+plt.fill(v_1_1[:,0], v_1_1[:,1], facecolor='b')
+plt.yticks(np.arange(0,100, 5))
+plt.xticks(np.arange(-30,25, 5))
+plt.grid()
+plt.gca().invert_xaxis()
 # plt.show()
+# fig = plt.figure(figsize=(11.69, 8.27), facecolor='white')
 # plt.fill(v_1_2[:,0], v_1_2[:,1], facecolor='g')
-# plt.show()
+# plt.yticks(np.arange(0,100, 5))
+# plt.xticks(np.arange(-30,25, 5))
+# plt.grid()
+# plt.gca().invert_xaxis()
+plt.show()
 area = 0.0
 
 
@@ -336,6 +357,8 @@ def areaofpolygon(polygon, i):
 
 
 cont_area_df = pd.DataFrame(contour_a, columns=['Z', 'Area'])
+print cont_area_df
+
 plt.plot(cont_area_df['Z'], cont_area_df['Area'])
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
@@ -364,8 +387,8 @@ x = cont_area_df['Z']
 #calculate  2nd deg polynomial
 po = np.polyfit(x, y, 2)
 f = np.poly1d(po)
-print po
-print np.poly1d(f)
+# print po
+# print np.poly1d(f)
 #calculate new x, y
 x_new = np.linspace(min(x), max(x), 50)
 y_new = f(x_new)
@@ -398,5 +421,5 @@ sorted_df = sorted_df[sorted(sorted_df.columns)]
 sorted_df = sorted_df.join(df_base_trans.iloc[0:, 0], how='left')
 df_base_trans = set_column_sequence(sorted_df, [1500])
 df_base_trans.iloc[0] = df_base_trans.columns
-print df_base_trans
+# print df_base_trans
 df_base_trans.to_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/created_profile_591.csv')

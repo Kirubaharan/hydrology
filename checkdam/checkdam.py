@@ -116,9 +116,9 @@ def calcvolume(y_value_list, elevation_data, dam_height):
 def find_range(array, ab):
     if ab < max(array):
         start = bisect_left(array, ab)
-        return array[start - 1]
+        return array[start-1], array[start]
     else:
-        return max(array)
+        return min(array), max(array)
 
 
 def fill_profile(base_df, slope_df, midpoint_index):
@@ -167,12 +167,12 @@ def contour_area(mpl_obj):
     # Refer: Nikolai Shokhirev http://www.numericalexpert.com/blog/area_calculation/
     global poly_area
     n_c = len(mpl_obj.collections)  # n_c = no of contours
-    print 'No. of contours = {0:s}'.format(n_c)
+    print 'No. of contours = {0}'.format(n_c)
     area = 0.0000
     cont_area_array = []
     for contour in range(n_c):
         n_p = len(mpl_obj.collections[contour].get_paths())
-        zc = mpl_obj.levels[contour]
+        zc = mpl_obj.levels[contour + 1]
         for path in range(n_p):
             p = mpl_obj.collections[contour].get_paths()[path]
             v = p.vertices
