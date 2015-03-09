@@ -7,6 +7,7 @@ from datetime import timedelta
 import datetime
 import pymc as pm
 from pymc import DiscreteUniform, Exponential, deterministic, Poisson, Uniform, Lambda, MCMC, observed, poisson_like
+from scipy.stats import itemfreq
 
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif', size=18)
@@ -84,18 +85,21 @@ weather_ksndmc_df['index'] = weather_ksndmc_df.index
 weather_ksndmc_df.drop_duplicates(subset='index', take_last=True, inplace=True)
 del weather_ksndmc_df['index']
 weather_ksndmc_df = weather_ksndmc_df.sort()
-weather_ksndmc_df['WIND_SPEED'] = np.where(weather_ksndmc_df['WIND_SPEED'] > 3.0, np.nan, weather_ksndmc_df['WIND_SPEED'])
+weather_ksndmc_df['WIND_SPEED'] = np.where(weather_ksndmc_df['WIND_SPEED'] > 3.0, -999.0, weather_ksndmc_df['WIND_SPEED'])
 start_time = min(weather_ksndmc_df.index)
 end_time = max(weather_ksndmc_df.index)
 new_index = pd.date_range(start=start_time, end=end_time, freq='15min')
-weather_ksndmc_df = weather_ksndmc_df.reindex(new_index)
+weather_ksndmc_df = weather_ksndmc_df.reindex(new_index, fill_value=-999.0)
 print len(new_index)
 Z = weather_ksndmc_df['WIND_SPEED'].values
-print Z
+Z = np.loadtxt('/media/kiruba/New Volume/ACCUWA_Data/weather_station/KSNDMC/data.csv',delimiter=',')
+print Z.shape
+
+# np.savetxt('/media/kiruba/New Volume/ACCUWA_Data/weather_station/KSNDMC/data.csv', Z, delimiter=',')
 
 switch = pm.DiscreteUniform('switch', lower=0, upper=27406)
-early_mean = pm.Exponential('early_mean', beta=1)
-late_mean = pm.Exponential('late_mean', beta=1)
+early_mean = pm.Exponential('early_mean', beta=1.)
+late_mean = pm.Exponential('late_mean', beta=1.)
 
 
 @deterministic(plot=False)
@@ -108,8 +112,14 @@ def rate(s=switch, e=early_mean, l=late_mean):
     out[s:] = l
     return out
 # rate = rate(s=switch, e=early_mean, l=late_mean)
-# print rate
-masked_values = np.ma.masked_equal(Z, value=np.nan)
+unique, counts = np.unique(Z, return_counts=True)
+print np.asarray((unique, counts)).T
+masked_values = np.ma.masked_equal(Z, value=-999)
+unique, counts = np.unique(masked_values, return_counts=True)
+print np.asarray((unique, counts)).T
+print masked_values.mask.sum()
+assert masked_values.mask.sum() == 1977
+
 wind_speed = pm.Poisson('wind_speed', mu=rate, value=masked_values, observed=True)
 
 # print Z[:5,1:4]
@@ -179,8 +189,10 @@ wind_speed = pm.Poisson('wind_speed', mu=rate, value=masked_values, observed=Tru
 # print "%.2f(%.2f,%.2f)" % (RM, LCL, UCL)
 # print XI
 # wind_speed =
-fig = plt.figure()
-plt.plot_date(weather_ksndmc_df.index, wind_speed, 'r-o')
+wind_speed.summary()
+pm.Matplot.summary_plot(wind_speed)
+# fig = plt.figure()
+# plt.plot(weather_ksndmc_df.index, wind_speed)
 plt.show()
 
 raise SystemExit(0)
