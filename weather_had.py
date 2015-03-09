@@ -6,6 +6,7 @@ import checkdam.checkdam as cd
 from datetime import timedelta
 import datetime
 import pymc as pm
+from pymc import DiscreteUniform, Exponential, deterministic, Poisson, Uniform, Lambda, MCMC, observed, poisson_like
 
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif', size=18)
@@ -97,7 +98,8 @@ early_mean = pm.Exponential('early_mean', beta=1)
 late_mean = pm.Exponential('late_mean', beta=1)
 
 
-def rate(s, e, l):
+@deterministic(plot=False)
+def rate(s=switch, e=early_mean, l=late_mean):
     """Allocate appropriate mean to time series"""
     out = np.empty(len(Z))
     # Early mean prior to switchpoint
@@ -105,8 +107,8 @@ def rate(s, e, l):
     # Late mean following switchpoint
     out[s:] = l
     return out
-rate = rate(s=switch, e=early_mean, l=late_mean)
-print rate
+# rate = rate(s=switch, e=early_mean, l=late_mean)
+# print rate
 masked_values = np.ma.masked_equal(Z, value=np.nan)
 wind_speed = pm.Poisson('wind_speed', mu=rate, value=masked_values, observed=True)
 
