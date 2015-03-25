@@ -5,7 +5,7 @@
 
 ###Tutorial for stage volume
 See the [Stage - Volume Tutorial](../master/stage_volume_tutorial.py).
-The working of the code is explained in the comments.  
+Check out the comments.  
 
 ###3D plotting
 For 3D plotting of interpolated stream profile  [Profile Creator](../master/profile_creator.py).
@@ -18,6 +18,8 @@ This file does following functions:
  2. Creates x,y,z grid from profile.
  3. Creates interpolation of uniform grid.
  4. Creates a contour and 3D surface plot from the interpolated data.
- 5. Calculates the contour area for each elevation level.
+ 5. Calculates the contour area for given elevation levels.
  6. Plot of surface area vs stage.
+### Markov chain Monte Carlo(MCMC) estimation of missing wind speed
+Use of MCMC to fill missing wind speed values in weather data. [MCMC](../master/wind_speed_had_mcmc.py) 
 
