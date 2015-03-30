@@ -1,6 +1,5 @@
 #hydrology
 
-
 ##My hydrology repository
 
 ###Tutorial for stage volume
@@ -24,3 +23,5 @@ This file does following functions:
 ### Markov chain Monte Carlo(MCMC) estimation of missing wind speed
 Use of MCMC to fill missing wind speed values in weather data. [MCMC](../master/wind_speed_had_mcmc.py) 
 
+###Contact
+For related queries please mail: haran.kiruba@gmail.com
