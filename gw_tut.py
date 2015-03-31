@@ -8,8 +8,9 @@ import matplotlib.pyplot as plt
 import fortranfile as ff
 import flopy
 from array import array
-from struct import *
+import struct
 from scipy.interpolate import griddata
+import pandas as pd
 print flopy.__version__
 
 # from numpy import array
@@ -94,29 +95,35 @@ oc = fmf.ModflowOc(ml)
 ml.write_input()
 ml.run_model()
 
-# hds = fut.HeadFile(ml.model_ws+name+'.hds')
-# h = hds.get_data(kstpker=(1,1))
-# x = y = np.linspace(0, L, N)
-# a = ff.FortranFile("lake_example.hds",endian='<', header_prec='i')
-# x = a.readInts()
-# xx = a.readReals('')
-# print x
-# print xx.shape
-# print xx
-# print len(x)
-# print len(xx)
-# x = y = np.linspace(0, L, N)
-# print len(x)
-# xi = yi = np.linspace(0, L, 500)
-# zi = griddata((x,y), xx, (xi[None, :], yi[:, None]), method='linear')
+infile = open('lake_example.hds', "rb")
+blockdata = []
+while infile.read((1)):
+    infile.seek(-1,1)
+    data = infile.read(56)
+    n = struct.unpack('<3i4', data[0:12])
+    n = struct.unpack('<2f4', data[12:20])
+    n = struct.unpack('<5i4', data[36:56])
+    ncol = n[0]
+    nrow = n[1]
+    a = np.fromfile(infile, dtype='f4', count=ncol*nrow).reshape((ncol, nrow))
+    blockdata.append(a)
+    data = infile.read(4)
+    n = struct.unpack('<i4', data)
+
+# for block in blockdata[0]:
+#     print block
+df = pd.DataFrame(blockdata[2])
+# df.to_csv('heads_1.csv', sep=',')
+x = y = np.linspace(0, L, N)
+# print df
+head = df.ix[1:9, 1:9]
+
+xi = yi = np.linspace(0, L, 200)
+# zi = griddata((x,y), blockdata[2][1:9, 1:9], (xi[None, :], yi[:, None]), method='linear')
 # fig = plt.figure()
-# c = plt.contour(xi, yi, zi, 15)
-# plt.show()
+c = plt.contour(x, y, blockdata[2])
+plt.show()
 # # a = ff.FortranFile("lake_example.hds",mode='w')
 # # a.writeReals(np.linspace(0,1,10))
 # # a.close()
 # # hds = fut.HeadFile('lake_example.hds')
-floattype = 'f4'
-a = np.fromfile("lake_example.hds", np.dtype([('kstp','i4'),('kper','i4'),('pertim',floattype),('totim',floattype),('text','a16'),('ncol','i4'),('nrow','i4'),('ilay','i4')]))
-print a
-print a.shape
