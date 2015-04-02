@@ -86,8 +86,13 @@ water_level_1 = cd.read_correct_ch_dam_data(block_1, slope, intercept)
 # raise SystemExit(0)
 # water_level_30min = pd.concat([water_level_1, water_level_2, water_level_3, water_level_4], axis=0)
 # water_level_30 = water_level_30min.sort()
+# water_level = pd.concat([water_level_1, water_level_2, water_level_3, water_level_4, water_level_5, water_level_6], axis=0)
 rounded = np.array(water_level_1.index, dtype='datetime64[m]')
 water_level = water_level_1.set_index(rounded)
+water_level.index.name = "Date"
+print water_level.head()
+# water_level.to_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/ch_599/stage_599.csv')
+# raise SystemExit(0)
 start_time_30 = min(water_level.index)
 end_time_30 = max(water_level.index)
 # new_index_30min = pd.date_range(start=start_time_30.strftime('%Y-%m-%d %H:%M'), end=end_time_30.strftime('%Y-%m-%d %H:%M'), freq='30min')
@@ -95,8 +100,8 @@ new_index_30 = pd.date_range(start=start_time_30, end=end_time_30, freq='30min')
 water_level = water_level.reindex(new_index_30, method=None)
 water_level = water_level.interpolate(method='time')
 # water_level_30min = water_level_30min.set_index(new_index_30min)
-water_level.index.name = 'Date'
-print water_level.head()
+# water_level.index.name = 'Date'
+# print water_level.head()
 # raise SystemExit(0)
 # water_level_10min = pd.concat([water_level_5, water_level_6, water_level_7, water_level_8, water_level_9], axis=0)
 # water_level_10 = water_level_10min.sort()
@@ -120,7 +125,7 @@ print water_level.head()
 # plt.hlines(y=full_stage, xmin=min(water_level.index), xmax=max(water_level.index), colors='g')
 # plt.show()
 # raise SystemExit(0)
-water_level.to_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/ch_634/stage_634.csv')
+
 
 """
 Join weather and rain data
@@ -168,11 +173,12 @@ weather_df['Solar Radiation (MJ/m2/30min)'] = (weather_df['Solar Radiation (Wpm2
 """
 Average Temperature Calculation
 """
-weather_df['Average Temp (C)'] = 0.5 * (weather_df['Min Air Temperature (C)'] + weather_df['Max Air Temperature (C)'])
+print weather_df.columns.values
+# weather_df['Average Temp (C)'] = 0.5 * (weather_df['Min Air Temperature (C)'] + weather_df['Max Air Temperature (C)'])
 """
 Half hourly Evaporation calculation
 """
-airtemp = weather_df['Average Temp (C)']
+airtemp = weather_df['Air Temperature (C)']
 hum = weather_df['Humidity (%)']
 airpress = weather_df['AirPr(Pa)']
 rs = weather_df['Solar Radiation (MJ/m2/30min)']
@@ -206,33 +212,28 @@ for index, row in water_balance_df.iterrows():
         y_diff = y2 - y1
         slope = y_diff / x_diff
         y_intercept = y2 - (slope * x2)
-        water_balance_df['volume (cu.m)'][index.strftime('%Y-%m-%d %H:%M:%S')] = (slope * obs_stage) + y_intercept
+        water_balance_df['volume (cu.m)'][index.strftime(date_format)] = (slope * obs_stage) + y_intercept
+"""
+full volume calculation
+"""
+x1, x2 = cd.find_range(stage_vol_df['stage_m'].tolist(), full_stage)
+x_diff = x2 - x1
+y1 = stage_vol_df['total_vol_cu_m'][x1]
+y2 = stage_vol_df['total_vol_cu_m'][x2]
+y_diff = y2 - y1
+slope = y_diff / x_diff
+y_intercept = y2 - (slope * x2)
+full_volume = (slope*full_stage) + y_intercept
+print full_volume
 """
 Overflow
 """
-length_check_dam = 8.7
-width_check_dam = 0.613
-no_of_contractions = 0
 water_balance_df['overflow(cu.m)'] = 0.000
 for index, row in water_balance_df.iterrows():
-    obs_stage = row['stage(m)']
-    if cd.myround(a=obs_stage, decimals=3) > full_stage:
-        effective_head = obs_stage - full_stage
-        previous_time = index - timedelta(seconds=1800)
-        if cd.myround(a=water_balance_df['stage(m)'][previous_time.strftime(date_format)], decimals=3) > full_stage:
-            water_balance_df['overflow(cu.m)'][index.strftime(date_format)] = 1800 * 1.84 * width_check_dam * (
-                effective_head ** 1.5)
-        else:
-            x1 = 0
-            x2 = 1800
-            y1 = cd.myround(a=water_balance_df['stage(m)'][previous_time.strftime(date_format)], decimals=3)
-            y2 = cd.myround(a=obs_stage, decimals=3)
-            slope = (y1 - y2) / (x1 - x2)
-            intercept = y2 - (slope * x2)
-            time_of_overflow = 1800 - ((full_stage - intercept) / slope)
-            water_balance_df['overflow(cu.m)'][
-                index.strftime(date_format)] = time_of_overflow * 1.84 * width_check_dam * (effective_head ** 1.5)
-
+    obs_volume = row['volume (cu.m)']
+    if obs_volume > full_volume:
+        overflow_volume = obs_volume - full_volume
+        water_balance_df['overflow(cu.m)'][index.strftime(date_format)] = obs_volume - full_volume
 water_balance_df = water_balance_df["2014-05-15":]
 print "overflow"
 """
@@ -255,7 +256,34 @@ for index, row in water_balance_df.iterrows():
         y_diff = y2 - y1
         slope = y_diff / x_diff
         y_intercept = y2 - (slope * x2)
-        water_balance_df['ws_area(sq.m)'][index.strftime('%Y-%m-%d %H:%M:%S')] = (slope * obs_stage) + y_intercept
+        water_balance_df['ws_area(sq.m)'][index.strftime(date_format)] = (slope * obs_stage) + y_intercept
+
+"""
+Surface area to volume ratio
+"""
+average_stage = full_stage/2.0
+x1, x2 = cd.find_range(stage_vol_df['stage_m'].tolist(), average_stage)
+x_diff = x2 - x1
+y1 = stage_vol_df['total_vol_cu_m'][x1]
+y2 = stage_vol_df['total_vol_cu_m'][x2]
+y_diff = y2 - y1
+slope = y_diff / x_diff
+y_intercept = y2 - (slope * x2)
+average_volume = (slope*average_stage) + y_intercept
+print average_stage
+print average_volume
+x1, x2 = cd.find_range(stage_area_df['stage_m'].tolist(), average_stage)
+x_diff = x2 - x1
+y1 = stage_area_df['total_area_sq_m'][x1]
+y2 = stage_area_df['total_area_sq_m'][x2]
+y_diff = y2 - y1
+slope = y_diff / x_diff
+y_intercept = y2 - (slope * x2)
+average_area = (slope*average_stage) + y_intercept
+print average_area
+surface_area_to_vol_ratio = average_area/average_volume
+print "surface area to vol ratio is %0.2f" %surface_area_to_vol_ratio
+raise SystemExit(0)
 """
 Evaporation Volume estimation
 """
@@ -304,7 +332,7 @@ for index in ch_storage_df.index:
 
 # new_df = water_balance_daily_df.join(ch_storage_df, how='right')
 # new_df.to_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/ch_634/proof.csv')
-print water_balance_daily_df.head()
+# print water_balance_daily_df.head()
 
 # for index in water_balance_daily_df.index:
 #     if index > min(water_balance_daily_df.index):
@@ -318,22 +346,15 @@ Separate out no inflow/ non rainy days
 two continuous days of no rain
 """
 water_balance_daily_df['status'] = "Y"
-no_rain_df = water_balance_daily_df[water_balance_daily_df['Rain Collection (mm)'] == 0]
-# no_rain_df['status'] = "Y"
 for index in water_balance_daily_df.index:
     initial_time_stamp = min(water_balance_daily_df.index) + timedelta(days=1)
-    if index > initial_time_stamp:
-        # start_date = index - timedelta(days=1)
-        # two_days_rain_df = water_balance_daily_df['Rain Collection (mm)'][
-        #                    start_date.strftime(daily_format):index.strftime(daily_format)]
-        # sum_df = two_days_rain_df.sum(axis=0)
-        if (water_balance_daily_df['change_storage(cu.m)'][index.strftime(daily_format)] < 0) and (
-                    water_balance_daily_df['overflow(cu.m)'][index.strftime(daily_format)] == 0):
-            water_balance_daily_df['status'][index.strftime(daily_format)] = "N"
+    if index > initial_time_stamp and (water_balance_daily_df["change_storage(cu.m)"][index.strftime(daily_format)] < 0) and (water_balance_daily_df['overflow(cu.m)'][index.strftime(daily_format)] == 0) and (abs(water_balance_daily_df['change_storage(cu.m)'][index.strftime(daily_format)]) > water_balance_daily_df['Evaporation (cu.m)'][index.strftime(daily_format)]):
+        water_balance_daily_df['status'][index.strftime(daily_format)] = "N"
 
 dry_water_balance_df = water_balance_daily_df[water_balance_daily_df['status'] == "N"]
 rain_water_balance_df = water_balance_daily_df[water_balance_daily_df['status'] == "Y"]
 print "dry day sep"
+# (water_balance_daily_df["Rain Collection (mm)"][index.strftime(daily_format)] < 2)
 """
 Calculate infiltration
 """
@@ -417,12 +438,27 @@ print "Inflow =", merged_water_balance['Inflow (cu.m)'].sum()
 print "Storage=", wb
 
 merged_water_balance.index.name = 'Date'
-merged_water_balance['cum_rain'] = merged_water_balance['Rain Collection (mm)'].cumsum()
-fig = plt.figure()
-plt.plot(merged_water_balance['Inflow (cu.m)'],merged_water_balance['cum_rain'], 'bo')
-# plt.plot(merged_water_balance.index, merged_water_balance['infiltration(cu.m)'], '-ro')
-# plt.hlines(y=0, xmin=min(merged_water_balance.index), xmax=max(merged_water_balance.index))
-plt.show()
+# merged_water_balance['cum_rain'] = merged_water_balance['rain (mm)'].cumsum()
+print merged_water_balance.dtypes
+merged_water_balance['Inflow (cu.m)'] = merged_water_balance['Inflow (cu.m)'].astype(float)
 merged_water_balance.to_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/ch_599/et_infilt_599_w_of.csv')
 new_df = merged_water_balance.join(ch_storage_df, how='right')
 new_df.to_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/ch_599/proof.csv')
+fig, (ax1, ax2, ax3, ax4, ax5) = plt.subplots(nrows=5, sharex=True)
+bar2 = ax2.bar(merged_water_balance.index, merged_water_balance['Inflow (cu.m)'], color='b')
+bar3 = ax3.bar(merged_water_balance.index, merged_water_balance['infiltration(cu.m)'], color='r')
+bar4 = ax4.bar(merged_water_balance.index, merged_water_balance['Evaporation (cu.m)'], color='g')
+bar1 = ax1.plot(water_balance_df.index, water_balance_df['stage(m)'], 'ro-', label='Stage (m)' )
+bar5 = ax5.bar(merged_water_balance.index, merged_water_balance['Rain Collection (mm)'], color='y')
+# plt.plot(merged_water_balance['Inflow (cu.m)'],merged_water_balance['cum_rain'], 'bo')
+# plt.plot(merged_water_balance.index, merged_water_balance['infiltration(cu.m)'], '-ro')
+# ax4.hlines(y=0, xmin=min(merged_water_balance.index), xmax=max(merged_water_balance.index))
+ax1.legend(prop={'size':16}).draggable()
+lns = [bar2, bar3, bar4, bar5]
+labs =['Inflow (cu.m)', "Infiltration (cu.m)", "Evaporation (cu.m)", 'Rain (mm)']
+# Shrink current axis's height by 10% on the bottom
+box = ax5.get_position()
+ax5.set_position([box.x0, box.y0 + box.height * 0.1, box.width, box.height * 0.9])
+ax5.legend(lns, labs, loc='upper center', fancybox=True, ncol=4, bbox_to_anchor=(0.5, -0.05),prop={'size':16} ).draggable()
+ax1.set_title("Check dam 599")
+plt.show()

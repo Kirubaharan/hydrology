@@ -579,11 +579,141 @@ def gauss(x,y,Sigma,mu):
 #         return array[start-1], array[start]
 #     else:
 #         return min(array), max(array)
+#
+# x = [1.0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+# y = [1.96, 1.97, 1.98, 2.0, 2.0, 1.99, 1.98, 1.98, 1.99, 1.98, 1.98, 1.96, 1.96, 1.96, 1.98]
+# print len(x)
+# print len(y)
+# fig = plt.figure()
+# plt.plot(x, y, '-bo')
+# plt.show()
+from pykalman import KalmanFilter
+from numpy import ma
+import pylab as pl
+# kf = KalmanFilter(transition_matrices = [[1, 1], [0, 1]], observation_matrices = [[0.1, 0.5], [-0.3, 0.0]])
+# measurements = np.asarray([[1,0], [0,0], [0,1]])  # 3 observations
+# kf = kf.em(measurements, n_iter=5)
+# (filtered_state_means, filtered_state_covariances) = kf.filter(measurements)
+# (smoothed_state_means, smoothed_state_covariances) = kf.smooth(measurements)
+# print filtered_state_means, filtered_state_covariances
+# print smoothed_state_means, smoothed_state_covariances
+# measurements = np.ma.asarray(measurements)
+# measurements[1] = np.ma.masked
+# kf = kf.em(measurements, n_iter=5)
+# (filtered_state_means, filtered_state_covariances) = kf.filter(measurements)
+# (smoothed_state_means, smoothed_state_covariances) = kf.smooth(measurements)
+# print filtered_state_means, filtered_state_covariances
+# print smoothed_state_means, smoothed_state_covariances
 
-x = [1.0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-y = [1.96, 1.97, 1.98, 2.0, 2.0, 1.99, 1.98, 1.98, 1.99, 1.98, 1.98, 1.96, 1.96, 1.96, 1.98]
-print len(x)
-print len(y)
+# X = ma.array([1,2,3])
+# print X
+# X[1] = ma.masked
+# print X
+# kf.em(X).smooth(X)
+# print X
+# specify parameters
+# random_state = np.random.RandomState(0)
+# transition_matrix = [[1, 0.1], [0, 1]]
+# transition_offset = [-0.1, 0.1]
+# observation_matrix = np.eye(2) + random_state.randn(2, 2) * 0.1
+# observation_offset = [1.0, -1.0]
+# initial_state_mean = [5, -5]
+# n_timesteps = 50
+# # sample from model
+# kf = KalmanFilter(
+# transition_matrices=transition_matrix,
+# observation_matrices=observation_matrix,
+# transition_offsets=transition_offset,
+# observation_offsets=observation_offset,
+# initial_state_mean=initial_state_mean,
+# random_state=0
+# )
+# states, observations_all = kf.sample(
+# n_timesteps, initial_state=initial_state_mean
+# )
+# # label half of the observations as missing
+# observations_missing = np.ma.array(
+# observations_all,
+# mask=np.zeros(observations_all.shape)
+# )
+# for t in range(n_timesteps):
+#     if t % 5 != 0:
+#         observations_missing[t] = np.ma.masked
+# # estimate state with filtering and smoothing
+# smoothed_states_all = kf.smooth(observations_all)[0]
+# smoothed_states_missing = kf.smooth(observations_missing)[0]
+# # draw estimates
+# pl.figure()
+# lines_true = pl.plot(states, color='b')
+# lines_smooth_all = pl.plot(smoothed_states_all, color='r')
+# lines_smooth_missing = pl.plot(smoothed_states_missing, color='g')
+# pl.legend(
+# (lines_true[0], lines_smooth_all[0], lines_smooth_missing[0]),
+# ('true', 'all', 'missing'),
+# loc='lower right'
+# )
+# pl.show()
+
+# __all__ = ['switch', 'early_mean', 'late_mean', 'disasters']
+# from pymc import DiscreteUniform, Exponential, deterministic, Poisson, Uniform, Lambda, MCMC, observed, poisson_like
+# from pymc.distributions import Impute
+# from numpy.ma import masked_values
+#
+# # Missing values indicated by None placeholder values
+# disasters_array = np.array([4, 5, 4, 0, 1, 4, 3, 4, 0, 6, 3, 3, 4, 0, 2, 6,
+# 3, 3, 5, 4, 5, 3, 1, 4, 4, 1, 5, 5, 3, 4, 2, 5,
+# 2, 2, 3, 4, 2, 1, 3, None, 2, 1, 1, 1, 1, 3, 0, 0,
+# 1, 0, 1, 1, 0, 0, 3, 1, 0, 3, 2, 2, 0, 1, 1, 1,
+# 0, 1, 0, 1, 0, 0, 0, 2, 1, 0, 0, 0, 1, 1, 0, 2,
+# 3, 3, 1, None, 2, 1, 1, 1, 1, 2, 4, 2, 0, 0, 1, 4,
+# 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1])
+#
+# # Switchpoint
+# switch = DiscreteUniform('switch', lower=0, upper=110)
+# # Early mean
+# early_mean = Exponential('early_mean', beta=1)
+# # Late mean
+# late_mean = Exponential('late_mean', beta=1)
+#
+# @deterministic(plot=False)
+# def rate(s=switch, e=early_mean, l=late_mean):
+#     """Allocate appropriate mean to time series"""
+#     out = np.empty(len(disasters_array))
+#     # Early mean prior to switchpoint
+#     out[:s] = e
+#     # Late mean following switchpoint
+#     out[s:] = l
+#     return out
+# # The inefficient way, using the Impute function:
+# # D = Impute('D', Poisson, disasters_array, mu=r)
+# #
+# # The efficient way, using masked arrays:
+# # Generate masked array. Where the mask is true,
+# # the value is taken as missing.
+# masked_values = masked_values(disasters_array, value=None)
+# # Pass masked array to data stochastic, and it does the right thing
+# disasters = Poisson('disasters', mu=rate, value=masked_values, observed=True)
+# print disasters_array
+# print len(disasters.value)
+# print disasters.value
+import matplotlib as mpl
+# Create Map
+
+x = np.random.rand(30)
+y = np.random.rand(30)
+z = np.random.rand(30)
+#col = [cm(float(i)/(29)) for i in xrange(29)] # BAD!!!
+def whitebluegradient(n):
+    if n < 0:
+        n = 0
+    if n > 255:
+        n = 255
+    r = 255-n
+    g = r
+    b = 255
+    return (r/255.0,g/255.0,b/255.0)
+# 2D Plot
 fig = plt.figure()
-plt.plot(x, y, '-bo')
+ax = fig.add_subplot(111)
+ax.scatter(x, y, s=100, c='#33cc99',marker='o')
 plt.show()

@@ -2,21 +2,13 @@ __author__ = 'kiruba'
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-import itertools
-from spread import  spread
-from scipy.optimize import curve_fit
-import math
+import checkdam.checkdam as cd
 from matplotlib import rc
-import email.utils as eutils
-import time
-import datetime
+import matplotlib.cm as cmx
+import matplotlib.colors as colors
 from datetime import timedelta
-import scipy as sp
-import meteolib as met
-import evaplib
-from bisect import bisect_left
-import matplotlib as mpl
-import Pysolar as ps
+import math
+import ccy_classic_lstsqr
 
 # latex parameters
 rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica']})
@@ -35,132 +27,63 @@ stage_cutoff = 0.1
 
 # ------------------------------------------------------------------#
 # Weather file
-weather_file = '/media/kiruba/New Volume/ACCUWA_Data/weather_station/smgollahalli/corrected_weather.csv'
+weather_file = '/media/kiruba/New Volume/ACCUWA_Data/weather_station/hadonahalli/ksndmc_weather.csv'
 # Rain file
-rain_file = '/media/kiruba/New Volume/ACCUWA_Data/weather_station/smgollahalli/corrected_rain.csv'
+rain_file = '/media/kiruba/New Volume/ACCUWA_Data/weather_station/hadonahalli/ksndmc_rain.csv'
 
 # convert to pandas dataframe
 weather_df = pd.read_csv(weather_file, sep=',', header=0)
-# set index
-
-# print weather_df.columns.values[0]
-# weather_df.columns.values[0] = 'Date_Time'
-# print weather_df.head()
+# index
 weather_df['Date_Time'] = pd.to_datetime(weather_df['Date_Time'], format=date_format)
 weather_df.set_index(weather_df['Date_Time'], inplace=True)
 # sort based on index
 weather_df.sort_index(inplace=True)
 # drop date time column
 weather_df = weather_df.drop('Date_Time', 1)
-# print weather_df.head()
-# print weather_df['2014-06-30']
-
-
-# print weather_df.head()
 # Rain data frame
 rain_df = pd.read_csv(rain_file, sep=',', header=0)
 # set index
-
 rain_df['Date_Time'] = pd.to_datetime(rain_df['Date_Time'], format=date_format)
 rain_df.set_index(rain_df['Date_Time'], inplace=True)
 # sort based on index
 rain_df.sort_index(inplace=True)
 # drop date time column
 rain_df = rain_df.drop('Date_Time', 1)
-
-# print rain_df.head()
-
 """
 Check dam calibration
 """
-# Polynomial fitting function
-
-
-def polyfit(x, y, degree):
-    results = {}
-    coeffs = np.polyfit(x, y, degree)
-    results['polynomial'] = coeffs.tolist()
-    #r squared
-    p = np.poly1d(coeffs)
-    yhat = p(x)
-    ybar = np.sum(y)/len(y)
-    ssreg = np.sum((yhat-ybar)**2)
-    sstot = np.sum((y-ybar)**2)
-    results['determination'] = ssreg/sstot
-    return results
-
-#check dam calibration values
 y_cal = np.array([100, 400, 1000, 1600, 2250, 2750])
 x_cal = np.array([2114, 2464, 3145, 3799, 4550, 5095])
-a_stage = polyfit(x_cal, y_cal, 1)
+a_stage = cd.polyfit(x_cal, y_cal, 1)
 # coefficients of polynomial are stored in following list
 coeff_cal = a_stage['polynomial']
-
-
-def myround(a, decimals=1):
-     return np.around(a-10**(-(decimals+5)), decimals=decimals)
-
-
-def read_correct_ch_dam_data(csv_file):
-    """
-    Function to read, calibrate and convert time format (day1 24:00:00
-    to day 2 00:00:00) in check dam data
-    :param csv_file:
-    :return: calibrated and time corrected data
-    """
-    water_level = pd.read_csv(csv_file, skiprows=9, sep=',', header=0, names=['scan no', 'date', 'time', 'raw value', 'calibrated value'])
-    water_level['calibrated value'] = (water_level['raw value'] *coeff_cal[0]) + coeff_cal[1] #in cm
-    # water_level['calibrated value'] = np.round(water_level['calibrated value']/resolution_ody)*resolution_ody
-    water_level['calibrated value'] /= 1000.0
-    water_level['calibrated value'] = myround(a=water_level['calibrated value'], decimals=3)
-    # #change the column name
-    water_level.columns.values[4] = 'stage(m)'
-    # print water_level.head()
-
-    # create date time index
-    format = '%d/%m/%Y  %H:%M:%S'
-    c_str = ' 24:00:00'
-    for index, row in water_level.iterrows():
-        x_str = row['time']
-        if x_str == c_str:
-            # convert string to datetime object
-            r_date = pd.to_datetime(row['date'], format='%d/%m/%Y ')
-            # add 1 day
-            c_date = r_date + timedelta(days=1)
-            # convert datetime to string
-            c_date = c_date.strftime('%d/%m/%Y ')
-            c_time = ' 00:00:00'
-            water_level['date'][index] = c_date
-            water_level['time'][index] = c_time
-
-    water_level['date_time'] = pd.to_datetime(water_level['date'] + water_level['time'], format=format)
-    water_level.set_index(water_level['date_time'], inplace=True)
-    # # drop unneccessary columns before datetime aggregation
-    for index, row in water_level.iterrows():
-        # print row
-        obs_stage = row['stage(m)']
-        if obs_stage < stage_cutoff:
-            water_level['stage(m)'][index.strftime(date_format)] = 0.0
-
-    water_level.drop(['scan no', 'date', 'time', 'date_time'], inplace=True, axis=1)
-
-    return water_level
-
-
+slope = coeff_cal[0]
+intercept = coeff_cal[1]
 ## Read check dam data
 block_1 = '/media/kiruba/New Volume/ACCUWA_Data/check_dam_water_level/463/3605_023_001_03_12_2014.CSV'
-water_level_1 = read_correct_ch_dam_data(block_1)
-block_2 = '/media/kiruba/New Volume/ACCUWA_Data/check_dam_water_level/463/3605_023_003_23_12_2014.CSV'
-water_level_2 = read_correct_ch_dam_data(block_2)
-# block_3 = '/media/kiruba/New Volume/ACCUWA_Data/check_dam_water_level/2525_008_003.CSV'
-# water_level_3 = read_correct_ch_dam_data(block_3)
-# block_4 = '/media/kiruba/New Volume/ACCUWA_Data/check_dam_water_level/2525_008_004.CSV'
-# water_level_4 = read_correct_ch_dam_data(block_4)
-# block_5 = '/media/kiruba/New Volume/ACCUWA_Data/check_dam_water_level/2525_008_005.CSV'
-# water_level_5 = read_correct_ch_dam_data(block_5)
-# block_6 = '/media/kiruba/New Volume/ACCUWA_Data/check_dam_water_level/2525_008_006.CSV'
-# water_level_6 = read_correct_ch_dam_data(block_6)
-water_level = pd.concat([water_level_1, water_level_2], axis=0)
+water_level_1 = cd.read_correct_ch_dam_data(block_1, slope, intercept)
+block_2 = '/media/kiruba/New Volume/ACCUWA_Data/check_dam_water_level/463/3605_023_002_11_12_2014.CSV'
+water_level_2 = cd.read_correct_ch_dam_data(block_2, slope, intercept)
+block_3 = '/media/kiruba/New Volume/ACCUWA_Data/check_dam_water_level/463/3605_023_003_23_12_2014.CSV'
+water_level_3 = cd.read_correct_ch_dam_data(block_3, slope, intercept)
+block_4 = '/media/kiruba/New Volume/ACCUWA_Data/check_dam_water_level/463/3605_023_004_03_01_2015.CSV'
+water_level_4 = cd.read_correct_ch_dam_data(block_4, slope, intercept)
+block_5 = '/media/kiruba/New Volume/ACCUWA_Data/check_dam_water_level/463/3605_023_005_06_01_2015.CSV'
+water_level_5 = cd.read_correct_ch_dam_data(block_5, slope, intercept)
+for i in range(1, 6, 1):
+    eval("water_level_{0}.drop(water_level_{0}.tail(1).index, inplace=True, axis=0)".format(i))
+    eval("water_level_{0}.drop(water_level_{0}.head(1).index, inplace=True, axis=0)".format(i))
+
+fig = plt.figure()
+for i in range(1, 6, 1):
+    x = eval("water_level_{0}.index".format(i))
+    y = eval("water_level_{0}['stage(m)']".format(i))
+    plt.plot(x, y)
+
+plt.show()
+raise SystemExit(0)
+
+water_level = pd.concat([water_level_1, water_level_2, water_level_3, water_level_4, water_level_5], axis=0)
 # water_level = pd.concat([water_level_1, water_level_2, water_level_3, water_level_4, water_level_5, water_level_6], axis=0)
 water_level = water_level.sort()
 # water_level = water_level['2014-05-14 18:30:00':'2014-09-10 23:30:00']
@@ -169,10 +92,10 @@ Fill in missing values interpolate
 """
 start_time = min(water_level.index)
 end_time = max(water_level.index)
-new_index = pd.date_range(start=start_time, end=end_time, freq='30min')
+new_index = pd.date_range(start=start_time, end=end_time, freq='10min')
 water_level = water_level.reindex(new_index, method=None)
 water_level = water_level.interpolate(method='time')
-new_index = pd.date_range(start=start_time.strftime('%Y-%m-%d %H:%M'), end=end_time.strftime('%Y-%m-%d %H:%M'), freq='30Min')
+new_index = pd.date_range(start=start_time.strftime('%Y-%m-%d %H:%M'), end=end_time.strftime('%Y-%m-%d %H:%M'), freq='10Min')
 water_level = water_level.set_index(new_index)
 water_level.index.name = 'Date'
 # raise SystemExit(0)
@@ -190,7 +113,8 @@ plt.plot(water_level['raw value'], water_level['stage(m)'], 'ro')
 # plt.hlines(1.9, xmin=min(water_level.index), xmax=max(water_level.index))
 # plt.hlines(1.91, xmin=min(water_level.index), xmax=max(water_level.index))
 plt.show()
-# raise SystemExit(0)
+water_level.to_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/ch_463/water_level.csv')
+raise SystemExit(0)
 """
 Join weather and rain data
 """
@@ -212,26 +136,7 @@ weather_df['index'] = weather_df.index
 weather_df.drop_duplicates(subset='index', take_last=True, inplace=True)
 del weather_df['index']
 weather_df = weather_df.sort()
-"""
-Evaporation from open water
-Equation according to J.D. Valiantzas (2006). Simplified versions
-for the Penman evaporation equation using routine weather data.
-J. Hydrology 331: 690-702. Following Penman (1948,1956). Albedo set
-at 0.06 for open water.
-Input (measured at 2 m height):
-        - airtemp: (array of) average air temperatures [Celsius]
-        - rh: (array of)  average relative humidity [%]
-        - airpress: (array of) average air pressure data [Pa]
-        - Rs: (array of) incoming solar radiation [J/m2/day]
-        - N: (array of) maximum daily sunshine hours [h]
-        - Rext: (array of) daily extraterrestrial radiation [J/m2/day]
-        - u: (array of) daily average wind speed at 2 m [m/s]
-        - Z: (array of) site elevation [m a.s.l.], default is zero...
 
-    Output:
-        - E0: (array of) Penman open water evaporation values [mm/day]
-
-"""
 """
  air pressure (Pa) = 101325(1-2.25577 10^-5 h)^5.25588
 h = altitude above sea level (m)

@@ -1,6 +1,7 @@
 __author__ = 'kiruba'
 import pandas as pd
 import matplotlib.pyplot as plt
+import mpld3 as m
 from mpl_toolkits.mplot3d import axes3d, Axes3D
 from matplotlib import rc
 from scipy.interpolate import griddata
@@ -148,13 +149,16 @@ fig.colorbar(surf, shrink=0.5, aspect=5)
 plt.gca().invert_xaxis()  # reverses x axis
 # # ax = fig
 # plt.savefig('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/linear_interpolation')
+# html = m.fig_to_html(fig,template_type='simple')
+# print html
+# m.save_html(fig,'/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_591/3d_591_cd_html')
 plt.show()
-
+# raise SystemExit(0)
 # ## trace contours
 # Refer: Nikolai Shokhirev http://www.numericalexpert.com/blog/area_calculation/
 
-levels = [0, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.96, 2, 2.5, 3.0]
-plt.figure(figsize=(11.69, 8.27), facecolor='white' )
+levels = [0, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.96] #, 2, 2.5, 3.0]
+fig = plt.figure(figsize=(11.69, 8.27), facecolor='white' )
 CS = plt.contourf(xi, yi, zi, len(levels), alpha=.75, cmap=cm.hot, levels=levels)
 C = plt.contour(xi, yi, zi, len(levels), colors='black', linewidth=.5, levels=levels)
 plt.clabel(C, inline=1, fontsize=10)
@@ -163,9 +167,10 @@ plt.yticks(np.arange(0,100, 5))
 plt.xticks(np.arange(-30,25, 5))
 plt.grid()
 plt.gca().invert_xaxis()
+m.save_html(fig, '/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_591/contour_html')
 plt.savefig('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/cont_2d')
-# plt.show()
-
+plt.show()
+raise SystemExit(0)
 def contour_area(mpl_obj):
     """
     Returns a array of contour levels and
@@ -257,14 +262,14 @@ def poly_area(xy):
 # # 0.4 contour has three paths 0,1,2
 # print len(CS.collections[21].get_paths())
 print(levels)
-print(CS.levels[22])
+# print(CS.levels[22])
 print len(CS.levels)
 
-p_1_0 = CS.collections[21].get_paths()[0]
-p_1_1 = CS.collections[21].get_paths()[1]
-# p_1_2 = CS.collections[21].get_paths()[2]
-v_1_0 = p_1_0.vertices
-v_1_1 = p_1_1.vertices
+# p_1_0 = CS.collections[21].get_paths()[0]
+# p_1_1 = CS.collections[21].get_paths()[1]
+# # p_1_2 = CS.collections[21].get_paths()[2]
+# v_1_0 = p_1_0.vertices
+# v_1_1 = p_1_1.vertices
 # v_1_2 = p_1_2.vertices
 # area_1_0 = poly_area(v_1_0)
 # print(area_1_0)
@@ -274,19 +279,19 @@ v_1_1 = p_1_1.vertices
 # area_1 = area_1_0 + area_1_1 + area_1_2
 # z_1 = CS.levels[1]
 # print z_1, area_1
-fig = plt.figure(figsize=(11.69, 8.27), facecolor='white')
-plt.fill(v_1_0[:,0], v_1_0[:,1], facecolor='r')
-plt.yticks(np.arange(0,100, 5))
-plt.xticks(np.arange(-30,25, 5))
-plt.grid()
-plt.gca().invert_xaxis()
-# plt.show()
-fig = plt.figure(figsize=(11.69, 8.27), facecolor='white')
-plt.fill(v_1_1[:,0], v_1_1[:,1], facecolor='b')
-plt.yticks(np.arange(0,100, 5))
-plt.xticks(np.arange(-30,25, 5))
-plt.grid()
-plt.gca().invert_xaxis()
+# fig = plt.figure(figsize=(11.69, 8.27), facecolor='white')
+# plt.fill(v_1_0[:,0], v_1_0[:,1], facecolor='r')
+# plt.yticks(np.arange(0,100, 5))
+# plt.xticks(np.arange(-30,25, 5))
+# plt.grid()
+# plt.gca().invert_xaxis()
+# # plt.show()
+# fig = plt.figure(figsize=(11.69, 8.27), facecolor='white')
+# plt.fill(v_1_1[:,0], v_1_1[:,1], facecolor='b')
+# plt.yticks(np.arange(0,100, 5))
+# plt.xticks(np.arange(-30,25, 5))
+# plt.grid()
+# plt.gca().invert_xaxis()
 # plt.show()
 # fig = plt.figure(figsize=(11.69, 8.27), facecolor='white')
 # plt.fill(v_1_2[:,0], v_1_2[:,1], facecolor='g')
@@ -411,7 +416,7 @@ def set_column_sequence(dataframe, seq):
             cols.append(x)
     return dataframe[cols]
 
-
+raise SystemExit(0)
 df_base_trans.columns = df_base_trans.iloc[0, 0:]
 # print df_base_trans
 sorted_df = df_base_trans.iloc[1:, 1:]

@@ -255,6 +255,7 @@ def read_correct_ch_dam_data(csv_file, calibration_slope, calibration_intercept)
 def extraterrestrial_irrad(local_datetime, latitude_deg, longitude_deg):
     """
     Calculates extraterrestrial radiation in MJ/m2/timeperiod
+    :rtype : float
     :param local_datetime: datetime object
     :param latitude_deg: in decimal degree
     :param longitude_deg: in decimal degree
@@ -392,3 +393,180 @@ def half_hour_evaporation(airtemp=sp.array([]),
             Ea[i] = (1 + (0.536 * u[i])) * ((es[i] / 1000) - (ea[i] / 1000))
             E0[i] = ((delta[i] * rnet[i]) + gamma[i] * (6.43 * Ea[i])) / (lambda_mj_kg[i] * (delta[i] + gamma[i]))
     return E0
+
+
+def pick_incorrect_value(dataframe, **param):
+    """
+    Selects a unique list of timestamp that satisfies the condition given in the param dictionary
+    :param dataframe: Pandas dataframe
+    :param param: Conditonal Dictionary, Eg.{column name: [cutoff, '>']}
+    :type param: dict
+    :return: unique list of timestamp
+    :rtype: list
+    """
+    wrong_date_time = []
+    unique_list = []
+    # first_time = pd.to_datetime('2014-05-15 18:00:00', format='%Y-%m-%d %H:%M:%S')
+    # final_time = pd.to_datetime('2014-09-09 23:00:00', format='%Y-%m-%d %H:%M:%S')
+    for key, value in param.items():
+        # print key
+        # print len(wrong_date_time)
+        if value[1] == '>':
+            wrong_df = dataframe[dataframe[key] > value[0]]
+        if value[1] == '<':
+            wrong_df = dataframe[dataframe[key] < value[0]]
+        if value[1] ==  '=':
+            wrong_df = dataframe[dataframe[key] == value[0]]
+        for wrong_time in wrong_df.index:
+            if max(dataframe.index) > wrong_time > min(dataframe.index):
+                wrong_date_time.append(wrong_time)
+            # if final_time > wrong_time > first_time:
+
+
+    for i in wrong_date_time:
+        if i not in unique_list:
+            unique_list.append(i)
+
+    return unique_list
+
+def day_interpolate(dataframe, column_name, wrong_date_time):
+    """
+
+    :param dataframe: Pandas dataframe
+    :param column_name: Interpolation target column name of dataframe
+    :type column_name: str
+    :param wrong_date_time: List of error timestamp
+    :type wrong_date_time: list
+    :return: Corrected dataframe
+    """
+    initial_cutoff = min(dataframe.index) + timedelta(days=1)
+    final_cutoff = max(dataframe.index) - timedelta(days=1)
+    for date_time in wrong_date_time:
+        if (date_time > initial_cutoff ) and (date_time < final_cutoff):
+            prev_date_time = date_time - timedelta(days=1)
+            next_date_time = date_time + timedelta(days=1)
+            prev_value = dataframe[column_name][prev_date_time.strftime('%Y-%m-%d %H:%M')]
+            next_value = dataframe[column_name][next_date_time.strftime('%Y-%m-%d %H:%M')]
+            average_value = 0.5*(prev_value + next_value)
+            dataframe[column_name][date_time.strftime('%Y-%m-%d %H:%M')] = average_value
+
+    return dataframe
+
+def previous_interpolate(dataframe, column_name, wrong_date_time):
+    """
+
+    :param dataframe: Pandas dataframe
+    :param column_name: Interpolation target column name of dataframe
+    :type column_name: str
+    :param wrong_date_time: List of error timestamp
+    :type wrong_date_time: list
+    :return: Corrected dataframe
+    """
+    initial_cutoff = min(dataframe.index) + timedelta(days=1)
+    final_cutoff = max(dataframe.index) - timedelta(days=1)
+    for date_time in wrong_date_time:
+        if (date_time > initial_cutoff ) and (date_time < final_cutoff):
+            prev_date_time = date_time - timedelta(days=1)
+            prev_value = dataframe[column_name][prev_date_time.strftime('%Y-%m-%d %H:%M')]
+            dataframe[column_name][date_time.strftime('%Y-%m-%d %H:%M')] = prev_value
+
+    return dataframe
+
+
+
+#### For those who are familiar with pandas
+#### Correspondence:
+####    value <-> Orange.data.Value
+####        NaN <-> ["?", "~", "."] # Don't know, Don't care, Other
+####    dtype <-> Orange.feature.Descriptor
+####        category, int <-> Orange.feature.Discrete # category: > pandas 0.15
+####        int, float <-> Orange.feature.Continuous # Continuous = core.FloatVariable
+####                                                 # refer to feature/__init__.py
+####        str <-> Orange.feature.String
+####        object <-> Orange.feature.Python
+####    DataFrame.dtypes <-> Orange.data.Domain
+####    DataFrame.DataFrame <-> Orange.data.Table = Orange.orange.ExampleTable
+####                              # You will need this if you are reading sources
+
+def series2descriptor(d, discrete=False):
+    if d.dtype is np.dtype("float"):
+        return Orange.feature.Continuous(str(d.name))
+    elif d.dtype is np.dtype("int"):
+        return Orange.feature.Continuous(str(d.name), number_of_decimals=0)
+    else:
+        t = d.unique()
+        if discrete or len(t) < len(d) / 2:
+            t.sort()
+            return Orange.feature.Discrete(str(d.name), values=list(t.astype("str")))
+        else:
+            return Orange.feature.String(str(d.name))
+
+
+def df2domain(df):
+    featurelist = [series2descriptor(df.icol(col)) for col in xrange(len(df.columns))]
+    return Orange.data.Domain(featurelist)
+
+
+def df2table(df):
+    # It seems they are using native python object/lists internally for Orange.data types (?)
+    # And I didn't find a constructor suitable for pandas.DataFrame since it may carry
+    # multiple dtypes
+    #  --> the best approximate is Orange.data.Table.__init__(domain, numpy.ndarray),
+    #  --> but the dtype of numpy array can only be "int" and "float"
+    #  -->  * refer to src/orange/lib_kernel.cpp 3059:
+    #  -->  *    if (((*vi)->varType != TValue::INTVAR) && ((*vi)->varType != TValue::FLOATVAR))
+    #  --> Documents never mentioned >_<
+    # So we use numpy constructor for those int/float columns, python list constructor for other
+
+    tdomain = df2domain(df)
+    ttables = [series2table(df.icol(i), tdomain[i]) for i in xrange(len(df.columns))]
+    return Orange.data.Table(ttables)
+
+    # For performance concerns, here are my results
+    # dtndarray = np.random.rand(100000, 100)
+    # dtlist = list(dtndarray)
+    # tdomain = Orange.data.Domain([Orange.feature.Continuous("var" + str(i)) for i in xrange(100)])
+    # tinsts = [Orange.data.Instance(tdomain, list(dtlist[i]) )for i in xrange(len(dtlist))]
+    # t = Orange.data.Table(tdomain, tinsts)
+    #
+    # timeit list(dtndarray)  # 45.6ms
+    # timeit [Orange.data.Instance(tdomain, list(dtlist[i])) for i in xrange(len(dtlist))] # 3.28s
+    # timeit Orange.data.Table(tdomain, tinsts) # 280ms
+
+    # timeit Orange.data.Table(tdomain, dtndarray) # 380ms
+    #
+    # As illustrated above, utilizing constructor with ndarray can greatly improve performance
+    # So one may conceive better converter based on these results
+
+
+def series2table(series, variable):
+    if series.dtype is np.dtype("int") or series.dtype is np.dtype("float"):
+        # Use numpy
+        # Table._init__(Domain, numpy.ndarray)
+        return Orange.data.Table(Orange.data.Domain(variable), series.values[:, np.newaxis])
+    else:
+        # Build instance list
+        # Table.__init__(Domain, list_of_instances)
+        tdomain = Orange.data.Domain(variable)
+        tinsts = [Orange.data.Instance(tdomain, [i]) for i in series]
+        return Orange.data.Table(tdomain, tinsts)
+        # 5x performance
+
+
+def column2df(col):
+    if type(col.domain[0]) is Orange.feature.Continuous:
+        return (col.domain[0].name, pd.Series(col.to_numpy()[0].flatten()))
+    else:
+        tmp = pd.Series(np.array(list(col)).flatten())  # type(tmp) -> np.array( dtype=list (Orange.data.Value) )
+        tmp = tmp.apply(lambda x: str(x[0]))
+        return (col.domain[0].name, tmp)
+
+def table2df(tab):
+    # Orange.data.Table().to_numpy() cannot handle strings
+    # So we must build the array column by column,
+    # When it comes to strings, python list is used
+    series = [column2df(tab.select(i)) for i in xrange(len(tab.domain))]
+    series_name = [i[0] for i in series]  # To keep the order of variables unchanged
+    series_data = dict(series)
+    print series_data
+    return pd.DataFrame(series_data, columns=series_name)

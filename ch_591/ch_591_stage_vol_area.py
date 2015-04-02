@@ -28,7 +28,7 @@ y_value_list = df_591_trans.ix[0, 1:]
 final_data = df_591_trans.ix[1:, 0:]
 # print final_data
 
-stage_vol_df = cd.calcvolume(y_value_list=y_value_list, elevation_data=final_data, dam_height=2.3)
+stage_vol_df = cd.calcvolume(y_value_list=y_value_list, elevation_data=final_data, dam_height=1.96)
 stage_vol_df['stage_m'] = cd.myround(stage_vol_df['stage_m'], decimals=2)
 print stage_vol_df
 # raise SystemExit(0)

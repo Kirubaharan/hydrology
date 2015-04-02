@@ -58,12 +58,12 @@ def latexify(fig_width=None, fig_height=None, columns=1):
 
     params = {'backend': 'ps',
               'text.latex.preamble': ['\usepackage{gensymb}'],
-              'axes.labelsize': 38, # fontsize for x and y labels (was 10)
-              'axes.titlesize': 42,
-              'text.fontsize': 38, # was 10
-              'legend.fontsize': 38, # was 10
-              'xtick.labelsize': 36,
-              'ytick.labelsize': 36,
+              'axes.labelsize': 28, # fontsize for x and y labels (was 10)
+              'axes.titlesize': 30,
+              'text.fontsize': 30, # was 10
+              'legend.fontsize': 30, # was 10
+              'xtick.labelsize': 28,
+              'ytick.labelsize': 28,
               'text.usetex': True,
               'figure.figsize': [fig_width,fig_height],
               'font.family': 'serif'
@@ -105,39 +105,77 @@ cont_area_599_df = pd.read_csv(cont_area_599_file)
 stage_vol_599_df = pd.read_csv(stage_vol_599_file)
 stage_vol_591_df = pd.read_csv(stage_vol_591_file)
 # 
-latexify(fig_width=15, fig_height=12)
-# 
-fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows=2, ncols=2,facecolor='white')
+# latexify(fig_width=10, fig_height=6)
+fig, (ax1, ax2) = plt.subplots(nrows=2, ncols=1,facecolor='white')
 line_1, = ax1.plot(cont_area_591_df['Z'], cont_area_591_df['Area'], '-', lw=2, color='#a70c0b')
-line_2, = ax2.plot(cont_area_599_df['Z'], cont_area_599_df['Area'], '-', lw=2, color='#a70c0b')
-line_3,  = ax3.plot(stage_vol_591_df['stage_m'], stage_vol_591_df['total_vol_cu_m'], '-', lw=2)
-line_4, = ax4.plot(stage_vol_599_df['stage_m'], stage_vol_599_df['total_vol_cu_m'], '-', lw=2)
-list_ax = [ax1, ax2, ax3, ax4]
+# line_2, = ax2.plot(cont_area_599_df['Z'], cont_area_599_df['Area'], '-', lw=2, color='#a70c0b')
+line_3,  = ax2.plot(stage_vol_591_df['stage_m'], stage_vol_591_df['total_vol_cu_m'], '-', lw=2)
+# line_4, = ax4.plot(stage_vol_599_df['stage_m'], stage_vol_599_df['total_vol_cu_m'], '-', lw=2)
+list_ax = [ax1, ax2]
 for ax in list_ax:
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
-    ax.spines['bottom'].set_position(('outward', 20))
+    ax.spines['bottom'].set_position(('outward', 10))
     ax.spines['left'].set_position(('outward', 30))
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
     ax.grid(False)
     ax.set_axis_bgcolor('white')
+    # ax.set_axis_off()
 ax1.xaxis.set_major_locator(MaxNLocator(nbins=3))
 ax1.yaxis.set_major_locator(MaxNLocator(nbins=3))
 ax2.xaxis.set_major_locator(MaxNLocator(nbins=3))
 ax2.yaxis.set_major_locator(MaxNLocator(nbins=3))
-ax3.xaxis.set_major_locator(MaxNLocator(nbins=3))
-ax3.yaxis.set_major_locator(MaxNLocator(nbins=3))
-ax4.xaxis.set_major_locator(MaxNLocator(nbins=3))
-ax4.yaxis.set_major_locator(MaxNLocator(nbins=3))
+ax1.tick_params(axis='x',
+                which='both',
+                labelbottom='off')
+# ax3.xaxis.set_major_locator(MaxNLocator(nbins=3))
+# ax3.yaxis.set_major_locator(MaxNLocator(nbins=3))
+# ax4.xaxis.set_major_locator(MaxNLocator(nbins=3))
+# ax4.yaxis.set_major_locator(MaxNLocator(nbins=3))
 ax1.set_title('Check dam 591')
-ax2.set_title('Check dam 599')
+# ax2.set_title('Check dam 599')
 ax1.set_ylabel(r'Area ($m^2$) ')
-ax3.set_ylabel(r"Volume ($m^3$)")
-yyl = plt.xlabel(r"Stage ($m$)")
-yyl.set_position((-0.1, 0))
+ax2.set_ylabel(r"Volume ($m^3$)")
+plt.xlabel(r"Stage ($m$)")
+# yyl.set_position((-0.1, 0))
 # ax1.set_xlim(1.9)
+# [__.set_clip_on(False) for __ in plt.gca().get_children()]
+plt.savefig('/media/kiruba/New Volume/AGU/poster/agu_checkdam/image/stage_vol_area_591.png',bbox_inches='tight')
 plt.show()
+
+
+# fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows=2, ncols=2,facecolor='white')
+# line_1, = ax1.plot(cont_area_591_df['Z'], cont_area_591_df['Area'], '-', lw=2, color='#a70c0b')
+# line_2, = ax2.plot(cont_area_599_df['Z'], cont_area_599_df['Area'], '-', lw=2, color='#a70c0b')
+# line_3,  = ax3.plot(stage_vol_591_df['stage_m'], stage_vol_591_df['total_vol_cu_m'], '-', lw=2)
+# line_4, = ax4.plot(stage_vol_599_df['stage_m'], stage_vol_599_df['total_vol_cu_m'], '-', lw=2)
+# list_ax = [ax1, ax2, ax3, ax4]
+# for ax in list_ax:
+#     ax.spines['top'].set_visible(False)
+#     ax.spines['right'].set_visible(False)
+#     ax.spines['bottom'].set_position(('outward', 20))
+#     ax.spines['left'].set_position(('outward', 30))
+#     ax.yaxis.set_ticks_position('left')
+#     ax.xaxis.set_ticks_position('bottom')
+#     ax.grid(False)
+#     ax.set_axis_bgcolor('white')
+# ax1.xaxis.set_major_locator(MaxNLocator(nbins=3))
+# ax1.yaxis.set_major_locator(MaxNLocator(nbins=3))
+# ax2.xaxis.set_major_locator(MaxNLocator(nbins=3))
+# ax2.yaxis.set_major_locator(MaxNLocator(nbins=3))
+# ax3.xaxis.set_major_locator(MaxNLocator(nbins=3))
+# ax3.yaxis.set_major_locator(MaxNLocator(nbins=3))
+# ax4.xaxis.set_major_locator(MaxNLocator(nbins=3))
+# ax4.yaxis.set_major_locator(MaxNLocator(nbins=3))
+# ax1.set_title('Check dam 591')
+# ax2.set_title('Check dam 599')
+# ax1.set_ylabel(r'Area ($m^2$) ')
+# ax3.set_ylabel(r"Volume ($m^3$)")
+# yyl = plt.xlabel(r"Stage ($m$)")
+# yyl.set_position((-0.1, 0))
+# # ax1.set_xlim(1.9)
+# plt.show()
 # raise SystemExit(0)
 # colorbrewer
 dark2_colors = brewer2mpl.get_map('Dark2', 'Qualitative', 7).mpl_colors
@@ -188,10 +226,10 @@ ax1.yaxis.labelpad=57
 # plt.show()
 # mpl.rcParams.update(mpl.rcParamsDefault)
 file_591 = '/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/et_infilt_591_w_of.csv'
-file_599 = '/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/ch_599/daily_wb_599.CSV'
-rain_file = '/media/kiruba/New Volume/ACCUWA_Data/weather_station/smgollahalli/corrected_rain.csv'
-stage_591_file = '/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/stage.csv'
-stage_599_file = '/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/ch_599/water_level.csv'
+# file_599 = '/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/ch_599/daily_wb_599.CSV'
+rain_file = '/media/kiruba/New Volume/ACCUWA_Data/weather_station/smgollahalli/ksndmc_rain.csv'
+stage_591_file = '/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/stage_591.csv'
+# stage_599_file = '/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/ch_599/water_level.csv'
 rain_df = pd.read_csv(rain_file, sep=',', header=0)
 rain_df['Date_Time'] = pd.to_datetime(rain_df['Date_Time'], format=datetime_format)
 rain_df.set_index(rain_df['Date_Time'], inplace=True)
@@ -200,33 +238,34 @@ rain_df.sort_index(inplace=True)
 # drop date time column
 rain_df = rain_df.drop('Date_Time', 1)
 rain_w_df = rain_df.resample('W-MON', how=np.sum)
+rain_w_df.to_csv('/media/kiruba/New Volume/ACCUWA_Data/weekly_rain_aral.csv')
 # print rain_w_df.tail(10)
 # raise SystemExit(0)
 rain_df = rain_df.resample('D', how=np.sum)
 
 wb_591 = pd.read_csv(file_591, sep=',', header=0)
-wb_599 = pd.read_csv(file_599, sep=',', header=0)
+# wb_599 = pd.read_csv(file_599, sep=',', header=0)
 stage_591_df = pd.read_csv(stage_591_file, sep=',', header=0)
 stage_591_df.set_index(pd.to_datetime(stage_591_df['Date'],format=datetime_format),  inplace=True)
-stage_599_df = pd.read_csv(stage_599_file, sep=',', header=0)
-stage_599_df.set_index(pd.to_datetime(stage_599_df['Date'],format=datetime_format),  inplace=True)
+# stage_599_df = pd.read_csv(stage_599_file, sep=',', header=0)
+# stage_599_df.set_index(pd.to_datetime(stage_599_df['Date'],format=datetime_format),  inplace=True)
 wb_591.set_index(pd.to_datetime(wb_591['Date'], format=daily_format), inplace=True)
-wb_599.set_index(pd.to_datetime(wb_599['Date'], format=daily_format), inplace=True)
+# wb_599.set_index(pd.to_datetime(wb_599['Date'], format=daily_format), inplace=True)
 del wb_591['Date']
-del wb_599['Date']
+# del wb_599['Date']
 # missing date time for 599
-with open("/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/ch_599/initial_time.pickle", "rb") as f:
-    initial_time = pickle.load(f)
-with open("/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/ch_599/final_time.pickle", "rb") as f:
-    final_time = pickle.load(f)
+# with open("/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/ch_599/initial_time.pickle", "rb") as f:
+#     initial_time = pickle.load(f)
+# with open("/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/ch_599/final_time.pickle", "rb") as f:
+#     final_time = pickle.load(f)
 
-initial_time_591 = initial_time.strftime(daily_format)
-final_time_591 =  final_time.strftime(daily_format)
-missing_data_days = (final_time-initial_time).days
+# initial_time_591 = initial_time.strftime(daily_format)
+# final_time_591 =  final_time.strftime(daily_format)
+# missing_data_days = (final_time-initial_time).days
 
-wb_599 = wb_599[wb_599['infiltration(cu.m)'] > 0]
+# wb_599 = wb_599[wb_599['infiltration(cu.m)'] > 0]
 stage_591_df = stage_591_df.resample('D', how=np.mean)
-stage_599_df = stage_599_df.resample('D', how=np.mean)
+# stage_599_df = stage_599_df.resample('D', how=np.mean)
 
 def annotate_dim(ax,xyfrom,xyto,text=None):
     ax.annotate("",xyfrom,xyto,arrowprops=dict(arrowstyle='<->', linewidth=1.5))
@@ -240,31 +279,31 @@ def make_patch_spines_invisible(ax):
         sp.set_visible(False)
 
 latexify(fig_width=15, fig_height=10)
-fig, (ax1, ax2) = plt.subplots(nrows=2,ncols=1, sharex=True, facecolor='white')
-ax1_2 = ax1.twinx()
-ax2_2 = ax2.twinx()
-bar_1_1 = ax1.bar(rain_df.index, rain_df['Rain Collection (mm)'], 0.45, color='#203a72',alpha=0.85, label = 'Rainfall (mm)')
+fig, ax1 = plt.subplots(nrows=1,ncols=1, sharex=True, facecolor='white')
+# ax1_1 = ax1.twinx()
+# ax2_2 = ax2.twinx()
+bar_1_1 = ax1.bar(rain_df.index, rain_df['rain (mm)'], 0.45, color='#203a72',alpha=0.85, label = 'Rainfall (mm)')
 ax1.invert_yaxis()
 for t1 in ax1.get_yticklabels():
     t1.set_color('#203a72')
 ax1_1 = ax1.twinx()
-# ax1_2 = ax1.twinx()
-bar_2_1 = ax2.bar(rain_df.index, rain_df['Rain Collection (mm)'], 0.45, color='#203a72',alpha=0.85, label = 'Rainfall (mm)')
-ax2.invert_yaxis()
-for t1 in ax2.get_yticklabels():
-    t1.set_color('#203a72')
-ax2_1 = ax2.twinx()
-bar_1 = ax1_1.bar(wb_591.index, wb_591['infiltration(cu.m)'], 0.45, color='#23530b',alpha=0.85,label=r"\textbf{Infiltration ($m^3/day$}")
+ax1_2 = ax1.twinx()
+# bar_2_1 = ax2.bar(rain_df.index, rain_df['Rain Collection (mm)'], 0.45, color='#203a72',alpha=0.85, label = 'Rainfall (mm)')
+# ax2.invert_yaxis()
+# for t1 in ax2.get_yticklabels():
+#     t1.set_color('#203a72')
+# ax2_1 = ax2.twinx()
+bar_1 = ax1_2.bar(wb_591.index, wb_591['infiltration(cu.m)'], 0.45, color='#23530b',alpha=0.85,label=r"\textbf{Infiltration ($m^3/day$}")
 line_1, = ax1_2.plot(stage_591_df.index, stage_591_df['stage(m)'], color='#a70c0b',linestyle='-', lw=3, alpha=0.75)
-line_2 = ax2_2.plot(stage_599_df.index, stage_599_df['stage(m)'], color='#a70c0b',linestyle='-', lw=3, alpha=0.75)
-bar_2 = ax2_1.bar(wb_599.index, wb_599['infiltration(cu.m)'], 0.45, color='#23530b',alpha=0.85)
-bar_1_2 = ax1_1.bar(wb_591.index, wb_591['Evaporation (cu.m)'], 0.45, color='#a70c0b',alpha=0.85, label=r"\textbf{Evaporation ($m^3/day$)}")
-bar_2_2 = ax2_1.bar(wb_599.index, wb_599['Evaporation (cu.m)'], 0.45, color='#a70c0b',alpha=0.85, label=r"\textbf{Evaporation ($m^3/day$)}")
-bracket = annotate_dim(ax2_1, xyfrom=[initial_time_591,1], xyto=[final_time_591,1], text='Missing Data')
-text = ax2_1.text(initial_time, 2, "Missing Data")
+# line_2 = ax2_2.plot(stage_599_df.index, stage_599_df['stage(m)'], color='#a70c0b',linestyle='-', lw=3, alpha=0.75)
+# bar_2 = ax2_1.bar(wb_599.index, wb_599['infiltration(cu.m)'], 0.45, color='#23530b',alpha=0.85)
+bar_1_2 = ax1_2.bar(wb_591.index, wb_591['Evaporation (cu.m)'], 0.45, color='#a70c0b',alpha=0.85, label=r"\textbf{Evaporation ($m^3/day$)}")
+# bar_2_2 = ax2_1.bar(wb_599.index, wb_599['Evaporation (cu.m)'], 0.45, color='#a70c0b',alpha=0.85, label=r"\textbf{Evaporation ($m^3/day$)}")
+# bracket = annotate_dim(ax2_1, xyfrom=[initial_time_591,1], xyto=[final_time_591,1], text='Missing Data')
+# text = ax2_1.text(initial_time, 2, "Missing Data")
 lns = [bar_1_1, bar_1, bar_1_2, line_1]
 labs = [r'\textbf{Rainfall ($mm$)}', r"\textbf{Infiltration ($m^3/day$)}", r"\textbf{Evaporation ($m^3/day$)}", r"\textbf{Stage ($m$)}"]
-ax2_1.legend(lns, labs, loc='upper center', fancybox=True, ncol=4, bbox_to_anchor=(0.5, -0.05),prop={'size':30} )
+ax1.legend(lns, labs, loc='upper center', fancybox=True, ncol=4, bbox_to_anchor=(0.5, -0.05),prop={'size':30} )
 # yyl = plt.ylabel(r"Evaporation/Infiltration ($m^3/day$)")
 # yyl.set_position((0.06, 1))
 # yyl_1 = ax2.set_ylabel(r'Rainfall($mm$)')
@@ -272,15 +311,15 @@ ax2_1.legend(lns, labs, loc='upper center', fancybox=True, ncol=4, bbox_to_ancho
 # fig.text(0.06, 0.5, 'Rainfall (mm)', ha='center', va='center', rotation='vertical')
 # plt.figtext(0.95, 0.5, r'Evaporation/Infiltration ($m^3/day)$', ha='center', va='center', rotation='vertical')
 ax1.set_title("Check Dam 591")
-ax2_1.set_title("Check Dam 599")
+# ax2_1.set_title("Check Dam 599")
 # ax1_2.spines['right'].set_position(('axes', -0.6))
 # make_patch_spines_invisible(ax1_2)
 # ax1_2.spines['right'].set_visible(True)
-ax1_2.yaxis.set_label_position('left')
-ax1_2.yaxis.set_ticks_position('left')
-for t1 in ax1_2.get_yticklabels():
+ax1_1.yaxis.set_label_position('left')
+ax1_1.yaxis.set_ticks_position('left')
+for t1 in ax1_1.get_yticklabels():
     t1.set_color('#a70c0b')
-ax1_2.set_axis_bgcolor('white')
+ax1_1.set_axis_bgcolor('white')
 locator_1 = MaxNLocator(3)
 locator_2 = MaxNLocator(3)
 locator_1_1 = MaxNLocator(3)
@@ -288,31 +327,31 @@ locator_1_2 = MaxNLocator(3)
 locator_2_1 = MaxNLocator(3)
 locator_2_2 = MaxNLocator(3)
 ax1.yaxis.set_major_locator(locator_1)
-ax2.yaxis.set_major_locator(locator_2)
-ax1_1.yaxis.set_major_locator(locator_1_1)
-ax1_2.yaxis.set_major_locator(locator_1_2)
-ax2_1.yaxis.set_major_locator(locator_2_1)
-ax2_2.yaxis.set_major_locator(locator_2_2)
-ax1_2.spines['top'].set_visible(False)
-ax1_2.spines['right'].set_visible(False)
-ax1_2.spines['bottom'].set_visible(False)
-ax1_2.spines['left'].set_position(('outward', 50))
-ax1_2.yaxis.set_ticks_position('left')
-ax1_2.xaxis.set_ticks_position('bottom')
-ax1_2.tick_params(axis='y', colors='#a70c0b')
-ax1_2.spines['left'].set_color('#a70c0b')
+# ax2.yaxis.set_major_locator(locator_2)
+# ax1_1.yaxis.set_major_locator(locator_1_1)
+ax1_1.yaxis.set_major_locator(locator_1_2)
+# ax2_1.yaxis.set_major_locator(locator_2_1)
+# ax2_2.yaxis.set_major_locator(locator_2_2)
+ax1_1.spines['top'].set_visible(False)
+ax1_1.spines['right'].set_visible(False)
+ax1_1.spines['bottom'].set_visible(False)
+ax1_1.spines['left'].set_position(('outward', 50))
+ax1_1.yaxis.set_ticks_position('left')
+ax1_1.xaxis.set_ticks_position('bottom')
+ax1_1.tick_params(axis='y', colors='#a70c0b')
+ax1_1.spines['left'].set_color('#a70c0b')
 # ax1_2.set_ylabel("Stage (m)")
-ax1_2.yaxis.label.set_color('#a70c0b')
+ax1_1.yaxis.label.set_color('#a70c0b')
 # ax1.set_ylabel('Rainfall (mm)')
 ax1.yaxis.label.set_color('#203a72')
-ax2_2.spines['top'].set_visible(False)
-ax2_2.spines['right'].set_visible(False)
-ax2_2.spines['bottom'].set_visible(False)
-ax2_2.spines['left'].set_position(('outward', 50))
-ax2_2.yaxis.set_ticks_position('left')
-ax2_2.xaxis.set_ticks_position('bottom')
-ax2_2.tick_params(axis='y', colors='#a70c0b')
-ax2_2.spines['left'].set_color('#a70c0b')
+# ax2_2.spines['top'].set_visible(False)
+# ax2_2.spines['right'].set_visible(False)
+# ax2_2.spines['bottom'].set_visible(False)
+# ax2_2.spines['left'].set_position(('outward', 50))
+# ax2_2.yaxis.set_ticks_position('left')
+# ax2_2.xaxis.set_ticks_position('bottom')
+# ax2_2.tick_params(axis='y', colors='#a70c0b')
+# ax2_2.spines['left'].set_color('#a70c0b')
 # ax2_2.set_ylabel("Stage (m)")
 # ax2_2.yaxis.label.set_color('#a70c0b')
 # increase tick label size
@@ -332,8 +371,10 @@ ax2_2.spines['left'].set_color('#a70c0b')
 # for tick in ax2_1.get_yticklabels():
 #     tick.set_fontsize(24)
 plt.tight_layout()
+fig.autofmt_xdate(rotation=90)
 plt.savefig('/media/kiruba/New Volume/AGU/poster/agu_checkdam/image/evap_infilt.pdf', dpi=400)
-# plt.show()
+plt.show()
+raise SystemExit(0)
 # pie charts
 # 591
 print wb_599.head()

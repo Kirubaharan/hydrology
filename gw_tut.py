@@ -114,10 +114,16 @@ while infile.read((1)):
 #     print block
 df = pd.DataFrame(blockdata[2])
 # df.to_csv('heads_1.csv', sep=',')
+# raise SystemExit(0)
 x = y = np.linspace(0, L, N)
+print len(x)
 # print df
-head = df.ix[1:9, 1:9]
-
+head = df.ix[1:9, 0:10]
+print head
+print len(head)
+# print len(blockdata[0])
+# print blockdata[0]
+raise SystemExit(0)
 xi = yi = np.linspace(0, L, 200)
 # zi = griddata((x,y), blockdata[2][1:9, 1:9], (xi[None, :], yi[:, None]), method='linear')
 # fig = plt.figure()

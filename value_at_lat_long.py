@@ -3,11 +3,14 @@ from gdalconst import *
 
 
 # coordinates to get pixel values for
-xValues = [77.514195]
-yValues = [13.250119]
-ch_599_lat = 13.250119
-ch_599_long = 77.514195
-
+xValues = [77.549]
+yValues = [13.353]
+ch_623_lat = 13.353
+ch_623_long = 77.549
+# ch_599_lat = 13.250119
+# ch_599_long = 77.514195
+# ch_625_lat = 13.364112
+# ch_625_long = 77.556057
 # set directory
 os.chdir(r'/media/kiruba/New Volume/ACCUWA_Data/DEM_20_May/arkavathy/DEM_arkavathy_aster_15m')
 # file:///media/kiruba/New Volume/ACCUWA_Data/DEM_20_May/arkavathy/DEM_arkavathy_aster_15m/merged_dem

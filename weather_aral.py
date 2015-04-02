@@ -31,8 +31,7 @@ for row_no, row in aral_rain_df_2.iterrows():
         data_2.append((date, time, value))
 
 data_2_df = pd.DataFrame(data_2,columns=['date', 'time', 'rain(mm)'])
-print data_2_df.head()
-raise SystemExit(0)
+
 date_format_1 = "%d-%b-%Y %H:%M"
 data_1_df['date_time'] = pd.to_datetime(data_1_df['date'] + ' ' + data_1_df['time'], format=date_format_1)
 data_1_df.set_index(data_1_df['date_time'], inplace=True)
@@ -93,7 +92,6 @@ weather_ksndmc_df.drop(['date_time', 'DATE', 'TIME'], inplace=True, axis=1)
 weather_ksndmc_df = weather_ksndmc_df.resample('30Min', how=np.mean, label='right', closed='right')
 # weather_ksndmc_df = weather_ksndmc_df[ :" 2015-02-09"]
 # print weather_ksndmc_df.tail()
-
 base_file = '/media/kiruba/New Volume/ACCUWA_Data/weather_station/smgollahalli/smgoll_1_05_14_09_02_15.csv'
 #read csv file
 df_base = pd.read_csv(base_file, header=0, sep='\t')
