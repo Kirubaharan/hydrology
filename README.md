@@ -1,7 +1,7 @@
 #Hydrology
 
 ##My Hydrology  repository
-I use Python and R for managing my workflow in hydrological modelling. This repository is a collection of those codes. You are welcome to use and modify it for your purpose. See [Licence](../master/LICENCE) for terms and conditions.
+I use Python and R for managing my workflow in hydrological modelling. This repository is a collection of those codes. You are welcome to use and modify it for your purpose. See [Licence](../master/LICENSE) for terms and conditions.
 My contact details are at the bottom of this page.
 ###Tutorial for stage volume
 See the [Stage - Volume Tutorial](../master/stage_volume_tutorial.py).
