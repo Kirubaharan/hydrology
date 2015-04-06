@@ -114,21 +114,30 @@ day_df = pd.concat((prior_missing_data_day, after_missing_data_day))
 # day_df = day_df[day_df['WIND_SPEED'] > 5.0]
 day_wind_speed = day_df['WIND_SPEED'].values
 day_mean = np.mean(day_wind_speed)
-day_sigma = np.std(day_wind_speed, ddof=1)
+day_sigma = np.std(day_wind_speed)
 day_variance = day_sigma ** 2
 # fig = plt.figure()
 # plt.plot(sorted(day_wind_speed), stats.norm.pdf(sorted(day_wind_speed), day_mean, day_sigma))
 # plt.hist(sorted(day_wind_speed), normed=True)
 # plt.show()
+for index in day_df.index:
+    if day_df['WIND_SPEED'][index] is None:
+        print index
 
 night_df = pd.concat((prior_missing_data_night, after_missing_data_night))
 night_wind_speed = night_df['WIND_SPEED'].values
 night_mean = np.mean(night_wind_speed)
 night_sigma = np.std(night_wind_speed)
 night_variance = night_sigma ** 2
-# fig = plt.figure()
-# plt.plot(sorted(night_wind_speed), stats.norm.pdf(sorted(night_wind_speed), night_mean, night_sigma))
-# plt.show()
+fig = plt.figure()
+plt.plot(sorted(day_wind_speed), stats.norm.pdf(sorted(day_wind_speed), day_mean, day_sigma), 'g-o', label='Day')
+night_fit = stats.norm.pdf(sorted(night_wind_speed), night_mean, night_sigma)
+plt.plot(sorted(night_wind_speed), night_fit, '-ro', label="Night")
+plt.text(5, 0.11, "Day Mean = %0.2f, Sigma = %0.2f, and Variance = %0.2f \n" % (day_mean, day_sigma, day_variance) + "Night Mean = %0.2f, Sigma = %0.2f, and Variance = %0.2f" % (night_mean, night_sigma, night_variance), fontsize=11)
+plt.title("PDF of wind speed for time period 2014-08-25 : 2014-09-06")
+plt.legend().draggable()
+plt.show()
+# raise SystemExit(0)
 print " Day Mean = %0.2f, Sigma = %0.2f, and Variance = %0.2f" % (day_mean, day_sigma, day_variance)
 print " Night Mean = %0.2f, Sigma = %0.2f, and Variance = %0.2f" % (night_mean, night_sigma, night_variance)
 day_tau = 1.0 / day_variance
@@ -276,7 +285,14 @@ night_variance = night_sigma ** 2
 # plt.plot(sorted(night_wind_speed), stats.norm.pdf(sorted(night_wind_speed), night_mean, night_sigma))
 # plt.title("Night")
 # plt.show()
-
+# fig = plt.figure()
+# plt.plot(sorted(day_wind_speed), stats.norm.pdf(sorted(day_wind_speed), day_mean, day_sigma), 'g-o', label='Day')
+# night_fit = stats.norm.pdf(sorted(night_wind_speed), night_mean, night_sigma)
+# plt.plot(sorted(night_wind_speed), night_fit, '-ro', label="Night")
+# plt.text(5, 0.11, "Day Mean = %0.2f, Sigma = %0.2f, and Variance = %0.2f \n" % (day_mean, day_sigma, day_variance) + "Night Mean = %0.2f, Sigma = %0.2f, and Variance = %0.2f" % (night_mean, night_sigma, night_variance), fontsize=11)
+# plt.title("PDF of wind speed for time period 2015-01-06 : 2015-01-12")
+# plt.legend().draggable()
+# plt.show()
 print " Day Mean = %0.2f, Sigma = %0.2f, and Variance = %0.2f" % (day_mean, day_sigma, day_variance)
 print " Night Mean = %0.2f, Sigma = %0.2f, and Variance = %0.2f" % (night_mean, night_sigma, night_variance)
 day_tau = 1.0 / day_variance
@@ -556,7 +572,7 @@ night_wind_speed = night_df['WIND_SPEED'].values
 night_mean = np.mean(night_wind_speed)
 night_sigma = np.std(night_wind_speed)
 night_variance = night_sigma ** 2
-fig = plt.figure()
+# fig = plt.figure()
 # plt.plot(sorted(night_wind_speed), stats.norm.pdf(sorted(night_wind_speed), night_mean, night_sigma))
 # plt.title("Night")
 # plt.show()
