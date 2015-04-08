@@ -10,6 +10,12 @@ from datetime import datetime
 from pymc import TruncatedNormal
 from pymc import Normal, Exponential
 
+# data = np.array([None, None, None, 12, 17, 20])
+# masked_values = np.ma.masked_array(data, np.equal(data, None), fill_value=10)
+# x = pm.TruncatedNormal('x', mu=15, tau=0.1, a=7, b=27, value=data, observed=True)
+# print x.value
+# raise SystemExit(0)
+
 """
 MCMC iteration parameters
 """

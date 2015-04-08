@@ -1,5 +1,6 @@
 __author__ = 'kiruba'
 import sys
+import os
 # import flopy.modflow as fmf
 import flopy.modflow as fmf
 import flopy.utils as fut
@@ -73,7 +74,7 @@ L = 400.0
 H = 50.0
 k = 1.0
 
-ml = fmf.Modflow(modelname=name, exe_name='/home/kiruba/Downloads/Unix/src/mf2005', version='mf2005', model_ws='mf_files/')
+ml = fmf.Modflow(modelname=name, exe_name='/usr/local/src/mf2005/Unix/src/mf2005', version='mf2005', model_ws='mf_files/')
 
 
 
@@ -82,7 +83,7 @@ delrow = delcol = L/(N-1)
 dis = fmf.ModflowDis(ml,nlay=Nlay,nrow=N,ncol=N,delr=delrow,delc=delcol,top=0.0,botm=bot,laycbd=0)
 
 Nhalf = (N-1)/2
-ibound = np.ones((Nlay,N,N), 'int32')
+ibound = np.ones((Nlay,N,N))
 ibound[:,0,:] = -1; ibound[:,-1,:] = -1; ibound[:,:,0] = -1; ibound[:,:,-1] = -1
 ibound[0,Nhalf,Nhalf] = -1
 start = h1 * np.ones((N,N))
@@ -94,6 +95,16 @@ pcg = fmf.ModflowPcg(ml)
 oc = fmf.ModflowOc(ml)
 ml.write_input()
 ml.run_model()
+
+head_file = '/home/kiruba/PycharmProjects/area_of_curve/hydrology/hydrology/mf_files/lake_example.hds'
+hds = fut.HeadFile(head_file)
+h = hds.get_data(kstpkper=(1,1))
+x = y = np.linspace(0, L, N)
+c = plt.contour(x, y, h[0], np.arange(90,100.1,0.2))
+plt.clabel(c, fmt='%2.1f')
+plt.axis('scaled')
+plt.show()
+raise SystemExit(0)
 
 infile = open('lake_example.hds', "rb")
 blockdata = []

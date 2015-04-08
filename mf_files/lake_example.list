@@ -27,15 +27,15 @@
 
  OPENING lake_example.hds
  FILE TYPE:DATA(BINARY)   UNIT   51   STATUS:REPLACE
- FORMAT:UNFORMATTED            ACCESS:SEQUENTIAL          
+ FORMAT:UNFORMATTED            ACCESS:STREAM              
 
  OPENING lake_example.ddn
  FILE TYPE:DATA(BINARY)   UNIT   52   STATUS:REPLACE
- FORMAT:UNFORMATTED            ACCESS:SEQUENTIAL          
+ FORMAT:UNFORMATTED            ACCESS:STREAM              
 
  OPENING lake_example.cbc
  FILE TYPE:DATA(BINARY)   UNIT   53   STATUS:REPLACE
- FORMAT:UNFORMATTED            ACCESS:SEQUENTIAL          
+ FORMAT:UNFORMATTED            ACCESS:STREAM              
 
  BAS -- BASIC PACKAGE, VERSION 7, 5/2/2005 INPUT READ FROM UNIT   13
 
@@ -362,6 +362,6 @@
          TOTAL TIME  86400.      1440.0      24.000      1.0000     2.73785E-03
 1
 
- Run end date and time (yyyy/mm/dd hh:mm:ss): 2015/03/31 22:28:16
- Elapsed run time:  0.971 Seconds
+ Run end date and time (yyyy/mm/dd hh:mm:ss): 2015/04/08 15:12:46
+ Elapsed run time:  0.969 Seconds
 
