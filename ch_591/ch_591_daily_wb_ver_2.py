@@ -27,7 +27,7 @@ stage_cutoff = 0.1
 
 # ------------------------------------------------------------------#
 # Weather file
-weather_file = '/media/kiruba/New Volume/ACCUWA_Data/weather_station/smgollahalli/corrected_weather.csv'
+weather_file = '/media/kiruba/New Volume/ACCUWA_Data/weather_station/smgollahalli/ksndmc_weather.csv'
 # Rain file
 rain_file = '/media/kiruba/New Volume/ACCUWA_Data/weather_station/smgollahalli/ksndmc_rain.csv'
 # convert to pandas dataframe
@@ -140,7 +140,9 @@ water_level_10min.index.name = 'Date'
 
 water_level = pd.concat([water_level_30min, water_level_10min], axis=0)
 water_level = water_level.resample('30min', how=np.mean, label='right', closed='right')
-
+water_level = water_level[:'2015-02-09']
+# print water_level.tail()
+# raise SystemExit(0)
 water_level.to_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/stage_591.csv')
 # raise SystemExit(0)
 """
@@ -189,7 +191,7 @@ for i in weather_df.index:
 wind speed from km/h to m/s
 1 kmph = 0.277778 m/s
 """
-weather_df['Wind Speed (mps)'] = weather_df['Wind Speed (kmph)'] * 0.277778
+# weather_df['Wind Speed (mps)'] = weather_df['Wind Speed (kmph)'] * 0.277778
 """
 Radiation unit conversion
 """
@@ -198,17 +200,22 @@ weather_df['Solar Radiation (MJ/m2/30min)'] = (weather_df['Solar Radiation (Wpm2
 Average Temperature Calculation
 """
 # weather_df['Average Temp (C)'] = 0.5 * (weather_df['Min Air Temperature (C)'] + weather_df['Max Air Temperature (C)'])
+
 """
 Half hourly Evaporation calculation
 """
-airtemp = weather_df['Air Temperature (C)']
+# airtemp = weather_df['Air Temperature (C)']
+airtemp = weather_df['TEMPERATURE']
 hum = weather_df['Humidity (%)']
 airpress = weather_df['AirPr(Pa)']
 rs = weather_df['Solar Radiation (MJ/m2/30min)']
 rext = weather_df['Rext (MJ/m2/30min)']
-wind_speed = weather_df['Wind Speed (mps)']
+# wind_speed = weather_df['Wind Speed (mps)']
+wind_speed = weather_df['WIND_SPEED']
 weather_df['Evaporation (mm/30min)'] = cd.half_hour_evaporation(airtemp=airtemp, rh=hum, airpress=airpress,
                                                                 rs=rs, rext=rext, u=wind_speed, z=z)
+
+
 """
 Select data where stage is available
 """
@@ -413,12 +420,14 @@ average_area = (slope*average_stage) + y_intercept
 print average_area
 surface_area_to_vol_ratio = average_area/average_volume
 print "surface area to vol ratio is %0.2f" %surface_area_to_vol_ratio
-raise SystemExit(0)
+# raise SystemExit(0)
 """
 Evaporation Volume estimation
 """
 water_balance_df['Evaporation (cu.m)'] = (water_balance_df['Evaporation (mm/30min)'] * 0.001) * water_balance_df[
     'ws_area(sq.m)']
+
+
 """
 Daily Totals of Rain, Evaporation, Overflow
 """
@@ -431,6 +440,7 @@ stage_df = water_balance_df[['stage(m)']]
 stage_df = stage_df.resample('D', how=np.mean)
 print stage_df.head()
 water_balance_daily_df = sum_df.join(stage_df, how='left')
+
 water_balance_daily_df['ws_area(sq.m)'] = 0.000
 for index, row in water_balance_daily_df.iterrows():
     obs_stage = row['stage(m)']  # observed stage
@@ -557,6 +567,8 @@ print "rainy day"
 Inflow calculation
 """
 merged_water_balance = pd.concat([dry_water_balance_df, rain_water_balance_df])
+merged_water_balance = merged_water_balance.sort()
+merged_water_balance.to_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/merged_check.csv')
 merged_water_balance['Inflow (cu.m)'] = 0.000
 delta_s_rain = water_balance_daily_df['change_storage(cu.m)']
 inf_rain = merged_water_balance['infiltration(cu.m)']

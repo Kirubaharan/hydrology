@@ -9,13 +9,27 @@ from datetime import timedelta
 from datetime import datetime
 from pymc import TruncatedNormal
 from pymc import Normal, Exponential
-
+import matplotlib
 # data = np.array([None, None, None, 12, 17, 20])
 # masked_values = np.ma.masked_array(data, np.equal(data, None), fill_value=10)
 # x = pm.TruncatedNormal('x', mu=15, tau=0.1, a=7, b=27, value=data, observed=True)
 # print x.value
 # raise SystemExit(0)
+matplotlib.rc('font', **{'family': 'sans-serif', 'serif': ['Computer Modern Roman']})
+matplotlib.rc('text', usetex=True)
+plt.rc('text', usetex=True)
+plt.rc('font', family='serif', size=36)
 
+params = {'axes.labelsize': 28, # fontsize for x and y labels (was 10)
+          'axes.titlesize': 30,
+          'text.fontsize': 30, # was 10
+          'legend.fontsize': 30, # was 10
+           'xtick.labelsize': 28,
+           'ytick.labelsize': 28,
+          'text.usetex': True,
+          'font.family': 'serif'
+          }
+matplotlib.rcParams.update(params)
 """
 MCMC iteration parameters
 """
@@ -54,13 +68,14 @@ weather_ksndmc_df['index'] = weather_ksndmc_df.index
 weather_ksndmc_df.drop_duplicates(subset='index', take_last=True, inplace=True)
 del weather_ksndmc_df['index']
 weather_ksndmc_df = weather_ksndmc_df.sort()
-
+print len(weather_ksndmc_df.index)
 # h = weather_ksndmc_df['WIND_SPEED'][weather_ksndmc_df['WIND_SPEED'] < 3.0]
 # h = sorted(h)
 # fit = stats.norm.pdf(h, np.mean(h), np.std(h))
 # fig = plt.figure()
-# plt.plot(h, fit, '-o')
-# plt.hist(h, normed=True)
+# plt.plot(weather_ksndmc_df.index, weather_ksndmc_df['WIND_SPEED'], '-g')
+# # plt.plot(h, fit, '-o')
+# # plt.hist(h, normed=True)
 # plt.show()
 # raise SystemExit(0)
 # multiply by 10 so that we get integer output
@@ -69,12 +84,19 @@ start_time = min(weather_ksndmc_df.index)
 end_time = max(weather_ksndmc_df.index)
 new_index = pd.date_range(start=start_time, end=end_time, freq='15min')
 weather_ksndmc_df = weather_ksndmc_df.reindex(new_index, fill_value=50)
-# print len(weather_ksndmc_df.index)
+print len(weather_ksndmc_df.index)
 print np.where(weather_ksndmc_df['WIND_SPEED'] == 50)[0][50]
 # consider values above 30 as missing as it is unrealistic
 weather_ksndmc_df["WIND_SPEED"] = np.where(weather_ksndmc_df["WIND_SPEED"] > 30.0, None,
                                            weather_ksndmc_df['WIND_SPEED'])
 # weather_ksndmc_df['WIND_SPEED'] = np.where(weather_ksndmc_df['WIND_SPEED'] < 5.0, 999, weather_ksndmc_df['WIND_SPEED'])
+fig = plt.figure()
+plt.plot(weather_ksndmc_df.index, weather_ksndmc_df['WIND_SPEED']/10, '-b')
+plt.ylabel("Wind Speed (m/s)")
+fig.autofmt_xdate(rotation=45)
+plt.title("Tubgere Wind Speed data")
+plt.show()
+# raise SystemExit(0)
 # fill by interpolation if only one value is missing
 max_limit = max(weather_ksndmc_df.index) - timedelta(days=1)
 min_limit = min(weather_ksndmc_df.index) + timedelta(days=1)
@@ -87,6 +109,7 @@ for index in weather_ksndmc_df.index:
 
 missing_values = np.ma.masked_values(weather_ksndmc_df['WIND_SPEED'].values, value=None)
 print missing_values.mask.sum()
+# raise SystemExit(0)
 # weather_ksndmc_df['WIND_SPEED'].replace([None], -5, inplace=True)
 print weather_ksndmc_df['WIND_SPEED']['2014-08-28 17:30:00']
 # fig = plt.figure()
@@ -104,6 +127,13 @@ for index in after_missing_data.index:
     if after_missing_data['WIND_SPEED'][index] is None:
         print index
 full_data = weather_ksndmc_df['2014-08-25':'2014-09-06']
+fig = plt.figure()
+plt.plot(full_data.index, full_data['WIND_SPEED']/10.0, '-bo')
+plt.ylabel("Wind Speed (m/s)")
+fig.autofmt_xdate(rotation=45)
+# plt.title("MCMC Imputation")
+plt.show()
+# raise SystemExit(0)
 # missing_values = np.ma.masked_values(full_data['WIND_SPEED'].values, value=None)
 # print missing_values.mask.sum()
 hour_p = prior_missing_data.index.hour
@@ -242,9 +272,14 @@ full_data = pd.concat((full_data_day, full_data_night))
 full_data.sort_index(inplace=True)
 print full_data.head()
 verify_dataframe(full_data)
-# fig = plt.figure()
-# plt.plot(full_data.index, full_data['corrected_wind_speed'], '-o')
-# plt.show()
+fig = plt.figure()
+plt.plot(full_data.index, full_data['corrected_wind_speed']/10.0, '-ro', label="Estimated")
+plt.plot(full_data.index, full_data['WIND_SPEED']/10.0, '-bo', label="Observed")
+plt.ylabel("Wind Speed (m/s)")
+plt.title("MCMC Imputation")
+plt.legend().draggable()
+plt.show()
+raise SystemExit(0)
 """
 Missing period from Jan 06 to Jan 12
 """

@@ -5,7 +5,23 @@ import pandas as pd
 import checkdam.checkdam as cd
 from datetime import timedelta
 import scipy.stats as stats
+import matplotlib
 
+matplotlib.rc('font', **{'family': 'sans-serif', 'serif': ['Computer Modern Roman']})
+matplotlib.rc('text', usetex=True)
+plt.rc('text', usetex=True)
+plt.rc('font', family='serif', size=36)
+
+params = {'axes.labelsize': 28, # fontsize for x and y labels (was 10)
+          'axes.titlesize': 30,
+          'text.fontsize': 30, # was 10
+          'legend.fontsize': 30, # was 10
+           'xtick.labelsize': 28,
+           'ytick.labelsize': 28,
+          'text.usetex': True,
+          'font.family': 'serif'
+          }
+matplotlib.rcParams.update(params)
 """
 Weather
 Read from csv and create datetime index, re arrange columns, drop unwanted columns
@@ -72,14 +88,16 @@ night_mean = np.mean(night_wind_speed)
 night_sigma = np.std(night_wind_speed)
 night_variance = night_sigma ** 2
 # Plot
+print("Day Mean = %0.2f, Sigma = %0.2f, and Variance = %0.2f \n" % (day_mean, day_sigma, day_variance) + "Night Mean = %0.2f, Sigma = %0.2f, and Variance = %0.2f" % (night_mean, night_sigma, night_variance))
 fig = plt.figure()
 plt.plot(sorted(day_wind_speed), stats.norm.pdf(sorted(day_wind_speed), day_mean, day_sigma), 'g-o', label='Day')
 night_fit = stats.norm.pdf(sorted(night_wind_speed), night_mean, night_sigma)
 plt.plot(sorted(night_wind_speed), night_fit, '-ro', label="Night")
-plt.text(0.25, 1.1, "Day Mean = %0.2f, Sigma = %0.2f, and Variance = %0.2f \n" % (day_mean, day_sigma, day_variance) + "Night Mean = %0.2f, Sigma = %0.2f, and Variance = %0.2f" % (night_mean, night_sigma, night_variance), fontsize=11)
+# plt.text(0.25, 1.1, "Day Mean = %0.2f, Sigma = %0.2f, and Variance = %0.2f \n" % (day_mean, day_sigma, day_variance) + "Night Mean = %0.2f, Sigma = %0.2f, and Variance = %0.2f" % (night_mean, night_sigma, night_variance), fontsize=28)
 plt.title("PDF of wind speed for time period 2014-08-25 : 2014-09-06")
 plt.legend().draggable()
 plt.show()
+raise SystemExit(0)
 """
 Missing period from Jan 06 to Jan 12
 """
