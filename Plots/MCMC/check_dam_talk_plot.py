@@ -161,7 +161,7 @@ ax1_2 = ax1.twinx()
 line_stage, = ax1_1.plot(stage_591_df.index, stage_591_df['stage(m)'], color='#e41a1c',linestyle='-', lw=1.5, alpha=0.85)
 bar_inflow = ax1_2.bar(wb_591.index, wb_591['Inflow (cu.m)'], 1.5, color=dark_2_colors[4],alpha=0.5)
 lns = [bar_rain, line_stage, bar_inflow]
-labs = [r'\textbf{Rainfall ($mm$)}', r"\textbf{Stage ($m$)}", r"\textbf{Inflow ($m^3$"]
+labs = [r'\textbf{Rainfall ($mm$)}', r"\textbf{Stage ($m$)}", r"\textbf{Inflow ($m^3$)}"]
 ax1.legend(lns, labs,prop={'size':30} ).draggable()
 ax1.set_title("Check dam 591")
 for t1 in ax1_1.get_yticklabels():
