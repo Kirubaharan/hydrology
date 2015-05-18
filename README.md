@@ -3,6 +3,19 @@
 ##My Hydrology  repository
 I use Python and R for managing my workflow in hydrological modelling. This repository is a collection of those codes. You are welcome to use and modify it for your purpose. See [Licence](../master/LICENSE) for terms and conditions.
 My contact details are at the bottom of this page.
+
+### Markov chain Monte Carlo(MCMC) estimation of missing wind speed
+Use of MCMC to fill missing wind speed values in weather data. [MCMC](../master/wind_speed_had_mcmc.py) 
+
+### Modflow using flopy in linux
+#### Modflow Compilation instructions for linux
+In makefile, use F90= gfortran .
+In openspec.inc
+change DATA ACCESS/'SEQUENTIAL'/ to DATA ACCESS/'STREAM'/
+change DATA FORM/'BINARY'/ to DATA FORM/'UNFORMATTED'/
+#### Simple tutorial for modflow model using flopy
+[Flopy tutorial](../master/gw.tut.py)
+
 ###Tutorial for stage volume
 See the [Stage - Volume Tutorial](../master/stage_volume_tutorial.py).
 Check out the comments.  
@@ -20,9 +33,6 @@ This file does following functions:
  4. Creates a contour and 3D surface plot from the interpolated data.
  5. Calculates the contour area for given elevation levels.
  6. Plot of surface area vs stage.
-
-### Markov chain Monte Carlo(MCMC) estimation of missing wind speed
-Use of MCMC to fill missing wind speed values in weather data. [MCMC](../master/wind_speed_had_mcmc.py) 
 
 ###Contact
 For related queries please mail: haran.kiruba@gmail.com

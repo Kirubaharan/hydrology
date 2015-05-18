@@ -14,15 +14,15 @@ from gdalconst import *
 import progressbar
 from pymodis.convertmodis_gdal import convertModisGDAL
 import fnmatch
-import glob
 import gdalnumeric
-import Image
+import Image, ImageDraw
 import ogr
-import operator
-import ImageDraw
 import subprocess
 import osr
-
+import mpl_toolkits.basemap.pyproj as pyproj
+import operator
+from gdalnumeric import *
+# gdal.UseExceptions()
 
 
 # monthly et is from 2000-2014
@@ -76,19 +76,19 @@ def download_hdf_month(month, year, tile,  output_folder):
 # for m in range(1, 3, 1):
 #     download_hdf_month(month=m, year='2014', tile="h25v07" ,output_folder="/media/kiruba/New Volume/MODIS/ET/scratch")
 # raise SystemExit(0)
-output_folder = "/media/kiruba/New Volume/MODIS/ET/scratch"
+# output_folder = "/media/kiruba/New Volume/MODIS/ET/scratch"
 # convert modis to geotiff
 # subset
-img = gdal.Open(output_folder+'/'+"MOD16A2.A2014M01.h25v07.105.2015035084256.hdf")
-subset = img.GetSubDatasets()
-print img.RasterXSize
-et_data = gdal.Open(subset[0][0])
-et = et_data.ReadAsArray()
-et_scaled = et*0.1
-plt.imshow(et_scaled, interpolation='nearest', vmin=10, cmap=plt.cm.gist_earth)
-plt.colorbar()
-plt.show()
-print subset[0][0]
+# img = gdal.Open(output_folder+'/'+"MOD16A2.A2014M01.h25v07.105.2015035084256.hdf")
+# subset = img.GetSubDatasets()
+# print img.RasterXSize
+# et_data = gdal.Open(subset[0][0])
+# et = et_data.ReadAsArray()
+# et_scaled = et*0.1
+# plt.imshow(et_scaled, interpolation='nearest', vmin=10, cmap=plt.cm.gist_earth)
+# plt.colorbar()
+# plt.show()
+# print subset[0][0]
 
 
 #projection information
@@ -103,7 +103,16 @@ def getPRJwkt(epsg):
     return(f.read())
 
 
-def reproject_dataset(dataset, wkt_from="+proj=sinu +lon_0=0 +x_0=0 +y_0=0 +a=6371007.181 +b=6371007.181 +units=m +no_defs", epsg_to=4326):
+def reproject_dataset(dataset, output_file_name, wkt_from="+proj=sinu +lon_0=0 +x_0=0 +y_0=0 +a=6371007.181 +b=6371007.181 +units=m +no_defs", epsg_to=32643, pixel_spacing=1000, file_format='GTiff'):
+    '''
+    :param dataset: Modis subset name use gdal.GetSubdatasets()
+    :param output_file_name: file location along with proper extension
+    :param wkt_from: Modis wkt (default)
+    :param epsg_to: integer default(32643)
+    :param pixel_spacing: in metres
+    :param file_format: default GTiff
+    :return:
+    '''
     wgs84 = osr.SpatialReference()
     wgs84.ImportFromEPSG(epsg_to)
     modis = osr.SpatialReference()
@@ -111,121 +120,53 @@ def reproject_dataset(dataset, wkt_from="+proj=sinu +lon_0=0 +x_0=0 +y_0=0 +a=63
     tx = osr.CoordinateTransformation(modis, wgs84)
     g = gdal.Open(dataset)
     geo_t = g.GetGeoTransform()
-    x_size = g.RasterXSize()
-    y_size = g.RasterYSize()
+    print geo_t
+    x_size = g.RasterXSize
+    y_size = g.RasterYSize
     (ulx, uly, ulz) = tx.TransformPoint(geo_t[0], geo_t[3])
-    (lrx, lry, lrz) = tx.TransformPoint(geo_t[0] + geo_t[1]*x_size, geo_t[3]+ geo_t[5]*y_size)
-    mem_drv = gdal.GetDriverByName('MEM')
-    dest = mem_drv.Create('', int((lrx-ulx)/geo_t[1]), int((uly - lry)/geo_t[1]), 1, gdal.GDT_Float32)
-    new_geo = (ulx, geo_t[1], geo_t[2], uly, geo_t[4], geo_t[5])
-    res = gdal.ReprojectImage(g, dest, modis.ExportToWkt(), wgs84.ExportToWkt(), gdal.GRA_Bilinear)
-    return dest
+    (lrx, lry, lrz) = tx.TransformPoint(geo_t[0] + (geo_t[1]*x_size), geo_t[3]+ (geo_t[5]*y_size))
+    mem_drv = gdal.GetDriverByName(file_format)
+    dest = mem_drv.Create(output_file_name, int((lrx-ulx)/pixel_spacing), int((uly - lry)/pixel_spacing), 1, gdal.GDT_Float32)
+    new_geo = ([ulx, pixel_spacing, geo_t[2], uly, geo_t[4], -pixel_spacing])
+    dest.SetGeoTransform(new_geo)
+    dest.SetProjection(wgs84.ExportToWkt())
+    gdal.ReprojectImage(g, dest, modis.ExportToWkt(), wgs84.ExportToWkt(), gdal.GRA_Bilinear)
+    print "reprojected"
 
 
 
 
-def reproject_modis_to_geotiff(input_folder, dest_prj=4326):
+
+def reproject_modis_to_geotiff(input_folder, dest_prj=32643):
     '''
-    Function to convert modis to geotiff using gdal
-    required libraries: os, gdal,pymodis
-    used import statements
-    import os
-    import gdal
-    from pymodis.convertmodis_gdal import convertModisGDAL
+    Function to convert all modis hdf in folder to geotiff using gdal
+    required libraries: osr, gdal
     :param input_folder: where hds files are stored
-    :param dest_prj: default is wgs 84 (EPSG 4326)
-    :return: modis data in geotiff in wgs 84 projection
+    :param dest_prj: default is wgs 84 / UTM 43N (EPSG 32643)
     '''
     files_list = os.listdir(input_folder)
-    out_prj = osr.SpatialReference()
-    out_prj.ImportFromEPSG(dest_prj)
-    modis_wkt_from = "+proj=sinu +lon_0=0 +x_0=0 +y_0=0 +a=6371007.181 +b=6371007.181 +units=m +no_defs"
-    in_prj = osr.SpatialReference()
-    in_prj.ImportFromProj4(modis_wkt_from)
-    tx  = osr.CoordinateTransformation(in_prj, out_prj)
     for item in files_list:
         if fnmatch.fnmatch(item, '*.hdf'):
             input_file_name = input_folder + '/' + item
             output_file_name = input_folder + '/' + item[0:23]
             img = gdal.Open(input_file_name)
             subset = img.GetSubDatasets()
-            in_raster = gdal.Open(subset[0][0])
-            in_geotransform = in_raster.GetGeoTransform()
-            print in_geotransform
-            print in_geotransform[1]
-            if in_geotransform != (0.0, 1.0, 0.0, 0.0, 0.0, 1.0):
-                x_size = in_raster.RasterXSize
-                y_size = in_raster.RasterYSize
-                print x_size, y_size
-                (ulx, uly, ulz) = tx.TransformPoint(in_geotransform[0], in_geotransform[3])
-                (lrx, lry, lrz) = tx.TransformPoint(in_geotransform[0] + in_geotransform[1]*x_size, in_geotransform[3] + in_geotransform[5]*y_size)
-                mem_drv = gdal.GetDriverByName('MEM')
-                dest = mem_drv.Create('', int((lrx-ulx)/in_geotransform[1]), int((uly-lry)/in_geotransform[1]), 1, gdal.GDT_Float32)
-                print dest.RasterXSize
-                new_geo = (ulx, in_geotransform[1], in_geotransform[2], uly, in_geotransform[4], in_geotransform[5])
-                dest.SetGeoTransform(new_geo)
-                dest.SetProjection(out_prj.ExportToWkt())
-                res = gdal.ReprojectImage(in_raster, dest, in_prj, out_prj, gdal.GRA_Bilinear)
-                return dest
-            else:
-                print "projection error"
+            in_raster = subset[0][0]
+            reproject_dataset(dataset=in_raster, output_file_name=output_file_name+ '.tif')
 
-(image1, image2) = reproject_modis_to_geotiff(input_folder="/media/kiruba/New Volume/MODIS/ET/scratch")
+# reproject
+# reproject_modis_to_geotiff(input_folder="/media/kiruba/New Volume/MODIS/ET/scratch")
 
-
-def plot_gdal_file ( input_dataset, vmin=0, vmax=100 ):
-    #plt.figure ( figsize=(11.3*0.8, 8.7*0.8), dpi=600 ) # This is A4. Sort of
-
-    geo = input_dataset.GetGeoTransform() # Need to get the geotransform (ie, corners)
-    data = input_dataset.ReadAsArray()
-    # We need to flip the raster upside down
-    data = np.flipud( data )
-    # Define a cylindrical projection
-    projection_opts={'projection':'cyl','resolution':'l'}
-    # These are the extents in the native raster coordinates
-    extent = [ geo[0],  geo[0] + input_dataset.RasterXSize*geo[1], \
-        geo[3], geo[3] + input_dataset.RasterYSize*geo[5]]
-    print geo
-    print extent
-    print input_dataset.RasterXSize
-    print input_dataset.RasterYSize
-    map = Basemap( llcrnrlon=extent[0], llcrnrlat=extent[3], \
-                 urcrnrlon=extent[1],urcrnrlat=extent[2],  ** projection_opts)
-
-
-
-    cmap = plt.cm.gist_rainbow
-    cmap.set_under ('0.8' )
-    cmap.set_bad('0.8' )
-    cmap.set_over ('0.8')
-
-    map.imshow( data, vmin=vmin, vmax=vmax, cmap=cmap, interpolation='nearest')
-
-
-
-    map.drawcoastlines (linewidth=0.5, color='k')
-    map.drawcountries(linewidth=0.5, color='k')
-
-    map.drawmeridians( np.arange(0,360,5), color='k')
-    map.drawparallels( np.arange(-90,90,5), color='k')
-    map.drawmapboundary()
-    cb = plt.colorbar( orientation='horizontal', fraction=0.10, shrink=0.8)
-    cb.set_label(r'$10\cdot LAI$')
-    plt.title(r'LAI')
-
-plot_gdal_file(image1)
-plt.show()
 # This function will convert the rasterized clipper shapefile
 # to a mask for use within GDAL.
-raise SystemExit(0)
 
 def imageToArray(i):
     """
-    Converts a Python Imaging Library array to a
-    gdalnumeric image.
+    Converts a  Python Imaging Library image to gdalnumeric array.
     """
-    a=gdalnumeric.fromstring(i.tostring(),'b')
-    a.shape=i.im.size[1], i.im.size[0]
+    a = np.fromstring(i.tostring(),'b')
+    print a.shape
+    a.shape = i.im.size[1], i.im.size[0]
     return a
 
 
@@ -238,30 +179,47 @@ def arrayToImage(a):
             (a.astype('b')).tostring())
     return i
 
-# multiply to get et, exclude other values
+# clip the raster only for tg halli area
 # http://geospatialpython.com/2011/02/clip-raster-using-shapefile.html
+
+
+def clip_raster_by_vector(input_folder, mask_shapefile, output_folder, file_extension='*.tif', t_srs='EPSG:32643', no_data=32767 ):
+    files_list = os.listdir(input_folder)
+    ds = ogr.Open(in_shape)
+    lyr = ds.GetLayer(0)
+    lyr.ResetReading()
+    ft = lyr.GetNextFeature()
+    for item in files_list:
+        if fnmatch.fnmatch(item, file_extension):
+            in_raster = input_folder + '/' + item
+            out_raster = output_folder + '/' +'tg_' + item
+            subprocess.call(['gdalwarp', in_raster, out_raster, '-cutline', mask_shapefile, '-t_srs', t_srs, '-crop_to_cutline', '-dstnodata', "%s" %no_data])
+
+
 input_folder = "/media/kiruba/New Volume/MODIS/ET/scratch"
-files_list = os.listdir(input_folder)
-layer_name = "TGHalliCatchment"
 output_folder = "/media/kiruba/New Volume/MODIS/ET/scratch/TG_halli"
-in_shape = "/media/kiruba/New Volume/MODIS/TG_halli/TGHalliCatchment.shp"
-ds = ogr.Open(in_shape)
-lyr = ds.GetLayer(0)
-lyr.ResetReading()
-ft = lyr.GetNextFeature()
+in_shape = "/media/kiruba/New Volume/MODIS/TG_halli/TGHalliCatchment_utm.shp"
 
-for item in files_list:
-    if fnmatch.fnmatch(item, '*.tif'):
-        print item
-        in_raster = input_folder + '/' + item
-        out_raster = output_folder + '/' +'tg_' + item
-        print out_raster
-        subprocess.call(['gdalwarp', in_raster, out_raster, '-cutline', in_shape, '-t_srs', 'EPSG:4326', '-crop_to_cutline', '-dstnodata', "32767"])
+# clip_raster_by_vector(input_folder=input_folder,mask_shapefile=in_shape, output_folder=output_folder)
 
-
-
-
-# reproject
 # save as geotiff
+def process_modis(input_folder, output_folder, scale_factor=0.1, null_value=32760, file_extension='*.tif'):
+    files_list = os.listdir(input_folder)
+    for item in files_list:
+        if fnmatch.fnmatch(item, file_extension):
+            in_raster = input_folder + '/' + item
+            in_raster = gdal.Open(in_raster, GA_ReadOnly)
+            out_raster = output_folder + '/' + 'proc_' + item
+            band1 = in_raster.GetRasterBand(1)
+            in_array = BandReadAsArray(band1)
+            in_array[in_array > null_value] = np.nan
+            data_out = in_array * scale_factor
+            gdalnumeric.SaveArray(data_out, filename=out_raster, format='GTiff', prototype=in_raster)
+
+input_folder = "/media/kiruba/New Volume/MODIS/ET/scratch/TG_halli"
+output_folder = "/media/kiruba/New Volume/MODIS/ET/scratch/TG_halli/processed"
+process_modis(input_folder=input_folder, output_folder=output_folder)
+
+
 
 
