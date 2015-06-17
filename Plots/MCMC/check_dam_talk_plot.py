@@ -14,6 +14,10 @@ from matplotlib.ticker import MaxNLocator
 # from statsmodels.nonparametric.smoothers_lowess import lowess
 import brewer2mpl
 import matplotlib.dates as mdates
+from matplotlib.patches import Rectangle
+import  matplotlib.patches as mpatches
+import scipy.stats as stats
+
 
 # latex parameters
 rc('font', **{'family': 'sans-serif', 'serif': ['Computer Modern Roman']})
@@ -22,7 +26,6 @@ plt.rc('text', usetex=True)
 plt.rc('font', family='serif', size=36)
 
 dark_2_colors = brewer2mpl.get_map("Dark2", 'Qualitative', 7).mpl_colors
-
 
 
 def remove_border(axes=None, top=False, right=False, left=True, bottom=True):
@@ -148,21 +151,31 @@ stage_591_df = pd.read_csv(stage_591_file, sep=',', header=0)
 stage_591_df.set_index(pd.to_datetime(stage_591_df['Date'],format=datetime_format),  inplace=True)
 wb_591.set_index(pd.to_datetime(wb_591['Date'], format=daily_format), inplace=True)
 del wb_591['Date']
-wb_591 = wb_591[wb_591['Inflow (cu.m)'] > 0]
+width = 300.0/len(wb_591.index)
+print 'width = %s'  %width
+# wb_591 = wb_591[wb_591['Inflow (cu.m)'] > 0]
+# wb_591 = wb_591[:'2014-12-31']
+# rain_df = rain_df[:"2014-12-31"]
 print wb_591.head()
 # stage_591_df = stage_591_df.resample('D', how=np.mean)
 fig , ax1 = plt.subplots(nrows=1, ncols=1, sharex=True, facecolor='white')
-bar_rain = ax1.bar(rain_df.index, rain_df['rain (mm)'], 1.5, color=dark_2_colors[2],alpha=0.9,label = 'Rainfall (mm)')
+bbox = ax1.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
+width, height = bbox.width, bbox.height
+print width
+bar_rain = ax1.bar(rain_df.index, rain_df['rain (mm)'], width=[(rain_df.index[j+1]-rain_df.index[j]).days for j in range(len(rain_df.index)-1)] + [30], color=dark_2_colors[2],alpha=0.9,label = 'Rainfall (mm)')
 ax1.invert_yaxis()
 for t1 in ax1.get_yticklabels():
     t1.set_color(dark_2_colors[2])
 ax1_1 = ax1.twinx()
 ax1_2 = ax1.twinx()
-line_stage, = ax1_1.plot(stage_591_df.index, stage_591_df['stage(m)'], color='#e41a1c',linestyle='-', lw=1.5, alpha=0.85)
-bar_inflow = ax1_2.bar(wb_591.index, wb_591['Inflow (cu.m)'], 1.5, color=dark_2_colors[4],alpha=0.5)
-lns = [bar_rain, line_stage, bar_inflow]
-labs = [r'\textbf{Rainfall ($mm$)}', r"\textbf{Stage ($m$)}", r"\textbf{Inflow ($m^3$)}"]
-ax1.legend(lns, labs,prop={'size':30} ).draggable()
+ax1_3 = ax1.twinx()
+wb_591['Inflow (cu.m)'][wb_591['Inflow (cu.m)'] < 0] = 0
+# line_stage, = ax1_1.plot(stage_591_df.index, stage_591_df['stage(m)'], color='#e41a1c',linestyle='-', lw=1.5, alpha=0.85)
+# bar_overflow = ax1_3.bar(wb_591.index, wb_591['overflow(cu.m)'], width=[(wb_591.index[j+1]-wb_591.index[j]).days for j in range(len(wb_591.index)-1)] + [30], color=dark_2_colors[5], alpha=1)
+bar_inflow = ax1_2.bar(wb_591.index, wb_591['Inflow (cu.m)'], width=[(wb_591.index[j+1]-wb_591.index[j]).days for j in range(len(wb_591.index)-1)] + [30],color=dark_2_colors[4],alpha=1)
+# lns = [bar_rain, line_stage, bar_inflow]
+# labs = [r'\textbf{Rainfall ($mm$)}', r"\textbf{Stage ($m$)}", r"\textbf{Inflow ($m^3$)}"]
+# ax1.legend(lns, labs,prop={'size':30} ).draggable()
 ax1.set_title("Check dam 591")
 for t1 in ax1_1.get_yticklabels():
     t1.set_color('#e41a1c')
@@ -192,6 +205,113 @@ ax1_2.yaxis.set_major_locator(locator_1_2)
 ax1_2.xaxis.set_major_locator(month_locator)
 ax1_2.xaxis.set_major_formatter(xfmt)
 fig.autofmt_xdate(rotation=90)
+plt.show()
+# stack plot
+print rain_df.tail()
+print wb_591.tail()
+fig, ax1 = plt.subplots(nrows=1, ncols=1, sharex=True, facecolor='white')
+bar_rain = ax1.bar(rain_df.index, rain_df['rain (mm)'], width=[(rain_df.index[j+1]-rain_df.index[j]).days for j in range(len(rain_df.index)-1)] + [30], color=dark_2_colors[2],alpha=0.9,label = 'Rainfall (mm)')
+ax1.set_ylim([0, 300])
+ax1.invert_yaxis()
+for t1 in ax1.get_yticklabels():
+    t1.set_color(dark_2_colors[2])
+ax1_1 = ax1.twinx()
+label_list = ['Overflow', 'Inflow', "Rainfall"]
+inflow = ax1_1.fill_between(wb_591.index, wb_591['overflow(cu.m)'].cumsum(), color="none", edgecolor='#0000FF')
+outflow = ax1_1.fill_between(wb_591.index, wb_591['Inflow (cu.m)'].cumsum(), color="none", edgecolor='#FF0000')
+# stack = ax1_1.stackplot(wb_591.index, wb_591['overflow(cu.m)'].cumsum(), wb_591['Inflow (cu.m)'].cumsum(), colors=['#FFFFFF', '#000000'], alpha=0.5, zorder=-32 )
+# display only 3 ticks
+locator_1 = MaxNLocator(3)
+locator_1_1 = MaxNLocator(3)
+month_locator = mdates.MonthLocator(interval=3)
+xfmt = mdates.DateFormatter('%b-%Y')
+ax1.yaxis.set_major_locator(locator_1)
+ax1_1.yaxis.set_major_locator(locator_1_1)
+ax1_1.xaxis.set_major_locator(month_locator)
+ax1_1.xaxis.set_major_formatter(xfmt)
+ax1_1.set_xlim([min(rain_df.index), max(wb_591.index)])
+ax1_1.legend([mpatches.Patch(facecolor='#FFFFFF',edgecolor='#0000FF', alpha=0.5), mpatches.Patch(facecolor='#FFFFFF',edgecolor='#FF0000', alpha=0.5),mpatches.Patch(color=dark_2_colors[2], alpha=0.9)], label_list).draggable()
+# ax1_1.legend([mpatches.Patch(color='#FFFFFF', alpha=0.5), mpatches.Patch(color='#000000', alpha=0.5)], label_list).draggable()
+ax1_1.set_ylabel(r"Flow ($m^{3} \, day^{-1}$)")
+ax1.set_ylabel(r"Rainfall ($mm \, day^{-1}$)")
+# ax1_1.set_title("Check dam 591")
+#
+fig.autofmt_xdate(rotation=90)
+# # print evap
+plt.show()
+#line plot
+fig, ax1 = plt.subplots(nrows=1, ncols=1, sharex=True, facecolor='white')
+bar_rain = ax1.bar(rain_df.index, rain_df['rain (mm)'], width=[(rain_df.index[j+1]-rain_df.index[j]).days for j in range(len(rain_df.index)-1)] + [30], color='#0000FF',alpha=0.9,label= 'Rainfall (mm)')
+ax1.set_ylim([0, 300])
+ax1.invert_yaxis()
+for t1 in ax1.get_yticklabels():
+    t1.set_color(dark_2_colors[2])
+ax1_1 = ax1.twinx()
+label_list = ['Overflow', 'Inflow', "Rainfall"]
+stack = ax1_1.stackplot(wb_591.index, wb_591['overflow(cu.m)'], wb_591['Inflow (cu.m)'], colors=['#008000', '#FF0000'], alpha=0.5)
+# display only 3 ticks
+locator_1 = MaxNLocator(3)
+locator_1_1 = MaxNLocator(3)
+month_locator = mdates.MonthLocator(interval=3)
+xfmt = mdates.DateFormatter('%b-%Y')
+ax1.yaxis.set_major_locator(locator_1)
+ax1_1.yaxis.set_major_locator(locator_1_1)
+ax1_1.xaxis.set_major_locator(month_locator)
+ax1_1.xaxis.set_major_formatter(xfmt)
+ax1_1.set_xlim([min(rain_df.index), max(wb_591.index)])
+ax1_1.legend([mpatches.Patch(color='#008000', alpha=0.5), mpatches.Patch(color='#FF0000', alpha=0.5),mpatches.Patch(color='#0000FF', alpha=0.9)], label_list)
+# ax1_1.legend([mpatches.Patch(color='#0000FF', alpha=0.5), mpatches.Patch(color='#FF0000', alpha=0.5)], label_list).draggable()
+ax1_1.set_ylabel(r"Flow ($m^{3} \, day^{-1}$)")
+ax1.set_ylabel(r"Rainfall ($mm \, day^{-1}$)")
+# ax1_1.set_title("Check dam 591")
+#
+fig.autofmt_xdate(rotation=90)
+# # print evap
+plt.show()
+#flow duration curve
+inflow = wb_591['Inflow (cu.m)'].values
+outflow = wb_591['overflow(cu.m)'].values
+mean_inflow = np.mean(inflow)
+mean_outflow = np.mean(outflow)
+sigma_inflow = np.std(inflow)
+sigma_outflow = np.std(outflow)
+inflow_fit = stats.norm.pdf(sorted(inflow), mean_inflow, sigma_inflow)
+outflow_fit = stats.norm.pdf(sorted(outflow), mean_outflow, sigma_outflow)
+fig = plt.figure()
+plt.plot(inflow_fit, inflow, '-ro', label='Inflow')
+plt.plot(outflow_fit, outflow, '-go', label="Outflow")
+plt.xlim([-0.0020, 0.0040])
+plt.legend().draggable()
+plt.show()
+# barplot
+fig, ax1 = plt.subplots(nrows=1, ncols=1, sharex=True, facecolor='white')
+bar_rain = ax1.bar(rain_df.index, rain_df['rain (mm)'], width=[(rain_df.index[j+1]-rain_df.index[j]).days for j in range(len(rain_df.index)-1)] + [30], color='#000000',alpha=0.5,label = 'Rainfall (mm)')
+ax1.set_ylim([0, 300])
+ax1.invert_yaxis()
+for t1 in ax1.get_yticklabels():
+    t1.set_color(dark_2_colors[2])
+ax1_1 = ax1.twinx()
+label_list = [ 'Inflow','Overflow', "Rainfall"]
+outflow = ax1_1.bar(wb_591.index, wb_591['Inflow (cu.m)'], color='#FF0000', alpha=0.5, label="Inflow",width=[(wb_591.index[j+1]-wb_591.index[j]).days for j in range(len(wb_591.index)-1)] + [30])
+inflow = ax1_1.bar(wb_591.index, wb_591['overflow(cu.m)'], color='#0000FF', alpha=0.5, label="Outflow",width=[(wb_591.index[j+1]-wb_591.index[j]).days for j in range(len(wb_591.index)-1)] + [30])
+# display only 3 ticks
+locator_1 = MaxNLocator(3)
+locator_1_1 = MaxNLocator(3)
+month_locator = mdates.MonthLocator(interval=3)
+xfmt = mdates.DateFormatter('%b-%Y')
+ax1.yaxis.set_major_locator(locator_1)
+ax1_1.yaxis.set_major_locator(locator_1_1)
+ax1_1.xaxis.set_major_locator(month_locator)
+ax1_1.xaxis.set_major_formatter(xfmt)
+ax1_1.set_xlim([min(rain_df.index), max(wb_591.index)])
+ax1_1.legend([mpatches.Patch(color='#FF0000', alpha=0.5), mpatches.Patch(color='#0000FF', alpha=0.5),mpatches.Patch(color='#000000', alpha=0.5)], label_list).draggable()
+# ax1_1.legend([mpatches.Patch(color='#0000FF', alpha=0.5), mpatches.Patch(color='#FF0000', alpha=0.5)], label_list).draggable()
+ax1_1.set_ylabel(r"Flow ($m^{3} \, day^{-1} $)")
+ax1.set_ylabel(r"Rainfall ($mm \, day^{-1}$)")
+# ax1_1.set_title("Check dam 591")
+#
+fig.autofmt_xdate(rotation=90)
+# # print evap
 plt.show()
 raise SystemExit(0)
 # print wb_591.head()
