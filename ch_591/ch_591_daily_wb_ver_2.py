@@ -105,7 +105,8 @@ for i in range(1, 14, 1):
 
 plt.show()
 # print water_level_13.head()
-# raise SystemExit(0)
+raise SystemExit(0)
+
 water_level_30min = pd.concat([water_level_1, water_level_2, water_level_3, water_level_4, water_level_5], axis=0)
 water_level_30 = water_level_30min.sort()
 rounded = np.array(water_level_30min.index, dtype='datetime64[m]')

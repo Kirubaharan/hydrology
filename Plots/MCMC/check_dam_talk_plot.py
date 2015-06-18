@@ -132,6 +132,42 @@ def make_patch_spines_invisible(ax):
     for sp in ax.spines.itervalues():
         sp.set_visible(False)
 
+
+file_results_pie = '/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/summary_check_dam.csv'
+results_pie_df = pd.read_csv(file_results_pie, sep=',', header=0)
+results_pie_df.set_index(results_pie_df['Check dam no'], inplace=True)
+print results_pie_df.head()
+fig_1, ax = plt.subplots(1, figsize=(10, 5), facecolor='white')
+bar_width = 1
+bar_l = [i for i in range(len(results_pie_df['Percentage of E']))]
+print bar_l
+tick_pos = [i+(bar_width/2.0) for i in bar_l]
+print tick_pos
+totals = results_pie_df['Inflow (cu.m)']
+evap = [i /j *100 for i, j in zip(results_pie_df['Evaporation (cu.m)'], totals)]
+overflow = [i /j *100 for i, j in zip(results_pie_df['Overflow (cu.m)'], totals)]
+infil = [i /j *100 for i, j in zip(results_pie_df['Infiltration (cu.m)'], totals)]
+ax.bar(bar_l, evap, label='Evaporation', alpha=0.9, color='#019600', width=bar_width, edgecolor='white')
+ax.bar(bar_l, overflow,bottom=evap, label='Overflow', alpha=0.9, color='#3C5F5A', width=bar_width, edgecolor='white')
+ax.bar(bar_l, infil, bottom=np.array(evap) + np.array(overflow), label='Percolation', alpha=0.9, color='#219AD8', width=bar_width, edgecolor='white')
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.yaxis.set_label_position('left')
+ax.yaxis.set_ticks_position('left')
+ax.xaxis.set_label_position('bottom')
+ax.xaxis.set_ticks_position('bottom')
+# ax.bar(bar_l, results_pie_df['Percentage of E']*100, label='Evaporation', alpha=0.9, color='#019600', width=bar_width, edgecolor='white')
+# ax.bar(bar_l, results_pie_df['Percentage of Overflow']*100, bottom=results_pie_df['Percentage of E']*100, label='Overflow', alpha=0.9, color='#3C5F5A', width=bar_width, edgecolor='white')
+# ax.bar(bar_l, results_pie_df['Percentage of Infil']*100,bottom=np.array(results_pie_df['Percentage of E']*100)+ np.array(results_pie_df['Percentage of Overflow']*100) ,label='Percolation', alpha=0.9, color='#219AD8', width=bar_width, edgecolor='white')
+plt.xticks(tick_pos, ['634', '591', '599'])
+ax.set_ylabel(r"Percentage")
+ax.set_xlabel("")
+ax.set_xlim([min(tick_pos)-bar_width, max(tick_pos)+bar_width])
+plt.ylim(-10, 110)
+plt.legend(ncol=3).draggable()
+plt.show(fig_1)
+raise SystemExit(0)
+
 daily_format = '%Y-%m-%d'
 datetime_format = '%Y-%m-%d %H:%M:%S'
 # 591
@@ -152,16 +188,16 @@ stage_591_df.set_index(pd.to_datetime(stage_591_df['Date'],format=datetime_forma
 wb_591.set_index(pd.to_datetime(wb_591['Date'], format=daily_format), inplace=True)
 del wb_591['Date']
 width = 300.0/len(wb_591.index)
-print 'width = %s'  %width
+# print 'width = %s'  %width
 # wb_591 = wb_591[wb_591['Inflow (cu.m)'] > 0]
 # wb_591 = wb_591[:'2014-12-31']
 # rain_df = rain_df[:"2014-12-31"]
-print wb_591.head()
+# print wb_591.head()
 # stage_591_df = stage_591_df.resample('D', how=np.mean)
 fig , ax1 = plt.subplots(nrows=1, ncols=1, sharex=True, facecolor='white')
 bbox = ax1.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
 width, height = bbox.width, bbox.height
-print width
+# print width
 bar_rain = ax1.bar(rain_df.index, rain_df['rain (mm)'], width=[(rain_df.index[j+1]-rain_df.index[j]).days for j in range(len(rain_df.index)-1)] + [30], color=dark_2_colors[2],alpha=0.9,label = 'Rainfall (mm)')
 ax1.invert_yaxis()
 for t1 in ax1.get_yticklabels():
@@ -205,10 +241,10 @@ ax1_2.yaxis.set_major_locator(locator_1_2)
 ax1_2.xaxis.set_major_locator(month_locator)
 ax1_2.xaxis.set_major_formatter(xfmt)
 fig.autofmt_xdate(rotation=90)
-plt.show()
+# plt.show()
 # stack plot
-print rain_df.tail()
-print wb_591.tail()
+# print rain_df.tail()
+# print wb_591.tail()
 fig, ax1 = plt.subplots(nrows=1, ncols=1, sharex=True, facecolor='white')
 bar_rain = ax1.bar(rain_df.index, rain_df['rain (mm)'], width=[(rain_df.index[j+1]-rain_df.index[j]).days for j in range(len(rain_df.index)-1)] + [30], color=dark_2_colors[2],alpha=0.9,label = 'Rainfall (mm)')
 ax1.set_ylim([0, 300])
@@ -238,7 +274,7 @@ ax1.set_ylabel(r"Rainfall ($mm \, day^{-1}$)")
 #
 fig.autofmt_xdate(rotation=90)
 # # print evap
-plt.show()
+# plt.show()
 #line plot
 fig, ax1 = plt.subplots(nrows=1, ncols=1, sharex=True, facecolor='white')
 bar_rain = ax1.bar(rain_df.index, rain_df['rain (mm)'], width=[(rain_df.index[j+1]-rain_df.index[j]).days for j in range(len(rain_df.index)-1)] + [30], color='#0000FF',alpha=0.9,label= 'Rainfall (mm)')
@@ -267,7 +303,7 @@ ax1.set_ylabel(r"Rainfall ($mm \, day^{-1}$)")
 #
 fig.autofmt_xdate(rotation=90)
 # # print evap
-plt.show()
+# plt.show()
 #flow duration curve
 inflow = wb_591['Inflow (cu.m)'].values
 outflow = wb_591['overflow(cu.m)'].values
@@ -282,7 +318,7 @@ plt.plot(inflow_fit, inflow, '-ro', label='Inflow')
 plt.plot(outflow_fit, outflow, '-go', label="Outflow")
 plt.xlim([-0.0020, 0.0040])
 plt.legend().draggable()
-plt.show()
+# plt.show()
 # barplot
 fig, ax1 = plt.subplots(nrows=1, ncols=1, sharex=True, facecolor='white')
 bar_rain = ax1.bar(rain_df.index, rain_df['rain (mm)'], width=[(rain_df.index[j+1]-rain_df.index[j]).days for j in range(len(rain_df.index)-1)] + [30], color='#000000',alpha=0.5,label = 'Rainfall (mm)')
@@ -312,8 +348,9 @@ ax1.set_ylabel(r"Rainfall ($mm \, day^{-1}$)")
 #
 fig.autofmt_xdate(rotation=90)
 # # print evap
-plt.show()
-raise SystemExit(0)
+# plt.show()
+# bar plot
+
 # print wb_591.head()
 # latexify(fig_width=15, fig_height=10)
 # fig, ax1 = plt.subplots(nrows=1,ncols=1, sharex=True, facecolor='white')

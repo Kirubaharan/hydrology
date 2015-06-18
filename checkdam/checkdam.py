@@ -235,6 +235,8 @@ def read_correct_ch_dam_data(csv_file, calibration_slope, calibration_intercept)
             # convert datetime to string
             c_date = c_date.strftime('%d/%m/%Y ')
             c_time = ' 00:00:00'
+            # water_level.loc[:, ('date', index)] = c_date
+            # water_level.loc[:, ('time', index)] = c_time
             water_level['date'][index] = c_date
             water_level['time'][index] = c_time
 
@@ -245,6 +247,7 @@ def read_correct_ch_dam_data(csv_file, calibration_slope, calibration_intercept)
         # print row
         obs_stage = row['stage(m)']
         if obs_stage < stage_cutoff:
+            # water_level.loc[:, ('stage(m)', index.strftime(date_format))] = 0.0
             water_level['stage(m)'][index.strftime(date_format)] = 0.0
 
     water_level.drop(['scan no', 'date', 'time', 'date_time'], inplace=True, axis=1)
