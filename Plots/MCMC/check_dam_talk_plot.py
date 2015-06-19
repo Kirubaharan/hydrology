@@ -147,6 +147,8 @@ totals = results_pie_df['Inflow (cu.m)']
 evap = [i /j *100 for i, j in zip(results_pie_df['Evaporation (cu.m)'], totals)]
 overflow = [i /j *100 for i, j in zip(results_pie_df['Overflow (cu.m)'], totals)]
 infil = [i /j *100 for i, j in zip(results_pie_df['Infiltration (cu.m)'], totals)]
+# '#008000', '#FF0000'
+# '#3C5F5A'
 ax.bar(bar_l, evap, label='Evaporation', alpha=0.9, color='#019600', width=bar_width, edgecolor='white')
 ax.bar(bar_l, overflow,bottom=evap, label='Overflow', alpha=0.9, color='#3C5F5A', width=bar_width, edgecolor='white')
 ax.bar(bar_l, infil, bottom=np.array(evap) + np.array(overflow), label='Percolation', alpha=0.9, color='#219AD8', width=bar_width, edgecolor='white')
