@@ -98,14 +98,14 @@ for i in range(1, 14, 1):
 #     print "water_level_{0}".format(i)
 #     print eval("water_level_{0}.head()".format(i))
 # # fig = plt.figure()
-for i in range(1, 14, 1):
-    x = eval("water_level_{0}.index".format(i))
-    y = eval("water_level_{0}['stage(m)']".format(i))
-    plt.plot(x, y)
+# for i in range(1, 14, 1):
+#     x = eval("water_level_{0}.index".format(i))
+#     y = eval("water_level_{0}['stage(m)']".format(i))
+#     plt.plot(x, y)
 
 plt.show()
 # print water_level_13.head()
-raise SystemExit(0)
+# raise SystemExit(0)
 
 water_level_30min = pd.concat([water_level_1, water_level_2, water_level_3, water_level_4, water_level_5], axis=0)
 water_level_30 = water_level_30min.sort()
@@ -202,6 +202,9 @@ Average Temperature Calculation
 """
 # weather_df['Average Temp (C)'] = 0.5 * (weather_df['Min Air Temperature (C)'] + weather_df['Max Air Temperature (C)'])
 
+print  weather_df.head(10)
+print weather_df.tail(10)
+raise SystemExit(0)
 """
 Half hourly Evaporation calculation
 """
@@ -216,6 +219,9 @@ wind_speed = weather_df['WIND_SPEED']
 weather_df['Evaporation (mm/30min)'] = cd.half_hour_evaporation(airtemp=airtemp, rh=hum, airpress=airpress,
                                                                 rs=rs, rext=rext, u=wind_speed, z=z)
 
+weather_df_monthly = weather_df.resample('M', how=np.sum)
+weather_df_monthly.to_csv('/home/kiruba/Documents/et_monthly.csv')
+raise SystemExit(0)
 
 """
 Select data where stage is available
@@ -420,7 +426,7 @@ y_intercept = y2 - (slope * x2)
 average_area = (slope*average_stage) + y_intercept
 print average_area
 surface_area_to_vol_ratio = average_area/average_volume
-print "surface area to vol ratio is %0.2f" %surface_area_to_vol_ratio
+print 'surface area to vol ratio is %0.2f' % surface_area_to_vol_ratio
 # raise SystemExit(0)
 """
 Evaporation Volume estimation
@@ -470,7 +476,6 @@ for index in ch_storage_df.index:
         d1_storage = ch_storage_df['volume (cu.m)'][previous_date.strftime(daily_format)]
         d2_storage = ch_storage_df['volume (cu.m)'][index.strftime(daily_format)]
         water_balance_daily_df['change_storage(cu.m)'][index.strftime(daily_format)] = d2_storage - d1_storage
-
 
 
 # new_df = water_balance_daily_df.join(ch_storage_df, how='right')

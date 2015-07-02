@@ -188,12 +188,12 @@ Elevation at the check dam = 799 m
 z = 799
 p = (1-(2.25577*(10**-5)*z))
 air_p_pa = 101325*(p**5.25588)
-  # give air pressure value
+# give air pressure value
 weather_df['AirPr(Pa)'] = air_p_pa
 """
 Half hourly Extraterrestrial Radiation Calculation(J/m2/30min)
 """
-SC_default = 1367.0 # Solar constant in W/m^2 is 1367.0.
+SC_default = 1367.0  # Solar constant in W/m^2 is 1367.0.
 
 
 def extraterrestrial_irrad(local_datetime, latitude_deg, longitude_deg):
