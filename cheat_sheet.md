@@ -3,6 +3,9 @@ Mostly collected from Stackflow answers.
 
 ##Pandas
 `df` refers to Pandas data frame
+###Print unique value of a pandas column
+print df['column_name'].unique()
+
 ###Get the datatype of pandas column
 ```python
 df.column_name.dtype

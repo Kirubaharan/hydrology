@@ -1,4 +1,7 @@
 __author__ = 'kiruba'
+import matplotlib
+# matplotlib.rcsetup.all_backends
+matplotlib.use('tkagg')
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -9,7 +12,6 @@ from scipy.optimize import curve_fit
 import matplotlib as mpl
 from math import sqrt
 SPINE_COLOR = 'gray'
-import matplotlib
 from matplotlib.ticker import MaxNLocator
 # from statsmodels.nonparametric.smoothers_lowess import lowess
 import brewer2mpl
@@ -17,6 +19,10 @@ import matplotlib.dates as mdates
 from matplotlib.patches import Rectangle
 import  matplotlib.patches as mpatches
 import scipy.stats as stats
+import ccy_classic_lstsqr
+from math import exp
+
+
 
 
 # latex parameters
@@ -131,18 +137,149 @@ def make_patch_spines_invisible(ax):
     ax.patch.set_visible(False)
     for sp in ax.spines.itervalues():
         sp.set_visible(False)
+        
+
+def func(h, alpha, beta):
+    return (alpha*(h**beta))
 
 
+"""
+dry day infiltration vs stage plot
+"""
+# input file
+daily_format = '%Y-%m-%d'
+datetime_format = '%Y-%m-%d %H:%M:%S'
+# 591
+file_591 = '/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/et_infilt_591_w_of.csv'
+rain_a_file = '/media/kiruba/New Volume/ACCUWA_Data/weather_station/smgollahalli/ksndmc_rain.csv'
+stage_591_file = '/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/stage_591.csv'
+rain_df = pd.read_csv(rain_a_file, sep=',', header=0)
+rain_df['Date_Time'] = pd.to_datetime(rain_df['Date_Time'], format=datetime_format)
+rain_df.set_index(rain_df['Date_Time'], inplace=True)
+# sort based on index
+rain_df.sort_index(inplace=True)
+# drop date time column
+rain_df = rain_df.drop('Date_Time', 1)
+rain_df_daily = rain_df.resample('D', how=np.sum)
+wb_591 = pd.read_csv(file_591, sep=',', header=0)
+stage_591_df = pd.read_csv(stage_591_file, sep=',', header=0)
+stage_591_df.set_index(pd.to_datetime(stage_591_df['Date'],format=datetime_format),  inplace=True)
+wb_591.set_index(pd.to_datetime(wb_591['Date'], format=daily_format), inplace=True)
+# 599
+file_599 = '/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/ch_599/et_infilt_599_w_of.csv'
+# stage_599_file = '/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/ch_599/stage_599.csv'
+wb_599 = pd.read_csv(file_599, sep=',', header=0)
+# stage_599_df = pd.read_csv(stage_599_file, sep=',', header=0)
+# stage_599_df.set_index(pd.to_datetime(stage_599_df['Date'],format=datetime_format),  inplace=True)
+wb_599.set_index(pd.to_datetime(wb_599['Date'], format=daily_format), inplace=True)
+# 634
+file_634 = '/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/ch_634/et_infilt_634_w_of.csv'
+# stage_634_file = '/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/ch_634/stage_634.csv'
+wb_634 = pd.read_csv(file_634, sep=',', header=0)
+# stage_634_df = pd.read_csv(stage_634_file, sep=',', header=0)
+# stage_634_df.set_index(pd.to_datetime(stage_634_df['Date'],format=datetime_format),  inplace=True)
+wb_634.set_index(pd.to_datetime(wb_634['Date'], format=daily_format), inplace=True)
+# dry days df separation
+dry_wb_591_df = wb_591[wb_591['status'] == 'N']
+dry_wb_599_df = wb_599[wb_599['status'] == 'N']
+dry_wb_634_df = wb_634[wb_634['status'] == 'N']
+dry_wb_591_df = dry_wb_591_df[dry_wb_591_df['infiltration(cu.m)'] > 0]
+dry_wb_599_df = dry_wb_599_df[dry_wb_599_df['infiltration(cu.m)'] > 0]
+dry_wb_634_df = dry_wb_634_df[dry_wb_634_df['infiltration(cu.m)'] > 0]
+dry_wb_591_df = dry_wb_591_df[dry_wb_591_df['stage(m)'] > 0]
+dry_wb_599_df = dry_wb_599_df[dry_wb_599_df['stage(m)'] > 0]
+dry_wb_634_df = dry_wb_634_df[dry_wb_634_df['stage(m)'] > 0]
+# add month column
+dry_wb_591_df['month'] = dry_wb_591_df.index.month
+dry_wb_599_df['month'] = dry_wb_599_df.index.month
+dry_wb_634_df['month'] = dry_wb_634_df.index.month
+print dry_wb_591_df.head()
+# estimate alpha, beta for 591
+stage_591_cal = dry_wb_591_df['stage(m)']
+inf_591_cal = dry_wb_591_df['infiltration(cu.m)']
+log_x_591 = np.log(stage_591_cal)
+log_y_591 = np.log(inf_591_cal)
+mask_591 = log_y_591 == log_y_591
+masked_log_x_591 = log_x_591[mask_591]
+masked_log_y_591 = log_y_591[mask_591]
+slope_591, intercept_591 = ccy_classic_lstsqr.ccy_classic_lstsqr(masked_log_x_591, masked_log_y_591)
+print slope_591, intercept_591
+alpha_591 = exp(intercept_591)
+beta_591 = exp(slope_591)
+# estimate alpha, beta for 599
+stage_599_cal = dry_wb_599_df['stage(m)']
+inf_599_cal = dry_wb_599_df['infiltration(cu.m)']
+log_x_599 = np.log(stage_599_cal)
+log_y_599 = np.log(inf_599_cal)
+mask_599 = log_y_599 == log_y_599
+masked_log_x_599 = log_x_599[mask_599]
+masked_log_y_599 = log_y_599[mask_599]
+slope_599, intercept_599 = ccy_classic_lstsqr.ccy_classic_lstsqr(masked_log_x_599, masked_log_y_599)
+print slope_599, intercept_599
+alpha_599 = exp(intercept_599)
+beta_599 = exp(slope_599)
+# estimate alpha, beta for 634
+stage_634_cal = dry_wb_634_df['stage(m)']
+inf_634_cal = dry_wb_634_df['infiltration(cu.m)']
+log_x_634 = np.log(stage_634_cal)
+log_y_634 = np.log(inf_634_cal)
+mask_634 = log_y_634 == log_y_634
+masked_log_x_634 = log_x_634[mask_634]
+masked_log_y_634 = log_y_634[mask_634]
+slope_634, intercept_634 = ccy_classic_lstsqr.ccy_classic_lstsqr(masked_log_x_634, masked_log_y_634)
+print slope_634, intercept_634
+alpha_634 = exp(intercept_634)
+beta_634 = exp(slope_634)
+# create fit 591
+popt_591, pcov_591 = curve_fit(f=func, xdata=stage_591_cal, ydata=inf_591_cal)
+stage_591_pred = np.linspace(min(stage_591_cal), max(stage_591_cal), 50)
+inf_591_pred = func(stage_591_pred, *popt_591)
+# create fit 599
+popt_599, pcov_599 = curve_fit(f=func, xdata=stage_599_cal, ydata=inf_599_cal)
+stage_599_pred = np.linspace(min(stage_599_cal), max(stage_599_cal), 50)
+inf_599_pred = func(stage_599_pred, *popt_599)
+# create fit 634
+popt_634, pcov_634 = curve_fit(f=func, xdata=stage_634_cal, ydata=inf_634_cal)
+stage_634_pred = np.linspace(min(stage_634_cal), max(stage_634_cal), 50)
+inf_634_pred = func(stage_634_pred, *popt_634)
+cmap_591, norm_591 = mpl.colors.from_levels_and_colors([1, 2, 5, 7, 9, 11, 13], ["#7fc97f", "#beaed4","#fdc086","#ffff99","#386cb0", "#f0027f"])
+cmap_599, norm_599 = mpl.colors.from_levels_and_colors([1, 2, 5, 7, 9, 11, 13], ["#7fc97f", "#beaed4","#fdc086","#ffff99","#386cb0", "#f0027f"])
+cmap_634, norm_634 = mpl.colors.from_levels_and_colors([1, 2, 5, 7, 9, 11, 13], ["#7fc97f", "#beaed4","#fdc086","#ffff99","#386cb0", "#f0027f"])
+
+fig, (ax_1, ax_2) = plt.subplots(nrows=1, ncols=2, facecolor='white')
+scatter_591 = ax_1.scatter(stage_591_cal, inf_591_cal, c=dry_wb_591_df['month'], cmap=cmap_591, norm=norm_591)
+ax_1.plot(stage_591_pred, inf_591_pred, 'r-')
+# ax_2.scatter(stage_599_cal, inf_599_cal, c=dry_wb_599_df['month'], cmap=cmap_599, norm=norm_599)
+# ax_2.plot(stage_599_pred, inf_599_pred, 'r-')
+ax_2.scatter(stage_634_cal, inf_634_cal, c=dry_wb_634_df['month'], cmap=cmap_634, norm=norm_634)
+ax_2.plot(stage_634_pred, inf_634_pred, 'r-')
+ax_1.set_xlabel(r'\textbf{Stage} (m))')
+ax_1.set_ylabel(r'\textbf{Percolation} ($m^{3}$)')
+fig.subplots_adjust(right=0.8)
+cbar = fig.colorbar(scatter_591, )
+cbar.ax.set_ylabel('Month', rotation=270)
+cbar.ax.get_yaxis().set_ticks([])
+for j, lab in enumerate(["1", "2", "5", "7", "9", "11", "12"]):
+    print j, lab
+    cbar.ax.text(.5, (1*j + 1)/14.0, lab, ha='center', va='center')
+cbar.ax.get_yaxis().labelpad = 30
+
+# for X, Y, Z in zip(stage_591_cal, inf_591_cal, dry_wb_591_df.month):
+#     ax_1.annotate('{}'.format(Z), xy=(X, Y), xytext=(-5,5), ha='right', textcoords='offset points')
+#
+plt.show()
+print dry_wb_591_df['month'].unique()
+raise SystemExit(0)
 file_results_pie = '/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/summary_check_dam.csv'
 results_pie_df = pd.read_csv(file_results_pie, sep=',', header=0)
 results_pie_df.set_index(results_pie_df['Check dam no'], inplace=True)
-print results_pie_df.head()
+# print results_pie_df.head()
 fig_1, ax = plt.subplots(1, figsize=(10, 5), facecolor='white')
 bar_width = 1
-bar_l = [i for i in range(len(results_pie_df['Percentage of E']))]
-print bar_l
+bar_l = [i*2 for i in range(len(results_pie_df['Percentage of E']))]
+# print bar_l
 tick_pos = [i+(bar_width/2.0) for i in bar_l]
-print tick_pos
+# print tick_pos
 totals = results_pie_df['Inflow (cu.m)']
 evap = [i /j *100 for i, j in zip(results_pie_df['Evaporation (cu.m)'], totals)]
 overflow = [i /j *100 for i, j in zip(results_pie_df['Overflow (cu.m)'], totals)]
@@ -168,34 +305,110 @@ ax.set_xlim([min(tick_pos)-bar_width, max(tick_pos)+bar_width])
 plt.ylim(-10, 110)
 plt.legend(ncol=3).draggable()
 plt.show(fig_1)
-raise SystemExit(0)
+# raise SystemExit(0)
 
-daily_format = '%Y-%m-%d'
-datetime_format = '%Y-%m-%d %H:%M:%S'
-# 591
-file_591 = '/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/et_infilt_591_w_of.csv'
-rain_a_file = '/media/kiruba/New Volume/ACCUWA_Data/weather_station/smgollahalli/ksndmc_rain.csv'
-stage_591_file = '/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/stage_591.csv'
-rain_df = pd.read_csv(rain_a_file, sep=',', header=0)
-rain_df['Date_Time'] = pd.to_datetime(rain_df['Date_Time'], format=datetime_format)
-rain_df.set_index(rain_df['Date_Time'], inplace=True)
-# sort based on index
-rain_df.sort_index(inplace=True)
-# drop date time column
-rain_df = rain_df.drop('Date_Time', 1)
-rain_df = rain_df.resample('D', how=np.sum)
-wb_591 = pd.read_csv(file_591, sep=',', header=0)
-stage_591_df = pd.read_csv(stage_591_file, sep=',', header=0)
-stage_591_df.set_index(pd.to_datetime(stage_591_df['Date'],format=datetime_format),  inplace=True)
-wb_591.set_index(pd.to_datetime(wb_591['Date'], format=daily_format), inplace=True)
+
 del wb_591['Date']
+wb_591['Inflow (cu.m)'][wb_591['Inflow (cu.m)'] < 0] = 0
 width = 300.0/len(wb_591.index)
+# print len(wb_591.index)
+# print width
+
+# reduced flow due to check dam
+fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, facecolor='white')
+bar_inflow = ax1.bar(wb_591.index, wb_591['Inflow (cu.m)'], width=[(wb_591.index[j+1]-wb_591.index[j]).days for j in range(len(wb_591.index)-1)] + [0], alpha=0.5, color='r')
+bar_outflow = ax2.bar(wb_591.index, wb_591['overflow(cu.m)'], width=[(wb_591.index[j+1]-wb_591.index[j]).days for j in range(len(wb_591.index)-1)] + [0], alpha=0.5, color='g')
+# bar_inflow = ax1.bar(wb_591.index, wb_591['Inflow (cu.m)'], width=[x.days for x in wb_591.duration], alpha=0.5, color='r')
+# bar_outflow = ax2.bar(wb_591.index, wb_591['overflow(cu.m)'], width=[x.days for x in wb_591.duration], alpha=0.5, color='g')
+
+ax1.set_ylim([0, 1800])
+ax2.set_ylim([0, 1800])
+month_locator = mdates.MonthLocator(interval=3)
+xfmt = mdates.DateFormatter('%b-%y')
+ax1.xaxis.set_major_locator(month_locator)
+ax1.xaxis.set_major_formatter(xfmt)
+ax2.xaxis.set_major_locator(month_locator)
+ax2.xaxis.set_major_formatter(xfmt)
+# ax2.set_yticks([])
+ax2.yaxis.set_label_position('right')
+ax2.yaxis.set_ticks_position('right')
+for t1 in ax1.get_yticklabels():
+    t1.set_color('r')
+for t1 in ax2.get_yticklabels():
+    t1.set_color('g')
+# display only 3 ticks
+locator_1 = MaxNLocator(3)
+locator_2 = MaxNLocator(3)
+ax1.yaxis.set_major_locator(locator_1)
+ax2.yaxis.set_major_locator(locator_2)
+ax1.set_title('Flow with out check dam')
+ax2.set_title('Flow due to check dam')
+plt.show()
+
+# raise SystemExit(0)
 # print 'width = %s'  %width
 # wb_591 = wb_591[wb_591['Inflow (cu.m)'] > 0]
 # wb_591 = wb_591[:'2014-12-31']
 # rain_df = rain_df[:"2014-12-31"]
 # print wb_591.head()
 # stage_591_df = stage_591_df.resample('D', how=np.mean)
+# rainfall intensity
+# print rain_df.head()
+# hourly rainfall aggregate
+rain_df_hourly = rain_df.resample('H', how=np.sum)
+# print rain_df_hourly.head()
+# amount of rainfall for triggering first inflow event
+# print(rain_df_daily['rain (mm)'][:"2014-08-20"].sum())
+# list of inflow events
+# inflow_events = wb_591[wb_591['Inflow (cu.m)'] > 0].index
+# max hourly intensity on a day
+max_daily_rain_intensity_mm_hr = rain_df_hourly.resample('D', how=np.max)
+# inflow vs daily max intensity
+
+intensity_df = max_daily_rain_intensity_mm_hr['2014-05-15':]
+# print len(intensity_df)
+# fig = plt.figure(facecolor='white')
+# plt.scatter(intensity_df['rain (mm)'], wb_591['Inflow (cu.m)'])
+# plt.ylabel("Inflow (cu.m)")
+# plt.xlabel("Rainfall Intensity (mm/hr)")
+# plt.show()
+intensity_df.columns.values[0] = 'intensity (mm/hr)'
+# print intensity_df.head()
+# print wb_591.head()
+intensity_df_select = wb_591.join(intensity_df, how='right')
+# print(intensity_df_select.head())
+intensity_df_select = intensity_df_select[intensity_df_select['intensity (mm/hr)'] > 2.0]
+# print intensity_df_select.head()
+intensity_df_select['log_intensity'] = np.log(intensity_df_select['intensity (mm/hr)'])
+intensity_df_select['log_inflow'] = np.log(intensity_df_select['Inflow (cu.m)'])
+intensity_df_select = intensity_df_select[(intensity_df_select['log_intensity'] > 0) & (intensity_df_select['log_inflow'] > 0)]
+print intensity_df_select.head()
+
+log_x = intensity_df_select['log_intensity']
+log_y = intensity_df_select['log_inflow']
+
+# log_x = np.log(intensity_cal)
+# log_y = np.log(inflow_cal)
+
+mask = ~np.isnan(log_x) & ~np.isnan(log_y)
+masked_log_x = log_x[mask]
+masked_log_y = log_y[mask]
+print masked_log_y
+slope, intercept, r_value, p_value, stderr = stats.linregress(masked_log_x, masked_log_y)
+# slope, intercept = ccy_classic_lstsqr.ccy_classic_lstsqr(masked_log_x, masked_log_y)
+print slope, intercept, r_value, p_value, stderr
+intensity_cal_new = np.linspace(min(log_x), max(log_x), 100)
+inflow_cal_new = slope*intensity_cal_new + intercept
+fig = plt.figure(facecolor='white')
+plt.scatter(masked_log_x, masked_log_y)
+plt.plot(intensity_cal_new, inflow_cal_new, 'r-')
+plt.ylabel(r"log-Inflow ($m^{3}$)")
+plt.xlabel(r"log-Rainfall Intensity ($mm hr^{-1}$)")
+plt.text(0.75, 7,r"$R^{2} = %0.02f$ \\ p-value = %0.02f" %(r_value, p_value))
+# plt.title("Log Inflow vs Log Max daily intensity")
+plt.show()
+raise SystemExit(0)
+"""
 fig , ax1 = plt.subplots(nrows=1, ncols=1, sharex=True, facecolor='white')
 bbox = ax1.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
 width, height = bbox.width, bbox.height
@@ -208,8 +421,8 @@ ax1_1 = ax1.twinx()
 ax1_2 = ax1.twinx()
 ax1_3 = ax1.twinx()
 wb_591['Inflow (cu.m)'][wb_591['Inflow (cu.m)'] < 0] = 0
-# line_stage, = ax1_1.plot(stage_591_df.index, stage_591_df['stage(m)'], color='#e41a1c',linestyle='-', lw=1.5, alpha=0.85)
-# bar_overflow = ax1_3.bar(wb_591.index, wb_591['overflow(cu.m)'], width=[(wb_591.index[j+1]-wb_591.index[j]).days for j in range(len(wb_591.index)-1)] + [30], color=dark_2_colors[5], alpha=1)
+line_stage, = ax1_1.plot(stage_591_df.index, stage_591_df['stage(m)'], color='#e41a1c',linestyle='-', lw=1.5, alpha=0.85)
+bar_overflow = ax1_3.bar(wb_591.index, wb_591['overflow(cu.m)'], width=[(wb_591.index[j+1]-wb_591.index[j]).days for j in range(len(wb_591.index)-1)] + [30], color=dark_2_colors[5], alpha=1)
 bar_inflow = ax1_2.bar(wb_591.index, wb_591['Inflow (cu.m)'], width=[(wb_591.index[j+1]-wb_591.index[j]).days for j in range(len(wb_591.index)-1)] + [30],color=dark_2_colors[4],alpha=1)
 # lns = [bar_rain, line_stage, bar_inflow]
 # labs = [r'\textbf{Rainfall ($mm$)}', r"\textbf{Stage ($m$)}", r"\textbf{Inflow ($m^3$)}"]
@@ -243,7 +456,10 @@ ax1_2.yaxis.set_major_locator(locator_1_2)
 ax1_2.xaxis.set_major_locator(month_locator)
 ax1_2.xaxis.set_major_formatter(xfmt)
 fig.autofmt_xdate(rotation=90)
-# plt.show()
+plt.show()
+# raise  SystemExit(0)
+"""
+"""
 # stack plot
 # print rain_df.tail()
 # print wb_591.tail()
@@ -276,7 +492,63 @@ ax1.set_ylabel(r"Rainfall ($mm \, day^{-1}$)")
 #
 fig.autofmt_xdate(rotation=90)
 # # print evap
+plt.show()
+raise  SystemExit(0)
+
+"""
+
+print max_daily_rain_intensity_mm_hr.head()
+print '2014-08-20'
+print max_daily_rain_intensity_mm_hr['rain (mm)']['2014-08-20']
+print rain_df_daily['rain (mm)']['2014-08-20']
+print '2014-08-21'
+print max_daily_rain_intensity_mm_hr['rain (mm)']['2014-08-21']
+print rain_df_daily['rain (mm)']['2014-08-21']
+print '2014-10-08'
+print max_daily_rain_intensity_mm_hr['rain (mm)']['2014-10-08']
+print rain_df_daily['rain (mm)']['2014-10-08']
+print '2014-10-09'
+print max_daily_rain_intensity_mm_hr['rain (mm)']['2014-10-09']
+print rain_df_daily['rain (mm)']['2014-10-09']
+# fig, ax = plt.subplots(nrows=1, ncols=1, sharex=True, facecolor='white')
+# bar_rain = ax.bar(rain_df_hourly.index, rain_df_hourly['rain (mm)'], width=[(rain_df_hourly.index[j+1]-rain_df_hourly.index[j]).days for j in range(len(rain_df_hourly.index)-1)] + [24])
+# ax.invert_yaxis()
+# ax_1 = ax.twinx()
+# # stage_plot = ax_1.plot(stage_591_df.index, stage_591_df['stage(m)'], 'r-')
+# inflow_plot = ax_1.bar(wb_591.index, wb_591['Inflow (cu.m)'], color='r')
+# fig.autofmt_xdate(rotation=90)
 # plt.show()
+#intensity vs inflow outflow plot
+fig, ax1 = plt.subplots(nrows=1, ncols=1, sharex=True, facecolor='white')
+bar_rain = ax1.bar(max_daily_rain_intensity_mm_hr.index, max_daily_rain_intensity_mm_hr['rain (mm)'], width=[(max_daily_rain_intensity_mm_hr.index[j+1]-max_daily_rain_intensity_mm_hr.index[j]).days for j in range(len(max_daily_rain_intensity_mm_hr.index)-1)] + [30], color='#0000FF',alpha=0.7,label= 'Rainfall (mm)')
+ax1.set_ylim([0, 150])
+ax1.invert_yaxis()
+for t1 in ax1.get_yticklabels():
+    t1.set_color(dark_2_colors[2])
+ax1_1 = ax1.twinx()
+label_list = ['Overflow', 'Inflow', "Rainfall"]
+stack = ax1_1.stackplot(wb_591.index, wb_591['overflow(cu.m)'], wb_591['Inflow (cu.m)'], colors=['#008000', '#FF0000'], alpha=0.5)
+# display only 3 ticks
+locator_1 = MaxNLocator(3)
+locator_1_1 = MaxNLocator(3)
+month_locator = mdates.MonthLocator(interval=3)
+xfmt = mdates.DateFormatter('%b-%Y')
+ax1.yaxis.set_major_locator(locator_1)
+ax1_1.yaxis.set_major_locator(locator_1_1)
+ax1_1.xaxis.set_major_locator(month_locator)
+ax1_1.xaxis.set_major_formatter(xfmt)
+ax1_1.set_xlim([min(rain_df.index), max(wb_591.index)])
+ax1_1.legend([mpatches.Patch(color='#008000', alpha=0.5), mpatches.Patch(color='#FF0000', alpha=0.5),mpatches.Patch(color='#0000FF', alpha=0.7)], label_list).draggable()
+# ax1_1.legend([mpatches.Patch(color='#0000FF', alpha=0.5), mpatches.Patch(color='#FF0000', alpha=0.5)], label_list).draggable()
+ax1_1.set_ylabel(r"Flow ($m^{3} \, day^{-1}$)")
+ax1.set_ylabel(r"Rainfall ($mm \, hr^{-1}$)")
+# ax1_1.set_title("Check dam 591")
+#
+# fig.autofmt_xdate()
+# # print evap
+plt.show()
+# raise SystemExit(0)
+"""
 #line plot
 fig, ax1 = plt.subplots(nrows=1, ncols=1, sharex=True, facecolor='white')
 bar_rain = ax1.bar(rain_df.index, rain_df['rain (mm)'], width=[(rain_df.index[j+1]-rain_df.index[j]).days for j in range(len(rain_df.index)-1)] + [30], color='#0000FF',alpha=0.9,label= 'Rainfall (mm)')
@@ -305,7 +577,9 @@ ax1.set_ylabel(r"Rainfall ($mm \, day^{-1}$)")
 #
 fig.autofmt_xdate(rotation=90)
 # # print evap
-# plt.show()
+plt.show()
+raise SystemExit(0)
+
 #flow duration curve
 inflow = wb_591['Inflow (cu.m)'].values
 outflow = wb_591['overflow(cu.m)'].values
@@ -320,11 +594,12 @@ plt.plot(inflow_fit, inflow, '-ro', label='Inflow')
 plt.plot(outflow_fit, outflow, '-go', label="Outflow")
 plt.xlim([-0.0020, 0.0040])
 plt.legend().draggable()
-# plt.show()
+plt.show()
+"""
 # barplot
 fig, ax1 = plt.subplots(nrows=1, ncols=1, sharex=True, facecolor='white')
-bar_rain = ax1.bar(rain_df.index, rain_df['rain (mm)'], width=[(rain_df.index[j+1]-rain_df.index[j]).days for j in range(len(rain_df.index)-1)] + [30], color='#000000',alpha=0.5,label = 'Rainfall (mm)')
-ax1.set_ylim([0, 300])
+bar_rain = ax1.bar(max_daily_rain_intensity_mm_hr.index, max_daily_rain_intensity_mm_hr['rain (mm)'], width=[(max_daily_rain_intensity_mm_hr.index[j+1]-max_daily_rain_intensity_mm_hr.index[j]).days for j in range(len(max_daily_rain_intensity_mm_hr.index)-1)] + [30], color='#000000',alpha=0.5,label = 'Rainfall (mm)')
+ax1.set_ylim([0, 150])
 ax1.invert_yaxis()
 for t1 in ax1.get_yticklabels():
     t1.set_color(dark_2_colors[2])
@@ -337,10 +612,10 @@ locator_1 = MaxNLocator(3)
 locator_1_1 = MaxNLocator(3)
 month_locator = mdates.MonthLocator(interval=3)
 xfmt = mdates.DateFormatter('%b-%Y')
-ax1.yaxis.set_major_locator(locator_1)
-ax1_1.yaxis.set_major_locator(locator_1_1)
-ax1_1.xaxis.set_major_locator(month_locator)
-ax1_1.xaxis.set_major_formatter(xfmt)
+# ax1.yaxis.set_major_locator(locator_1)
+# ax1_1.yaxis.set_major_locator(locator_1_1)
+# ax1_1.xaxis.set_major_locator(month_locator)
+# ax1_1.xaxis.set_major_formatter(xfmt)
 ax1_1.set_xlim([min(rain_df.index), max(wb_591.index)])
 ax1_1.legend([mpatches.Patch(color='#FF0000', alpha=0.5), mpatches.Patch(color='#0000FF', alpha=0.5),mpatches.Patch(color='#000000', alpha=0.5)], label_list).draggable()
 # ax1_1.legend([mpatches.Patch(color='#0000FF', alpha=0.5), mpatches.Patch(color='#FF0000', alpha=0.5)], label_list).draggable()
@@ -350,7 +625,8 @@ ax1.set_ylabel(r"Rainfall ($mm \, day^{-1}$)")
 #
 fig.autofmt_xdate(rotation=90)
 # # print evap
-# plt.show()
+plt.show()
+raise SystemExit(0)
 # bar plot
 
 # print wb_591.head()

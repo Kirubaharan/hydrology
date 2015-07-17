@@ -218,7 +218,7 @@ def process_modis(input_folder, output_folder, scale_factor=0.1, null_value=3276
 
 input_folder = "/media/kiruba/New Volume/MODIS/ET/scratch/TG_halli"
 output_folder = "/media/kiruba/New Volume/MODIS/ET/scratch/TG_halli/processed"
-process_modis(input_folder=input_folder, output_folder=output_folder)
+# process_modis(input_folder=input_folder, output_folder=output_folder)
 
 
 

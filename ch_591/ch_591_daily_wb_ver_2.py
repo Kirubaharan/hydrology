@@ -204,7 +204,7 @@ Average Temperature Calculation
 
 print  weather_df.head(10)
 print weather_df.tail(10)
-raise SystemExit(0)
+# raise SystemExit(0)
 """
 Half hourly Evaporation calculation
 """
@@ -221,7 +221,7 @@ weather_df['Evaporation (mm/30min)'] = cd.half_hour_evaporation(airtemp=airtemp,
 
 weather_df_monthly = weather_df.resample('M', how=np.sum)
 weather_df_monthly.to_csv('/home/kiruba/Documents/et_monthly.csv')
-raise SystemExit(0)
+# raise SystemExit(0)
 
 """
 Select data where stage is available
@@ -558,7 +558,7 @@ plt.show()
 slope, intercept = ccy_classic_lstsqr.ccy_classic_lstsqr(masked_log_x, masked_log_y)
 print "fit done"
 print slope, intercept
-
+raise SystemExit(0)
 """
 Rainy day infiltration
 """

@@ -374,7 +374,7 @@ plt.tight_layout()
 fig.autofmt_xdate(rotation=90)
 plt.savefig('/media/kiruba/New Volume/AGU/poster/agu_checkdam/image/evap_infilt.pdf', dpi=400)
 plt.show()
-raise SystemExit(0)
+# raise SystemExit(0)
 # pie charts
 # 591
 print wb_599.head()
@@ -431,7 +431,7 @@ legend = fig.legend([pie_1[0], pie_1[1], pie_1[2]],["Evaporation", "Percolation"
 # plt.tight_layout()
 plt.savefig('/media/kiruba/New Volume/AGU/poster/agu_checkdam/image/pie_evap_infilt.png')
 plt.show()
-raise SystemExit(0)
+# raise SystemExit(0)
 # print wb_591.head()
 dry_water_balance_591 = wb_591[wb_591['status'] == 'N']
 dry_water_balance_599 = wb_599[wb_599['status'] == 'N']

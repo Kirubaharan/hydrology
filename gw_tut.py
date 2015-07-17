@@ -13,6 +13,8 @@ import struct
 from scipy.interpolate import griddata
 import pandas as pd
 print flopy.__version__
+from matplotlib import textpath
+textpath.TextToPath
 
 # from numpy import array
 # h = array([[4., 5., 6., 7.],
