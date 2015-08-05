@@ -177,6 +177,8 @@ p = (1 - (2.25577 * (10 ** -5) * z))
 air_p_pa = 101325 * (p ** 5.25588)
 # give air pressure value
 weather_df['AirPr(Pa)'] = air_p_pa
+print weather_df.head()
+raise SystemExit(0)
 """
 Half hourly Extraterrestrial Radiation Calculation(J/m2/30min)
 """
@@ -558,6 +560,7 @@ plt.show()
 slope, intercept = ccy_classic_lstsqr.ccy_classic_lstsqr(masked_log_x, masked_log_y)
 print "fit done"
 print slope, intercept
+print math.exp(slope), math.exp(intercept)
 raise SystemExit(0)
 """
 Rainy day infiltration

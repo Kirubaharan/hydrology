@@ -21,9 +21,7 @@ import  matplotlib.patches as mpatches
 import scipy.stats as stats
 import ccy_classic_lstsqr
 from math import exp
-
-
-
+import powerlaw
 
 # latex parameters
 rc('font', **{'family': 'sans-serif', 'serif': ['Computer Modern Roman']})
@@ -139,8 +137,6 @@ def make_patch_spines_invisible(ax):
         sp.set_visible(False)
         
 
-def func(h, alpha, beta):
-    return (alpha*(h**beta))
 
 
 """
@@ -154,7 +150,7 @@ file_591 = '/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/et_i
 rain_a_file = '/media/kiruba/New Volume/ACCUWA_Data/weather_station/smgollahalli/ksndmc_rain.csv'
 stage_591_file = '/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/stage_591.csv'
 rain_df = pd.read_csv(rain_a_file, sep=',', header=0)
-rain_df['Date_Time'] = pd.to_datetime(rain_df['Date_Time'], format=datetime_format)
+rain_df.loc[:, 'Date_Time'] = pd.to_datetime(rain_df['Date_Time'], format=datetime_format)
 rain_df.set_index(rain_df['Date_Time'], inplace=True)
 # sort based on index
 rain_df.sort_index(inplace=True)
@@ -163,7 +159,7 @@ rain_df = rain_df.drop('Date_Time', 1)
 rain_df_daily = rain_df.resample('D', how=np.sum)
 wb_591 = pd.read_csv(file_591, sep=',', header=0)
 stage_591_df = pd.read_csv(stage_591_file, sep=',', header=0)
-stage_591_df.set_index(pd.to_datetime(stage_591_df['Date'],format=datetime_format),  inplace=True)
+stage_591_df.set_index(pd.to_datetime(stage_591_df['Date'], format=datetime_format),  inplace=True)
 wb_591.set_index(pd.to_datetime(wb_591['Date'], format=daily_format), inplace=True)
 # 599
 file_599 = '/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/ch_599/et_infilt_599_w_of.csv'
@@ -180,89 +176,226 @@ wb_634 = pd.read_csv(file_634, sep=',', header=0)
 # stage_634_df.set_index(pd.to_datetime(stage_634_df['Date'],format=datetime_format),  inplace=True)
 wb_634.set_index(pd.to_datetime(wb_634['Date'], format=daily_format), inplace=True)
 # dry days df separation
-dry_wb_591_df = wb_591[wb_591['status'] == 'N']
-dry_wb_599_df = wb_599[wb_599['status'] == 'N']
-dry_wb_634_df = wb_634[wb_634['status'] == 'N']
-dry_wb_591_df = dry_wb_591_df[dry_wb_591_df['infiltration(cu.m)'] > 0]
-dry_wb_599_df = dry_wb_599_df[dry_wb_599_df['infiltration(cu.m)'] > 0]
-dry_wb_634_df = dry_wb_634_df[dry_wb_634_df['infiltration(cu.m)'] > 0]
-dry_wb_591_df = dry_wb_591_df[dry_wb_591_df['stage(m)'] > 0]
-dry_wb_599_df = dry_wb_599_df[dry_wb_599_df['stage(m)'] > 0]
-dry_wb_634_df = dry_wb_634_df[dry_wb_634_df['stage(m)'] > 0]
+dry_wb_591_df = wb_591.loc[wb_591['status'] == 'N']
+dry_wb_599_df = wb_599.loc[wb_599['status'] == 'N']
+dry_wb_634_df = wb_634.loc[wb_634['status'] == 'N']
+# round decimals two decimal
+dry_wb_591_df.loc[:, 'stage(m)'] = np.round(dry_wb_591_df['stage(m)'], decimals=2)
+dry_wb_599_df.loc[:, 'stage(m)'] = np.round(dry_wb_599_df['stage(m)'], decimals=2)
+dry_wb_634_df.loc[:, 'stage(m)'] = np.round(dry_wb_634_df['stage(m)'], decimals=2)
+dry_wb_591_df.loc[:, 'infiltration(cu.m)'] = np.round(dry_wb_591_df['infiltration(cu.m)'], decimals=2)
+dry_wb_599_df.loc[:, 'infiltration(cu.m)'] = np.round(dry_wb_599_df['infiltration(cu.m)'], decimals=2)
+dry_wb_634_df.loc[:, 'infiltration(cu.m)'] = np.round(dry_wb_634_df['infiltration(cu.m)'], decimals=2)
+dry_wb_591_df = dry_wb_591_df.loc[dry_wb_591_df['stage(m)'] > 0.1]
+dry_wb_599_df = dry_wb_599_df.loc[dry_wb_599_df['stage(m)'] > 0.1]
+dry_wb_634_df = dry_wb_634_df.loc[dry_wb_634_df['stage(m)'] > 0.1]
+dry_wb_591_df = dry_wb_591_df.loc[dry_wb_591_df['infiltration(cu.m)'] > 1]
+dry_wb_599_df = dry_wb_599_df.loc[dry_wb_599_df['infiltration(cu.m)'] > 1]
+dry_wb_634_df = dry_wb_634_df.loc[dry_wb_634_df['infiltration(cu.m)'] > 1]
+dry_wb_591_df = dry_wb_591_df.loc[dry_wb_591_df['infiltration(cu.m)'] < 60]
 # add month column
-dry_wb_591_df['month'] = dry_wb_591_df.index.month
-dry_wb_599_df['month'] = dry_wb_599_df.index.month
-dry_wb_634_df['month'] = dry_wb_634_df.index.month
-print dry_wb_591_df.head()
+dry_wb_591_df.loc[:, 'month'] = dry_wb_591_df.index.month
+dry_wb_599_df.loc[:, 'month'] = dry_wb_599_df.index.month
+dry_wb_634_df.loc[:, 'month'] = dry_wb_634_df.index.month
+# print dry_wb_591_df.head()
+"""
 # estimate alpha, beta for 591
 stage_591_cal = dry_wb_591_df['stage(m)']
 inf_591_cal = dry_wb_591_df['infiltration(cu.m)']
 log_x_591 = np.log(stage_591_cal)
 log_y_591 = np.log(inf_591_cal)
-mask_591 = log_y_591 == log_y_591
+mask_591 = (log_y_591 == log_y_591) & (log_x_591 == log_x_591) #& (log_x_591 > -1.0)
 masked_log_x_591 = log_x_591[mask_591]
 masked_log_y_591 = log_y_591[mask_591]
-slope_591, intercept_591 = ccy_classic_lstsqr.ccy_classic_lstsqr(masked_log_x_591, masked_log_y_591)
-print slope_591, intercept_591
-alpha_591 = exp(intercept_591)
-beta_591 = exp(slope_591)
+
+# df = pd.DataFrame(masked_log_x_591.values, columns=['x'])
+# df['y'] = masked_log_y_591.values
+# print df.head()
+# raise SystemExit(0)
+# print df.to_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/masked_log.csv')
+# raise SystemExit(0)
+# print masked_log_x_591
+# slope_591, intercept_591 = ccy_classic_lstsqr.ccy_classic_lstsqr(masked_log_x_591, masked_log_y_591)
+# slope_591, intercept_591 = np.linalg.lstsq(masked_log_x_591.values, masked_log_y_591.values)[0]
+slope_591, intercept_591, r_value_591, p_value_591, std_err_591 = stats.linregress(masked_log_x_591,masked_log_y_591)
+print slope_591, intercept_591, r_value_591**2, np.exp(slope_591), np.exp(intercept_591)
+# raise SystemExit(0)
+# print slope_591, intercept_591
+# slope_591 = 0.94684
+# intercept_591 = 2.36926
+alpha_591 = np.exp(intercept_591) # r estimate
+beta_591 = slope_591 # r estimate
+print alpha_591, beta_591
 # estimate alpha, beta for 599
 stage_599_cal = dry_wb_599_df['stage(m)']
 inf_599_cal = dry_wb_599_df['infiltration(cu.m)']
 log_x_599 = np.log(stage_599_cal)
 log_y_599 = np.log(inf_599_cal)
-mask_599 = log_y_599 == log_y_599
+mask_599 = (log_y_599 == log_y_599) & (log_x_599 == log_x_599)
 masked_log_x_599 = log_x_599[mask_599]
 masked_log_y_599 = log_y_599[mask_599]
-slope_599, intercept_599 = ccy_classic_lstsqr.ccy_classic_lstsqr(masked_log_x_599, masked_log_y_599)
+# df = pd.DataFrame(masked_log_x_599.values, columns=['x'])
+# df['y'] = masked_log_y_599.values
+
+# print df.head()
+# raise SystemExit(0)
+# print df.to_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/masked_log.csv')
+slope_599, intercept_599, r_value_599, p_value_599, std_err_599 = stats.linregress(masked_log_x_599,masked_log_y_599)
+# slope_599, intercept_599 = ccy_classic_lstsqr.ccy_classic_lstsqr(masked_log_x_599, masked_log_y_599)
 print slope_599, intercept_599
-alpha_599 = exp(intercept_599)
-beta_599 = exp(slope_599)
+alpha_599 = np.exp(intercept_599)
+beta_599 = slope_599
+print alpha_599, beta_599
 # estimate alpha, beta for 634
 stage_634_cal = dry_wb_634_df['stage(m)']
 inf_634_cal = dry_wb_634_df['infiltration(cu.m)']
 log_x_634 = np.log(stage_634_cal)
 log_y_634 = np.log(inf_634_cal)
-mask_634 = log_y_634 == log_y_634
+mask_634 = (log_y_634 == log_y_634) & (log_x_634 == log_x_634)
 masked_log_x_634 = log_x_634[mask_634]
 masked_log_y_634 = log_y_634[mask_634]
-slope_634, intercept_634 = ccy_classic_lstsqr.ccy_classic_lstsqr(masked_log_x_634, masked_log_y_634)
+slope_634, intercept_634, r_value_634, p_value_634, std_err_634 = stats.linregress(masked_log_x_634,masked_log_y_634)
+# slope_634, intercept_634 = ccy_classic_lstsqr.ccy_classic_lstsqr(masked_log_x_634, masked_log_y_634)
 print slope_634, intercept_634
-alpha_634 = exp(intercept_634)
-beta_634 = exp(slope_634)
-# create fit 591
-popt_591, pcov_591 = curve_fit(f=func, xdata=stage_591_cal, ydata=inf_591_cal)
-stage_591_pred = np.linspace(min(stage_591_cal), max(stage_591_cal), 50)
-inf_591_pred = func(stage_591_pred, *popt_591)
-# create fit 599
-popt_599, pcov_599 = curve_fit(f=func, xdata=stage_599_cal, ydata=inf_599_cal)
-stage_599_pred = np.linspace(min(stage_599_cal), max(stage_599_cal), 50)
-inf_599_pred = func(stage_599_pred, *popt_599)
-# create fit 634
-popt_634, pcov_634 = curve_fit(f=func, xdata=stage_634_cal, ydata=inf_634_cal)
-stage_634_pred = np.linspace(min(stage_634_cal), max(stage_634_cal), 50)
-inf_634_pred = func(stage_634_pred, *popt_634)
-cmap_591, norm_591 = mpl.colors.from_levels_and_colors([1, 2, 5, 7, 9, 11, 13], ["#7fc97f", "#beaed4","#fdc086","#ffff99","#386cb0", "#f0027f"])
-cmap_599, norm_599 = mpl.colors.from_levels_and_colors([1, 2, 5, 7, 9, 11, 13], ["#7fc97f", "#beaed4","#fdc086","#ffff99","#386cb0", "#f0027f"])
-cmap_634, norm_634 = mpl.colors.from_levels_and_colors([1, 2, 5, 7, 9, 11, 13], ["#7fc97f", "#beaed4","#fdc086","#ffff99","#386cb0", "#f0027f"])
+alpha_634 = np.exp(intercept_634)
+beta_634 = slope_634
+print alpha_634, beta_634
+# print r_value_591**2, r_value_599**2, r_value_634**2
 
-fig, (ax_1, ax_2) = plt.subplots(nrows=1, ncols=2, facecolor='white')
-scatter_591 = ax_1.scatter(stage_591_cal, inf_591_cal, c=dry_wb_591_df['month'], cmap=cmap_591, norm=norm_591)
-ax_1.plot(stage_591_pred, inf_591_pred, 'r-')
-# ax_2.scatter(stage_599_cal, inf_599_cal, c=dry_wb_599_df['month'], cmap=cmap_599, norm=norm_599)
-# ax_2.plot(stage_599_pred, inf_599_pred, 'r-')
-ax_2.scatter(stage_634_cal, inf_634_cal, c=dry_wb_634_df['month'], cmap=cmap_634, norm=norm_634)
+# create fit 591
+
+def power_func(h, alpha, beta):
+    return (alpha*(h**beta))
+
+
+def linear_func(x, m, c):
+    return (m*x) + c
+
+
+def infil_func(x, m, c):
+    return np.exp((m*np.log(x)) + c)
+
+
+# popt_591, pcov_591 = curve_fit(f=func, xdata=stage_591_cal, ydata=inf_591_cal)
+# popt_591_linear, pcov_591_linear = curve_fit(f=linear_func, xdata=masked_log_x_591, ydata=masked_log_y_591)
+# print popt_591_linear
+# stage_591_pred = np.linspace(min(stage_591_cal), max(stage_591_cal), 50)
+# log_inf_591_pred = func(stage_591_pred, alpha_591, beta_591)
+# # create fit 599
+# # popt_599, pcov_599 = curve_fit(f=func, xdata=stage_599_cal, ydata=inf_599_cal)
+# stage_599_pred = np.linspace(min(stage_599_cal), max(stage_599_cal),50)
+# inf_599_pred = func(stage_599_pred, alpha_599, beta_599)
+# # create fit 634
+# # popt_634, pcov_634 = curve_fit(f=func, xdata=stage_634_cal, ydata=inf_634_cal)
+# stage_634_pred = np.linspace(min(stage_634_cal), max(stage_634_cal), 50)
+# inf_634_pred = func(stage_634_pred, alpha_634, beta_634)
+
+log_stage_591_pred = np.linspace(min(masked_log_x_591), max(masked_log_x_591), 50)
+log_stage_599_pred = np.linspace(min(masked_log_x_599), max(masked_log_x_599), 50)
+log_stage_634_pred = np.linspace(min(masked_log_x_634), max(masked_log_x_634), 50)
+print min(masked_log_x_591)
+print max(masked_log_x_591)
+print log_stage_591_pred
+# stage_591_pred = np.linspace(min(stage_591_cal), max(stage_591_cal), 50)
+log_inf_591_pred = linear_func(log_stage_591_pred, slope_591, intercept_591)
+log_inf_599_pred = linear_func(log_stage_599_pred, slope_599, intercept_599)
+log_inf_634_pred = linear_func(log_stage_634_pred, slope_634, intercept_634)
+# inf_591_pred = np.exp(log_inf_591_pred)
+# inf_599_pred = np.exp(log_inf_599_pred)
+# inf_634_pred = np.exp(log_inf_634_pred)
+# stage_591_pred = np.exp(log_stage_591_pred)
+# stage_599_pred = np.exp(log_stage_599_pred)
+# stage_634_pred = np.exp(log_stage_634_pred)
+
+# print max(stage_599_pred)
+# print max(inf_599_pred)
+# cmap_591, norm_591 = mpl.colors.from_levels_and_colors([1, 2, 5, 7, 9, 11, 13], ["#7fc97f", "#beaed4","#fdc086","#ffff99","#386cb0", "#f0027f"])
+# cmap_599, norm_599 = mpl.colors.from_levels_and_colors([1, 2, 5, 7, 9, 11, 13], ["#7fc97f", "#beaed4","#fdc086","#ffff99","#386cb0", "#f0027f"])
+# cmap_634, norm_634 = mpl.colors.from_levels_and_colors([1, 2, 5, 7, 9, 11, 13], ["#7fc97f", "#beaed4","#fdc086","#ffff99","#386cb0", "#f0027f"])
+fig, (ax_1, ax_2, ax_3) = plt.subplots(nrows=1, ncols=3, facecolor='white')
+ax_1.plot(masked_log_x_591, masked_log_y_591, 'bo')
+ax_2.plot(masked_log_x_599, masked_log_y_599, 'bo')
+ax_3.plot(masked_log_x_634, masked_log_y_634, 'bo')
+ax_1.plot(log_stage_591_pred, log_inf_591_pred, 'r-')
+ax_1.set_title('m = %0.02f , c = %0.02f' % (slope_591, intercept_591))
+ax_2.set_title('m = %0.02f , c = %0.02f' % (slope_599, intercept_599))
+ax_3.set_title('m = %0.02f , c = %0.02f' % (slope_634, intercept_634))
+ax_2.plot(log_stage_599_pred, log_inf_599_pred, 'r-')
+ax_3.plot(log_stage_634_pred, log_inf_634_pred, 'r-')
+plt.show()
+
+stage_591_pred = np.linspace(0.1, max(stage_591_cal), 50)
+stage_599_pred = np.linspace(0.1, max(stage_599_cal), 50)
+stage_634_pred = np.linspace(0.1, max(stage_634_cal), 50)
+inf_591_pred = power_func(stage_591_pred, alpha_591, beta_591)
+inf_599_pred = power_func(stage_599_pred, alpha_599, beta_599)
+inf_634_pred = power_func(stage_634_pred, alpha_634, beta_634)
+
+fig, (ax_1, ax_2, ax_3) = plt.subplots(nrows=1, ncols=3, facecolor='white')
+scatter_591 = ax_1.scatter(stage_591_cal, inf_591_cal, facecolor='k', marker='o', s=(np.pi*(3**2)))
+ax_1.plot(stage_591_pred, power_func(stage_591_pred, alpha_591, beta_591), 'r-')
+ax_1.text(x=0.02, y=55, s=r'Percolation = ${0:.2f}{{h}}^{{{1:.2f}}}$'.format(alpha_591, beta_591))
+ax_1.set_xlim(0, 2)
+ax_1.set_ylim(0, 60)
+ax_2.scatter(stage_634_cal, inf_634_cal, facecolor='k', marker='o', s=(np.pi*(3**2)))
 ax_2.plot(stage_634_pred, inf_634_pred, 'r-')
-ax_1.set_xlabel(r'\textbf{Stage} (m))')
+ax_2.text(x=0.02, y=9, s=r'Percolation = ${0:.2f}{{h}}^{{{1:.2f}}}$'.format(alpha_634, beta_634))
+ax_2.set_xlim(0, 0.6)
+ax_2.set_ylim(0, 10)
+ax_3.scatter(stage_599_cal, inf_599_cal, facecolor='k', marker='o', s=(np.pi*(3**2)))
+ax_3.plot(stage_599_pred, inf_599_pred, 'r-')
+ax_3.text(x=0.07, y=27, s=r'Percolation = ${0:.2f}{{h}}^{{{1:.2f}}}$'.format(alpha_599, beta_599))
+ax_3.set_xlim(0, 1)
+ax_3.set_ylim(0, 30)
+ax_2.set_xlabel(r'\textbf{Stage} (m)')
+# xxl.set_position((-0.1, 0))
 ax_1.set_ylabel(r'\textbf{Percolation} ($m^{3}$)')
-fig.subplots_adjust(right=0.8)
-cbar = fig.colorbar(scatter_591, )
-cbar.ax.set_ylabel('Month', rotation=270)
-cbar.ax.get_yaxis().set_ticks([])
-for j, lab in enumerate(["1", "2", "5", "7", "9", "11", "12"]):
-    print j, lab
-    cbar.ax.text(.5, (1*j + 1)/14.0, lab, ha='center', va='center')
-cbar.ax.get_yaxis().labelpad = 30
+# disable additional splines
+ax_1.spines['top'].set_visible(False)
+ax_1.spines['right'].set_visible(False)
+ax_1.yaxis.set_ticks_position('left')
+ax_1.xaxis.set_ticks_position('bottom')
+ax_2.spines['top'].set_visible(False)
+ax_2.spines['right'].set_visible(False)
+ax_2.yaxis.set_ticks_position('left')
+ax_2.xaxis.set_ticks_position('bottom')
+ax_1.spines['bottom'].set_position(('outward', 20))
+ax_1.spines['left'].set_position(('outward', 30))
+ax_2.spines['bottom'].set_position(('outward', 20))
+ax_2.spines['left'].set_position(('outward', 30))
+ax_3.spines['top'].set_visible(False)
+ax_3.spines['right'].set_visible(False)
+ax_3.yaxis.set_ticks_position('left')
+ax_3.xaxis.set_ticks_position('bottom')
+ax_3.spines['bottom'].set_position(('outward', 20))
+ax_3.spines['left'].set_position(('outward', 30))
+
+# reduce no of ticks
+ax_1_x_locator = MaxNLocator(3)
+ax_1_y_locator = MaxNLocator(3)
+ax_1.xaxis.set_major_locator(ax_1_x_locator)
+ax_1.yaxis.set_major_locator(ax_1_y_locator)
+ax_2_x_locator = MaxNLocator(3)
+ax_2_y_locator = MaxNLocator(4)
+ax_2.xaxis.set_major_locator(ax_2_x_locator)
+ax_2.yaxis.set_major_locator(ax_2_y_locator)
+ax_3_x_locator = MaxNLocator(3)
+ax_3_y_locator = MaxNLocator(3)
+ax_3.xaxis.set_major_locator(ax_3_x_locator)
+ax_3.yaxis.set_major_locator(ax_3_y_locator)
+# set title
+ax_1.set_title('Check dam 591')
+ax_2.set_title('Check dam 634')
+ax_3.set_title('Check dam 599')
+
+# fig.subplots_adjust(right=0.8)
+# cbar = fig.colorbar(scatter_591, )
+# cbar.ax.set_ylabel('Month', rotation=270)
+# cbar.ax.get_yaxis().set_ticks([])
+# for j, lab in enumerate(["1", "2", "5", "7", "9", "11", "12"]):
+#     print j, lab
+#     cbar.ax.text(.5, (1*j + 1)/14.0, lab, ha='center', va='center')
+# cbar.ax.get_yaxis().labelpad = 30
 
 # for X, Y, Z in zip(stage_591_cal, inf_591_cal, dry_wb_591_df.month):
 #     ax_1.annotate('{}'.format(Z), xy=(X, Y), xytext=(-5,5), ha='right', textcoords='offset points')
@@ -287,7 +420,7 @@ infil = [i /j *100 for i, j in zip(results_pie_df['Infiltration (cu.m)'], totals
 # '#008000', '#FF0000'
 # '#3C5F5A'
 ax.bar(bar_l, evap, label='Evaporation', alpha=0.9, color='#019600', width=bar_width, edgecolor='white')
-ax.bar(bar_l, overflow,bottom=evap, label='Overflow', alpha=0.9, color='#3C5F5A', width=bar_width, edgecolor='white')
+ax.bar(bar_l, overflow, bottom=evap, label='Overflow', alpha=0.9, color='#3C5F5A', width=bar_width, edgecolor='white')
 ax.bar(bar_l, infil, bottom=np.array(evap) + np.array(overflow), label='Percolation', alpha=0.9, color='#219AD8', width=bar_width, edgecolor='white')
 ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
@@ -406,6 +539,136 @@ plt.ylabel(r"log-Inflow ($m^{3}$)")
 plt.xlabel(r"log-Rainfall Intensity ($mm hr^{-1}$)")
 plt.text(0.75, 7,r"$R^{2} = %0.02f$ \\ p-value = %0.02f" %(r_value, p_value))
 # plt.title("Log Inflow vs Log Max daily intensity")
+plt.show()
+"""
+"""
+infiltration rate vs stage
+"""
+
+dry_wb_591_df['infiltration_rate(m)'] = dry_wb_591_df['infiltration(cu.m)']/dry_wb_591_df['ws_area(sq.m)']
+dry_wb_599_df['infiltration_rate(m)'] = dry_wb_599_df['infiltration(cu.m)']/dry_wb_599_df['ws_area(sq.m)']
+dry_wb_634_df['infiltration_rate(m)'] = dry_wb_634_df['infiltration(cu.m)']/dry_wb_634_df['ws_area(sq.m)']
+
+stage_cal_591 = dry_wb_591_df['stage(m)']
+infilt_rate_cal_591 = dry_wb_591_df['infiltration_rate(m)']
+stage_cal_599 = dry_wb_599_df['stage(m)']
+infilt_rate_cal_599 = dry_wb_599_df['infiltration_rate(m)']
+stage_cal_634 = dry_wb_634_df['stage(m)']
+infilt_rate_cal_634 = dry_wb_634_df['infiltration_rate(m)']
+dry_wb_591_df.loc[dry_wb_591_df['month'] == 1] = 13
+dry_wb_591_df.loc[dry_wb_591_df['month'] == 2] = 14
+print dry_wb_591_df['month'].unique()
+print dry_wb_599_df['month'].unique()
+print dry_wb_634_df['month'].unique()
+# raise SystemExit(0)
+fig, (ax_1, ax_2, ax_3) = plt.subplots(nrows=1, ncols=3, facecolor='white')
+scatter_591 = ax_1.scatter(stage_cal_591, infilt_rate_cal_591, facecolor='k', marker='o', s=(np.pi*(3**2)))
+scatter_599 = ax_2.scatter(stage_cal_599, infilt_rate_cal_599, facecolor='k', marker='o', s=(np.pi*(3**2)))
+scatter_634 = ax_3.scatter(stage_cal_634, infilt_rate_cal_634, facecolor='k', marker='o', s=(np.pi*(3**2)))
+ax_1.set_xlim(0, 2)
+ax_1.set_title("591")
+ax_2.set_title("599")
+ax_3.set_title("634")
+plt.show()
+
+norm = matplotlib.colors.Normalize(vmin=5, vmax=14, clip=False)
+
+fig, (ax_1, ax_2, ax_3) = plt.subplots(nrows=1, ncols=3, facecolor='white', sharey=True)
+cmap = cm.get_cmap('Spectral_r')
+scatter_591 = ax_1.scatter(stage_cal_591, infilt_rate_cal_591, c=dry_wb_591_df['month'], cmap=cmap, norm=norm, edgecolor='None', s=(np.pi*(5**2)))
+scatter_599 = ax_2.scatter(stage_cal_599, infilt_rate_cal_599, c=dry_wb_599_df['month'], cmap=cmap, norm=norm, edgecolor='None', s=(np.pi*(5**2)))
+scatter_634 = ax_3.scatter(stage_cal_634, infilt_rate_cal_634, c=dry_wb_634_df['month'], cmap=cmap, norm=norm, edgecolor='None', s=(np.pi*(5**2)))
+ax_1.set_title('591')
+ax_1.set_xlim(0, 2)
+ax_1.set_ylim(0, 0.08)
+ax_2.set_title('599')
+ax_3.set_title('634')
+# locators
+locator_x_591 = MaxNLocator(3)
+locator_x_599 = MaxNLocator(3)
+locator_x_634 = MaxNLocator(3)
+locator_y_591 = MaxNLocator(4)
+# locator_y_599 = MaxNLocator(4)
+# locator_y_634 = MaxNLocator(4)
+# xaxis
+ax_1.xaxis.set_major_locator(locator_x_591)
+ax_2.xaxis.set_major_locator(locator_x_599)
+ax_3.xaxis.set_major_locator(locator_x_634)
+# yaxis
+ax_1.yaxis.set_major_locator(locator_y_591)
+# ax_2.yaxis.set_major_locator(locator_y_599)
+# ax_3.yaxis.set_major_locator(locator_y_634)
+# set xaxis, yaxis labels
+ax_2.set_xlabel(r"Stage (m)")
+ax_1.set_ylabel(r"Percolation rate ($m \ day^{-1}$)", labelpad=20)
+# colorbar
+fig.subplots_adjust(right=0.8)
+cbar_ax = fig.add_axes([0.85, 0.4, 0.04, 0.5])
+cbar = fig.colorbar(scatter_591, cax=cbar_ax)
+print cbar.ax.get_yticks()
+cbar.ax.get_yaxis().set_ticks([0,  0.333, 0.666, 1 ])
+cbar.ax.get_yaxis().set_ticklabels(['May-14', 'Aug-14', 'Nov-14', 'Feb-15'])
+# for j, lab in enumerate([5, ])
+plt.show()
+#
+# cmap_591, norm_591 = mpl.colors.from_levels_and_colors([1, 3, 5, 9, 11, 13], ["maroon", "red","mediumpurple", "lightblue", "indigo"])
+# cmap_599, norm_599 = mpl.colors.from_levels_and_colors([1, 3, 5, 9, 11, 13], ["maroon", "red","mediumpurple", "lightblue", "indigo"])
+# cmap_634, norm_634 = mpl.colors.from_levels_and_colors([1, 3, 5, 9, 11, 13], ["maroon", "red","mediumpurple", "lightblue", "indigo"])
+
+# cmap_599, norm_599 = mpl.colors.from_levels_and_colors([5, 6, 8, 9, 10, 11, 12, 1, 2], ["#7fc97f", "#beaed4","#fdc086","#ffff99","#386cb0", "#f0027f"])
+# cmap_634, norm_634 = mpl.colors.from_levels_and_colors([5, 6, 8, 9, 10, 11, 12, 1, 2], ["#7fc97f", "#beaed4","#fdc086","#ffff99","#386cb0", "#f0027f"])
+#
+# fig, (ax_1, ax_2, ax_3) = plt.subplots(nrows=1, ncols=3, facecolor='white')
+# # fig = plt.figure()
+# scatter_591 = ax_1.scatter(stage_cal_591, infilt_rate_cal_591, c=dry_wb_591_df['month'], cmap=cmap_591, norm=norm_591, edgecolor='None',s=(np.pi*(5**2)) )
+# scatter_599 = ax_2.scatter(stage_cal_599, infilt_rate_cal_599, c=dry_wb_599_df['month'], cmap=cmap_599, norm=norm_599, edgecolor='None',s=(np.pi*(5**2)) )
+# scatter_634 = ax_3.scatter(stage_cal_634, infilt_rate_cal_634, c=dry_wb_634_df['month'], cmap=cmap_634, norm=norm_634, edgecolor='None',s=(np.pi*(5**2)) )
+# ax_1.set_title('591')
+# ax_1.set_xlim(0, 2)
+# ax_2.set_title('599')
+# ax_3.set_title('634')
+# cbar = fig.colorbar(scatter_591)
+# plt.show()
+
+#  stage vs infil plot based days from inflow
+def find_previous_inflow_date(df, inflow_dates):
+    """
+    Calculates no of days from inflow event for dates in df
+
+    :param df: Input df
+    :param inflow_dates:datetime index of inflow pandas dataframe
+    :return:
+    """
+    # insert_dummy_columns
+    df['days_from_inflow'] = 0
+    for date in df.index:
+        deltas = inflow_dates - date
+        days_from_inflow = np.max([n for n in deltas.days if n < 0])
+        df.loc[date, 'days_from_inflow'] = np.abs(days_from_inflow)
+    return df
+
+# print len(inflow_days_591_df.index)
+
+inflow_days_591_df = wb_591.loc[wb_591['Inflow (cu.m)']> 1]
+find_previous_inflow_date(dry_wb_591_df, inflow_days_591_df.index)
+inflow_days_599_df = wb_599.loc[wb_599['Inflow (cu.m)']> 1]
+find_previous_inflow_date(dry_wb_599_df, inflow_days_599_df.index)
+inflow_days_634_df = wb_634.loc[wb_634['Inflow (cu.m)']> 1]
+find_previous_inflow_date(dry_wb_634_df, inflow_days_634_df.index)
+# print inflow_days_591_df.head(10)
+# print dry_wb_591_df.head(10)
+
+fig, (ax_1, ax_2, ax_3) = plt.subplots(nrows=1, ncols=3, facecolor='white')
+# fig = plt.figure()
+cmap = cm.get_cmap('Spectral_r')
+scatter_591 = ax_1.scatter(stage_cal_591, infilt_rate_cal_591, c=dry_wb_591_df['days_from_inflow'], cmap=cmap, edgecolor='None',s=(np.pi*(5**2)) )
+scatter_599 = ax_2.scatter(stage_cal_599, infilt_rate_cal_599, c=dry_wb_599_df['days_from_inflow'], cmap=cmap, edgecolor='None',s=(np.pi*(5**2)) )
+scatter_634 = ax_3.scatter(stage_cal_634, infilt_rate_cal_634, c=dry_wb_634_df['days_from_inflow'], cmap=cmap, edgecolor='None',s=(np.pi*(5**2)) )
+ax_1.set_title('591')
+ax_1.set_xlim(0, 2)
+ax_2.set_title('599')
+ax_3.set_title('634')
+cbar = fig.colorbar(scatter_591)
 plt.show()
 raise SystemExit(0)
 """

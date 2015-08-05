@@ -185,7 +185,7 @@ def arrayToImage(a):
 
 def clip_raster_by_vector(input_folder, mask_shapefile, output_folder, file_extension='*.tif', t_srs='EPSG:32643', no_data=32767 ):
     files_list = os.listdir(input_folder)
-    ds = ogr.Open(in_shape)
+    ds = ogr.Open(mask_shapefile)
     lyr = ds.GetLayer(0)
     lyr.ResetReading()
     ft = lyr.GetNextFeature()
@@ -219,6 +219,39 @@ def process_modis(input_folder, output_folder, scale_factor=0.1, null_value=3276
 input_folder = "/media/kiruba/New Volume/MODIS/ET/scratch/TG_halli"
 output_folder = "/media/kiruba/New Volume/MODIS/ET/scratch/TG_halli/processed"
 # process_modis(input_folder=input_folder, output_folder=output_folder)
+
+# remove builtup and water bodies from modis raster
+# 4000 builtup
+# 4001 lake
+builtup_shape = '/media/kiruba/New Volume/MODIS/ET/scratch/TG_halli/processed/lake_builtup/KFT_TGHALLI_BUILTUP_GE_utm.shp'
+lake_shape = '/media/kiruba/New Volume/MODIS/ET/scratch/TG_halli/processed/lake_builtup/Tghalli_Lakes_utm.shp'
+
+# subprocess.call(['gdalwarp', in_raster, out_raster, '-cutline', mask_shapefile, '-t_srs', t_srs, '-crop_to_cutline', '-dstnodata', "%s" %no_data])
+
+print subprocess.list2cmdline(['gdal_rasterize -b 1 -burn 4000 -l KFT_TGHALLI_BUILTUP_GE_utm', builtup_shape,  '/media/kiruba/New Volume/MODIS/ET/scratch/TG_halli/processed/lake_builtup/builtup.tif'])
+print subprocess.list2cmdline(['gdal_rasterize -b 1 -burn 5000 -l Tghalli_Lakes_utm', lake_shape, '/media/kiruba/New Volume/MODIS/ET/scratch/TG_halli/processed/lake_builtup/lake.tif'])
+
+
+subprocess.call(['gdal_rasterize -b 1 -burn 4000 -l KFT_TGHALLI_BUILTUP_GE_utm', builtup_shape,  '/media/kiruba/New Volume/MODIS/ET/scratch/TG_halli/processed/lake_builtup/builtup.tif'])
+# subprocess.call(['gdal_rasterize -b 1 -burn 5000 -l Tghalli_Lakes_utm', lake_shape, '/media/kiruba/New Volume/MODIS/ET/scratch/TG_halli/processed/lake_builtup/lake.tif'])
+
+
+
+
+def raster_histogram_plot(raster):
+    plt.hist(raster, 20,histtype='bar')
+    plt.show()
+
+
+raster_file = '/media/kiruba/New Volume/MODIS/ET/scratch/TG_halli/processed/proc_tg_MOD16A2.A2014M02.h25v07.tif'
+g_raster = gdal.Open(raster_file, GA_ReadOnly)
+band_1 = g_raster.GetRasterBand(1)
+band_1_array = BandReadAsArray(band_1)
+
+band_1_array = band_1_array[np.isfinite(band_1_array)]
+print np.min(band_1_array)
+print np.max(band_1_array)
+raster_histogram_plot(band_1_array)
 
 
 
