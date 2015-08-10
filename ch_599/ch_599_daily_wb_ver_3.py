@@ -27,9 +27,9 @@ stage_cutoff = 0.1
 
 # ------------------------------------------------------------------#
 # Weather file
-weather_file = '/media/kiruba/New Volume/ACCUWA_Data/weather_station/smgollahalli/corrected_weather.csv'
+weather_file = '/media/kiruba/New Volume/ACCUWA_Data/weather_station/smgollahalli/ksndmc_weather.csv'
 # Rain file
-rain_file = '/media/kiruba/New Volume/ACCUWA_Data/weather_station/smgollahalli/corrected_rain_data.csv'
+rain_file = '/media/kiruba/New Volume/ACCUWA_Data/weather_station/smgollahalli/ksndmc_rain.csv'
 # convert to pandas dataframe
 weather_df = pd.read_csv(weather_file, sep=',', header=0)
 weather_df['Date_Time'] = pd.to_datetime(weather_df['Date_Time'], format=date_format)
@@ -132,7 +132,7 @@ Join weather and rain data
 """
 weather_df = weather_df.join(rain_df, how='right')
 weather_df = weather_df[min(water_level.index).strftime(daily_format): max(water_level.index).strftime(daily_format)]
-weather_df = weather_df.join(water_level, how='right')
+weather_df = weather_df.join(water_level, how='inner')
 
 """
 Remove Duplicates
@@ -158,14 +158,14 @@ ch_599_lat = 13.250119
 ch_599_long = 77.514195
 weather_df['Rext (MJ/m2/30min)'] = 0.000
 for i in weather_df.index:
-    weather_df['Rext (MJ/m2/30min)'][i.strftime('%Y-%m-%d %H:%M:%S')] = (cd.extraterrestrial_irrad(local_datetime=i,
+    weather_df.loc[i.strftime('%Y-%m-%d %H:%M:%S'),'Rext (MJ/m2/30min)'] = (cd.extraterrestrial_irrad(local_datetime=i,
                                                                                                    latitude_deg=ch_599_lat,
                                                                                                    longitude_deg=ch_599_long))
 """
 wind speed from km/h to m/s
 1 kmph = 0.277778 m/s
 """
-weather_df['Wind Speed (mps)'] = weather_df['Wind Speed (kmph)'] * 0.277778
+# weather_df['Wind Speed (mps)'] = weather_df['Wind Speed (kmph)'] * 0.277778
 """
 Radiation unit conversion
 """
@@ -178,12 +178,14 @@ print weather_df.columns.values
 """
 Half hourly Evaporation calculation
 """
-airtemp = weather_df['Air Temperature (C)']
+# airtemp = weather_df['Air Temperature (C)']
+airtemp = weather_df['TEMPERATURE']
 hum = weather_df['Humidity (%)']
 airpress = weather_df['AirPr(Pa)']
 rs = weather_df['Solar Radiation (MJ/m2/30min)']
 rext = weather_df['Rext (MJ/m2/30min)']
-wind_speed = weather_df['Wind Speed (mps)']
+# wind_speed = weather_df['Wind Speed (mps)']
+wind_speed = weather_df['WIND_SPEED']
 weather_df['Evaporation (mm/30min)'] = cd.half_hour_evaporation(airtemp=airtemp, rh=hum, airpress=airpress,
                                                                 rs=rs, rext=rext, u=wind_speed, z=z)
 """
@@ -200,7 +202,7 @@ stage_vol_df = pd.read_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_
 
 stage_vol_df.drop('sno', inplace=True, axis=1)
 stage_vol_df.set_index(stage_vol_df['stage_m'], inplace=True)
-water_balance_df = weather_stage_avl_df[['Rain Collection (mm)', 'Evaporation (mm/30min)', 'stage(m)']]
+water_balance_df = weather_stage_avl_df[['rain (mm)', 'Evaporation (mm/30min)', 'stage(m)']]
 water_balance_df['volume (cu.m)'] = 0.000
 for index, row in water_balance_df.iterrows():
     obs_stage = row['stage(m)']  # observed stage
@@ -212,7 +214,7 @@ for index, row in water_balance_df.iterrows():
         y_diff = y2 - y1
         slope = y_diff / x_diff
         y_intercept = y2 - (slope * x2)
-        water_balance_df['volume (cu.m)'][index.strftime(date_format)] = (slope * obs_stage) + y_intercept
+        water_balance_df.loc[index.strftime(date_format), 'volume (cu.m)'] = (slope * obs_stage) + y_intercept
 """
 full volume calculation
 """
@@ -233,7 +235,7 @@ for index, row in water_balance_df.iterrows():
     obs_volume = row['volume (cu.m)']
     if obs_volume > full_volume:
         overflow_volume = obs_volume - full_volume
-        water_balance_df['overflow(cu.m)'][index.strftime(date_format)] = obs_volume - full_volume
+        water_balance_df.loc[index.strftime(date_format), 'overflow(cu.m)'] = overflow_volume
 water_balance_df = water_balance_df["2014-05-15":]
 print "overflow"
 """
@@ -256,7 +258,7 @@ for index, row in water_balance_df.iterrows():
         y_diff = y2 - y1
         slope = y_diff / x_diff
         y_intercept = y2 - (slope * x2)
-        water_balance_df['ws_area(sq.m)'][index.strftime(date_format)] = (slope * obs_stage) + y_intercept
+        water_balance_df.loc[index.strftime(date_format), 'ws_area(sq.m)'] = (slope * obs_stage) + y_intercept
 
 """
 Surface area to volume ratio
@@ -283,7 +285,7 @@ average_area = (slope*average_stage) + y_intercept
 print average_area
 surface_area_to_vol_ratio = average_area/average_volume
 print "surface area to vol ratio is %0.2f" %surface_area_to_vol_ratio
-raise SystemExit(0)
+# raise SystemExit(0)
 """
 Evaporation Volume estimation
 """
@@ -292,7 +294,7 @@ water_balance_df['Evaporation (cu.m)'] = (water_balance_df['Evaporation (mm/30mi
 """
 Daily Totals of Rain, Evaporation, Overflow
 """
-sum_df = water_balance_df[['Rain Collection (mm)', 'Evaporation (cu.m)', 'Evaporation (mm/30min)', 'overflow(cu.m)']]
+sum_df = water_balance_df[['rain (mm)', 'Evaporation (cu.m)', 'Evaporation (mm/30min)', 'overflow(cu.m)']]
 sum_df = sum_df.resample('D', how=np.sum)
 """
 Daily average of Stage
@@ -312,7 +314,7 @@ for index, row in water_balance_daily_df.iterrows():
         y_diff = y2 - y1
         slope = y_diff / x_diff
         y_intercept = y2 - (slope * x2)
-        water_balance_daily_df['ws_area(sq.m)'][index.strftime(date_format)] = (slope * obs_stage) + y_intercept
+        water_balance_daily_df.loc[index.strftime(date_format),'ws_area(sq.m)'] = (slope * obs_stage) + y_intercept
 """
 Change in storage
 """
@@ -327,7 +329,7 @@ for index in ch_storage_df.index:
         previous_date = index - timedelta(days=1)
         d1_storage = ch_storage_df['volume (cu.m)'][previous_date.strftime(daily_format)]
         d2_storage = ch_storage_df['volume (cu.m)'][index.strftime(daily_format)]
-        water_balance_daily_df['change_storage(cu.m)'][index.strftime(daily_format)] = d2_storage - d1_storage
+        water_balance_daily_df.loc[index.strftime(daily_format), 'change_storage(cu.m)'] = d2_storage - d1_storage
 
 
 # new_df = water_balance_daily_df.join(ch_storage_df, how='right')
@@ -349,10 +351,10 @@ water_balance_daily_df['status'] = "Y"
 for index in water_balance_daily_df.index:
     initial_time_stamp = min(water_balance_daily_df.index) + timedelta(days=1)
     if index > initial_time_stamp and (water_balance_daily_df["change_storage(cu.m)"][index.strftime(daily_format)] < 0) and (water_balance_daily_df['overflow(cu.m)'][index.strftime(daily_format)] == 0) and (abs(water_balance_daily_df['change_storage(cu.m)'][index.strftime(daily_format)]) > water_balance_daily_df['Evaporation (cu.m)'][index.strftime(daily_format)]):
-        water_balance_daily_df['status'][index.strftime(daily_format)] = "N"
+        water_balance_daily_df.loc[index.strftime(daily_format), 'status'] = "N"
 
-dry_water_balance_df = water_balance_daily_df[water_balance_daily_df['status'] == "N"]
-rain_water_balance_df = water_balance_daily_df[water_balance_daily_df['status'] == "Y"]
+dry_water_balance_df = water_balance_daily_df.loc[water_balance_daily_df['status'] == "N"]
+rain_water_balance_df = water_balance_daily_df.loc[water_balance_daily_df['status'] == "Y"]
 print "dry day sep"
 # (water_balance_daily_df["Rain Collection (mm)"][index.strftime(daily_format)] < 2)
 """
@@ -366,8 +368,15 @@ for index, row in dry_water_balance_df.iterrows():
     if index > min(water_balance_daily_df.index):
         t_1 = index - timedelta(days=1)
         if t_1 < max(water_balance_daily_df.index):
-            dry_water_balance_df['infiltration(cu.m)'][index.strftime(daily_format)] = -1.0 * (
+            dry_water_balance_df.loc[index.strftime(daily_format), 'infiltration(cu.m)'] = -1.0 * (
                 delta_s[index.strftime(daily_format)] + evap[index.strftime(daily_format)])
+
+dry_water_balance_df.loc[:, 'infiltration(cu.m)'] = cd.myround(dry_water_balance_df['infiltration(cu.m)'], decimals=2)
+dry_water_balance_df = dry_water_balance_df.loc[dry_water_balance_df['stage(m)'] > 0.1]
+dry_water_balance_df = dry_water_balance_df.loc[dry_water_balance_df['infiltration(cu.m)'] > 1]
+dry_water_balance_df['infiltration_rate(m)'] = dry_water_balance_df['infiltration(cu.m)']/dry_water_balance_df['ws_area(sq.m)']
+print dry_water_balance_df['infiltration_rate(m)'].mean()
+average_infiltration_rate = cd.myround(dry_water_balance_df['infiltration_rate(m)'].mean(), decimals=3)
 dry_water_balance_df.to_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/ch_599/dry_wb.csv')
 print "dry"
 print dry_water_balance_df.head()
@@ -375,7 +384,7 @@ print "infilt"
 
 """
 Fitting exponential function
-"""
+
 stage_cal = dry_water_balance_df['stage(m)']
 # stage_cal = dry_water_balance_df['average_stage_m']
 inf_cal = dry_water_balance_df['infiltration(cu.m)']
@@ -395,17 +404,17 @@ masked_log_x = log_x[OK]
 slope, intercept = ccy_classic_lstsqr.ccy_classic_lstsqr(masked_log_x, masked_log_y)
 print "fit done"
 print slope, intercept
-
+"""
 """
 Rainy day infiltration
 """
 rain_water_balance_df['infiltration(cu.m)'] = 0.0
 for i in rain_water_balance_df.index:
-    if rain_water_balance_df['stage(m)'][i.strftime(daily_format)] >= stage_cutoff:
-        x = rain_water_balance_df['stage(m)'][i.strftime(daily_format)]
-        log_infilt = (slope*np.log(x)) + intercept
-        rain_water_balance_df['infiltration(cu.m)'][i.strftime(daily_format)] = math.exp(log_infilt)
+    if rain_water_balance_df.loc[i.strftime(daily_format),'stage(m)'] >= stage_cutoff:
+        surface_area = rain_water_balance_df.loc[i.strftime(daily_format),'ws_area(sq.m)']
+        rain_water_balance_df.loc[i.strftime(daily_format), 'infiltration(cu.m)'] = average_infiltration_rate*surface_area
 print "rainy day"
+
 """
 Inflow calculation
 """
@@ -421,7 +430,7 @@ for i, row in merged_water_balance.iterrows():
         string2 = intern('N')
         if string1 != string2:
             # i_1 = i - timedelta(days=1)
-            merged_water_balance['Inflow (cu.m)'][i.strftime(daily_format)] = (delta_s_rain[i.strftime(daily_format)] +
+            merged_water_balance.loc[i.strftime(daily_format), 'Inflow (cu.m)'] = (delta_s_rain[i.strftime(daily_format)] +
                                                                               inf_rain[i.strftime(daily_format)] +
                                                                               evap_rain[i.strftime(daily_format)] +
                                                                               outflow_rain[i.strftime(daily_format)])
@@ -449,7 +458,7 @@ bar2 = ax2.bar(merged_water_balance.index, merged_water_balance['Inflow (cu.m)']
 bar3 = ax3.bar(merged_water_balance.index, merged_water_balance['infiltration(cu.m)'], color='r')
 bar4 = ax4.bar(merged_water_balance.index, merged_water_balance['Evaporation (cu.m)'], color='g')
 bar1 = ax1.plot(water_balance_df.index, water_balance_df['stage(m)'], 'ro-', label='Stage (m)' )
-bar5 = ax5.bar(merged_water_balance.index, merged_water_balance['Rain Collection (mm)'], color='y')
+bar5 = ax5.bar(merged_water_balance.index, merged_water_balance['rain (mm)'], color='y')
 # plt.plot(merged_water_balance['Inflow (cu.m)'],merged_water_balance['cum_rain'], 'bo')
 # plt.plot(merged_water_balance.index, merged_water_balance['infiltration(cu.m)'], '-ro')
 # ax4.hlines(y=0, xmin=min(merged_water_balance.index), xmax=max(merged_water_balance.index))

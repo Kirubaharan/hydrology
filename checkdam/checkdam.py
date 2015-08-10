@@ -6,7 +6,7 @@ import itertools
 from fractions import Fraction
 from bisect import bisect_left
 import math
-from Pysolar import solar
+from datetime import datetime
 from datetime import timedelta
 import meteolib as met
 # import evaplib
@@ -238,8 +238,8 @@ def read_correct_ch_dam_data(csv_file, calibration_slope, calibration_intercept)
             c_time = ' 00:00:00'
             # water_level.loc[:, ('date', index)] = c_date
             # water_level.loc[:, ('time', index)] = c_time
-            water_level['date'][index] = c_date
-            water_level['time'][index] = c_time
+            water_level.loc[index,'date'] = c_date
+            water_level.loc[index,'time'] = c_time
 
     water_level['date_time'] = pd.to_datetime(water_level['date'] + water_level['time'], format=format)
     water_level.set_index(water_level['date_time'], inplace=True)
@@ -249,7 +249,7 @@ def read_correct_ch_dam_data(csv_file, calibration_slope, calibration_intercept)
         obs_stage = row['stage(m)']
         if obs_stage < stage_cutoff:
             # water_level.loc[:, ('stage(m)', index.strftime(date_format))] = 0.0
-            water_level['stage(m)'][index.strftime(date_format)] = 0.0
+            water_level.loc[index,'stage(m)'] = 0.0
 
     water_level.drop(['scan no', 'date', 'time', 'date_time'], inplace=True, axis=1)
 
@@ -258,17 +258,17 @@ def read_correct_ch_dam_data(csv_file, calibration_slope, calibration_intercept)
 
 def extraterrestrial_irrad(local_datetime, latitude_deg, longitude_deg):
     """
-    Calculates extraterrestrial radiation in MJ/m2/timeperiod
+    Calculates extraterrestrial radiation in MJ/m2/30min
     :rtype : float
     :param local_datetime: datetime object
     :param latitude_deg: in decimal degree
     :param longitude_deg: in decimal degree
-    :return: Extra terrestrial radiation in MJ/m2/timeperiod
+    :return: Extra terrestrial radiation in MJ/m2/30min
     """
 
     s = 0.0820  # MJ m-2 min-1
     lat_rad = latitude_deg * (math.pi / 180)
-    day = solar.GetDayOfYear(local_datetime)
+    day = (local_datetime - datetime(local_datetime.year, 1, 1)).days + 1
     hour = float(local_datetime.hour)
     minute = float(local_datetime.minute)
     b = ((2 * math.pi) * (day - 81)) / 364

@@ -22,6 +22,8 @@ import scipy.stats as stats
 import ccy_classic_lstsqr
 from math import exp
 import powerlaw
+from matplotlib.ticker import FormatStrFormatter
+import checkdam.checkdam as cd
 
 # latex parameters
 rc('font', **{'family': 'sans-serif', 'serif': ['Computer Modern Roman']})
@@ -29,7 +31,7 @@ rc('text', usetex=True)
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif', size=36)
 
-dark_2_colors = brewer2mpl.get_map("Dark2", 'Qualitative', 7).mpl_colors
+dark_2_colors = brewer2mpl.get_map("Set2", 'Qualitative', 7).mpl_colors
 
 
 def remove_border(axes=None, top=False, right=False, left=True, bottom=True):
@@ -136,9 +138,54 @@ def make_patch_spines_invisible(ax):
     for sp in ax.spines.itervalues():
         sp.set_visible(False)
         
+file_results_pie = '/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/summary_check_dam.csv'
+results_pie_df = pd.read_csv(file_results_pie, sep=',', header=0)
+results_pie_df.set_index(results_pie_df['Check dam no'], inplace=True)
+print results_pie_df.head()
+# latexify(fig_width=9, fig_height=9)
+# fig, (ax1, ax2, ax3) = plt.subplots(nrows=1, ncols=3, facecolor='white' )
+fig= plt.figure(facecolor='white', figsize=(8,6), dpi=100)
+ax1 = plt.subplot(131,aspect=True,axisbg='w')
+# fig, ax1 = plt.subplots(facecolor='white')
+evap_591 = results_pie_df['Evaporation (cu.m)'][591]
+infilt_591 = results_pie_df['Infiltration (cu.m)'][591]
+overflow_591 = results_pie_df['Overflow (cu.m)'][591]
+storage_591 = results_pie_df['Storage (cu.m)'][591]
+pie1, text1, autotexts_1 = ax1.pie([evap_591, infilt_591, overflow_591], labels=['E', 'P', 'O'],
+                                   colors=dark_2_colors[0:3],
+                                   autopct='%i%%'
+                                   )
+ax1.set_title("Check dam 591")
+ax2 = plt.subplot(132,aspect=True,axisbg='w')
+evap_599 = results_pie_df['Evaporation (cu.m)'][599]
+infilt_599 = results_pie_df['Infiltration (cu.m)'][599]
+overflow_599 = results_pie_df['Overflow (cu.m)'][599]
+storage_599 = results_pie_df['Storage (cu.m)'][599]
+pie2, text2, autotexts_2 = ax2.pie([evap_599, infilt_599, overflow_599], labels=['E', 'P', 'O'],
+                                   colors=dark_2_colors[0:3],
+                                   autopct='%i%%')
+ax2.set_title("Check dam 599")
+ax3 = plt.subplot(133,aspect=True,axisbg='w')
+evap_634 = results_pie_df['Evaporation (cu.m)'][634]
+infilt_634 = results_pie_df['Infiltration (cu.m)'][634]
+overflow_634 = results_pie_df['Overflow (cu.m)'][634]
+storage_634 = results_pie_df['Storage (cu.m)'][634]
+pie3, text3, autotexts_3 = ax3.pie([evap_634, infilt_634, storage_634], labels=['E', 'P', 'S'],
+                                   colors=[dark_2_colors[0], dark_2_colors[1], dark_2_colors[3]],
+                                   autopct='%i%%',
+                                   )
+ax3.set_title("Check dam 634")
+legend = fig.legend([pie3[0], pie3[1], pie2[2], pie3[2]],["Evaporation", "Percolation", "Overflow", "Storage"],fancybox=True, ncol=2,loc=(0.01,0.02)).draggable()
 
+for label in text1:
+    label.set_fontsize(36)
+for label in text2:
+    label.set_fontsize(36)
+for label in text3:
+    label.set_fontsize(36)
+plt.show()
 
-
+# raise SystemExit(0)
 """
 dry day infiltration vs stage plot
 """
@@ -179,13 +226,14 @@ wb_634.set_index(pd.to_datetime(wb_634['Date'], format=daily_format), inplace=Tr
 dry_wb_591_df = wb_591.loc[wb_591['status'] == 'N']
 dry_wb_599_df = wb_599.loc[wb_599['status'] == 'N']
 dry_wb_634_df = wb_634.loc[wb_634['status'] == 'N']
+# print dry_wb_591_df.head()
 # round decimals two decimal
-dry_wb_591_df.loc[:, 'stage(m)'] = np.round(dry_wb_591_df['stage(m)'], decimals=2)
-dry_wb_599_df.loc[:, 'stage(m)'] = np.round(dry_wb_599_df['stage(m)'], decimals=2)
-dry_wb_634_df.loc[:, 'stage(m)'] = np.round(dry_wb_634_df['stage(m)'], decimals=2)
-dry_wb_591_df.loc[:, 'infiltration(cu.m)'] = np.round(dry_wb_591_df['infiltration(cu.m)'], decimals=2)
-dry_wb_599_df.loc[:, 'infiltration(cu.m)'] = np.round(dry_wb_599_df['infiltration(cu.m)'], decimals=2)
-dry_wb_634_df.loc[:, 'infiltration(cu.m)'] = np.round(dry_wb_634_df['infiltration(cu.m)'], decimals=2)
+dry_wb_591_df.loc[:, 'stage(m)'] = cd.myround(dry_wb_591_df['stage(m)'], decimals=2)
+dry_wb_599_df.loc[:, 'stage(m)'] = cd.myround(dry_wb_599_df['stage(m)'], decimals=2)
+dry_wb_634_df.loc[:, 'stage(m)'] = cd.myround(dry_wb_634_df['stage(m)'], decimals=2)
+dry_wb_591_df.loc[:, 'infiltration(cu.m)'] = cd.myround(dry_wb_591_df['infiltration(cu.m)'], decimals=3)
+dry_wb_599_df.loc[:, 'infiltration(cu.m)'] = cd.myround(dry_wb_599_df['infiltration(cu.m)'], decimals=3)
+dry_wb_634_df.loc[:, 'infiltration(cu.m)'] = cd.myround(dry_wb_634_df['infiltration(cu.m)'], decimals=3)
 dry_wb_591_df = dry_wb_591_df.loc[dry_wb_591_df['stage(m)'] > 0.1]
 dry_wb_599_df = dry_wb_599_df.loc[dry_wb_599_df['stage(m)'] > 0.1]
 dry_wb_634_df = dry_wb_634_df.loc[dry_wb_634_df['stage(m)'] > 0.1]
@@ -545,16 +593,17 @@ plt.show()
 infiltration rate vs stage
 """
 
-dry_wb_591_df['infiltration_rate(m)'] = dry_wb_591_df['infiltration(cu.m)']/dry_wb_591_df['ws_area(sq.m)']
-dry_wb_599_df['infiltration_rate(m)'] = dry_wb_599_df['infiltration(cu.m)']/dry_wb_599_df['ws_area(sq.m)']
-dry_wb_634_df['infiltration_rate(m)'] = dry_wb_634_df['infiltration(cu.m)']/dry_wb_634_df['ws_area(sq.m)']
-
-stage_cal_591 = dry_wb_591_df['stage(m)']
-infilt_rate_cal_591 = dry_wb_591_df['infiltration_rate(m)']
-stage_cal_599 = dry_wb_599_df['stage(m)']
-infilt_rate_cal_599 = dry_wb_599_df['infiltration_rate(m)']
-stage_cal_634 = dry_wb_634_df['stage(m)']
-infilt_rate_cal_634 = dry_wb_634_df['infiltration_rate(m)']
+dry_wb_591_df.loc[:, 'new_infiltration_rate(m)'] = dry_wb_591_df['infiltration(cu.m)']/dry_wb_591_df['ws_area(sq.m)']
+# dry_wb_599_df['infiltration_rate(m)'] = dry_wb_599_df['infiltration(cu.m)']/dry_wb_599_df['ws_area(sq.m)']
+# dry_wb_634_df['infiltration_rate(m)'] = dry_wb_634_df['infiltration(cu.m)']/dry_wb_634_df['ws_area(sq.m)']
+print "Average Infiltration rate "
+print dry_wb_591_df['infiltration_rate(m)'].mean()
+stage_cal_591 = dry_wb_591_df['stage(m)'].values
+infilt_rate_cal_591 = dry_wb_591_df['new_infiltration_rate(m)'].values
+stage_cal_599 = dry_wb_599_df['stage(m)'].values
+infilt_rate_cal_599 = dry_wb_599_df['infiltration_rate(m)'].values
+stage_cal_634 = dry_wb_634_df['stage(m)'].values
+infilt_rate_cal_634 = dry_wb_634_df['infiltration_rate(m)'].values
 dry_wb_591_df.loc[dry_wb_591_df['month'] == 1] = 13
 dry_wb_591_df.loc[dry_wb_591_df['month'] == 2] = 14
 print dry_wb_591_df['month'].unique()
@@ -570,6 +619,7 @@ ax_1.set_title("591")
 ax_2.set_title("599")
 ax_3.set_title("634")
 plt.show()
+print(dry_wb_591_df['infiltration_rate(m)'].head(20))
 
 norm = matplotlib.colors.Normalize(vmin=5, vmax=14, clip=False)
 
@@ -606,8 +656,9 @@ fig.subplots_adjust(right=0.8)
 cbar_ax = fig.add_axes([0.85, 0.4, 0.04, 0.5])
 cbar = fig.colorbar(scatter_591, cax=cbar_ax)
 print cbar.ax.get_yticks()
-cbar.ax.get_yaxis().set_ticks([0,  0.333, 0.666, 1 ])
+cbar.ax.get_yaxis().set_ticks([0,  0.333, 0.666, 1])
 cbar.ax.get_yaxis().set_ticklabels(['May-14', 'Aug-14', 'Nov-14', 'Feb-15'])
+
 # for j, lab in enumerate([5, ])
 plt.show()
 #
@@ -631,6 +682,8 @@ plt.show()
 # plt.show()
 
 #  stage vs infil plot based days from inflow
+
+
 def find_previous_inflow_date(df, inflow_dates):
     """
     Calculates no of days from inflow event for dates in df
@@ -649,16 +702,16 @@ def find_previous_inflow_date(df, inflow_dates):
 
 # print len(inflow_days_591_df.index)
 
-inflow_days_591_df = wb_591.loc[wb_591['Inflow (cu.m)']> 1]
+inflow_days_591_df = wb_591.loc[wb_591['Inflow (cu.m)'] > 1]
 find_previous_inflow_date(dry_wb_591_df, inflow_days_591_df.index)
-inflow_days_599_df = wb_599.loc[wb_599['Inflow (cu.m)']> 1]
+inflow_days_599_df = wb_599.loc[wb_599['Inflow (cu.m)'] > 1]
 find_previous_inflow_date(dry_wb_599_df, inflow_days_599_df.index)
-inflow_days_634_df = wb_634.loc[wb_634['Inflow (cu.m)']> 1]
+inflow_days_634_df = wb_634.loc[wb_634['Inflow (cu.m)'] > 1]
 find_previous_inflow_date(dry_wb_634_df, inflow_days_634_df.index)
 # print inflow_days_591_df.head(10)
 # print dry_wb_591_df.head(10)
 
-fig, (ax_1, ax_2, ax_3) = plt.subplots(nrows=1, ncols=3, facecolor='white')
+fig, (ax_1, ax_2, ax_3) = plt.subplots(nrows=1, ncols=3, facecolor='white', sharey=True)
 # fig = plt.figure()
 cmap = cm.get_cmap('Spectral_r')
 scatter_591 = ax_1.scatter(stage_cal_591, infilt_rate_cal_591, c=dry_wb_591_df['days_from_inflow'], cmap=cmap, edgecolor='None',s=(np.pi*(5**2)) )
@@ -666,9 +719,28 @@ scatter_599 = ax_2.scatter(stage_cal_599, infilt_rate_cal_599, c=dry_wb_599_df['
 scatter_634 = ax_3.scatter(stage_cal_634, infilt_rate_cal_634, c=dry_wb_634_df['days_from_inflow'], cmap=cmap, edgecolor='None',s=(np.pi*(5**2)) )
 ax_1.set_title('591')
 ax_1.set_xlim(0, 2)
+ax_1.set_ylim(0, 0.08)
 ax_2.set_title('599')
 ax_3.set_title('634')
-cbar = fig.colorbar(scatter_591)
+cbar = fig.colorbar(scatter_591) #, format='%i')
+# locators
+locator_x_591 = MaxNLocator(3)
+locator_x_599 = MaxNLocator(3)
+locator_x_634 = MaxNLocator(3)
+locator_y_591 = MaxNLocator(4)
+# locator_y_599 = MaxNLocator(4)
+# locator_y_634 = MaxNLocator(4)
+# xaxis
+ax_1.xaxis.set_major_locator(locator_x_591)
+ax_2.xaxis.set_major_locator(locator_x_599)
+ax_3.xaxis.set_major_locator(locator_x_634)
+# ax_1.xaxis.set_major_locator(locator_x_591)
+ax_2.xaxis.set_major_formatter(FormatStrFormatter('%0.1f'))
+ax_3.xaxis.set_major_formatter(FormatStrFormatter('%0.1f'))
+# yaxis
+# ax_1.yaxis.set_major_locator(locator_y_591)
+ax_2.set_xlabel(r"Stage (m)")
+ax_1.set_ylabel(r"Percolation rate ($m \ day^{-1}$)", labelpad=20)
 plt.show()
 raise SystemExit(0)
 """
@@ -951,45 +1023,4 @@ raise SystemExit(0)
 # plt.show()
 
 
-file_results_pie = '/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/summary_check_dam.csv'
-results_pie_df = pd.read_csv(file_results_pie, sep=',', header=0)
-results_pie_df.set_index(results_pie_df['Check dam no'], inplace=True)
-print results_pie_df.head()
-# latexify(fig_width=9, fig_height=9)
-# fig, (ax1, ax2, ax3) = plt.subplots(nrows=1, ncols=3, facecolor='white' )
-fig= plt.figure(facecolor='white', figsize=(8,6), dpi=100)
-ax1 = plt.subplot(131,aspect=True,axisbg='w')
-# fig, ax1 = plt.subplots(facecolor='white')
-evap_591 = results_pie_df['Evaporation (cu.m)'][591]
-infilt_591 = results_pie_df['Infiltration (cu.m)'][591]
-overflow_591 = results_pie_df['Overflow (cu.m)'][591]
-pie1, text1, autotexts_1 = ax1.pie([evap_591, infilt_591, overflow_591], labels=['E', 'P', 'O'],
-                                   colors=dark_2_colors[0:3],
-                                   autopct='%i%%',
-                                   )
-legend = fig.legend([pie1[0], pie1[1], pie1[2]],["Evaporation", "Percolation", "Overflow"],fancybox=True, ncol=3,loc=(0.01,0.02)).draggable()
-ax1.set_title("Check dam 591")
-ax2 = plt.subplot(132,aspect=True,axisbg='w')
-evap_599 = results_pie_df['Evaporation (cu.m)'][599]
-infilt_599 = results_pie_df['Infiltration (cu.m)'][599]
-overflow_599 = results_pie_df['Overflow (cu.m)'][599]
-pie2, text2, autotexts_2 = ax2.pie([evap_599, infilt_599, overflow_599], labels=['E', 'P', 'O'],
-                                   colors=dark_2_colors[0:3],
-                                   autopct='%i%%')
-ax2.set_title("Check dam 599")
-ax3 = plt.subplot(133,aspect=True,axisbg='w')
-evap_634 = results_pie_df['Evaporation (cu.m)'][634]
-infilt_634 = results_pie_df['Infiltration (cu.m)'][634]
-overflow_634 = results_pie_df['Overflow (cu.m)'][634]
-pie3, text3, autotexts_3 = ax3.pie([evap_634, infilt_634, overflow_634], labels=['E', 'P', 'O'],
-                                   colors=dark_2_colors[0:3],
-                                   autopct='%i%%',
-                                   )
-ax3.set_title("Check dam 634")
-for label in text1:
-    label.set_fontsize(36)
-for label in text2:
-    label.set_fontsize(36)
-for label in text3:
-    label.set_fontsize(36)
-plt.show()
+

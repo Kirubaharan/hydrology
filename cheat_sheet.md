@@ -6,6 +6,9 @@ Mostly collected from Stackflow answers.
 ###Print unique value of a pandas column
 print df['column_name'].unique()
 
+### Average of single pandas column
+df['column_name'].mean()
+
 ###Get the datatype of pandas column
 ```python
 df.column_name.dtype
@@ -19,7 +22,7 @@ df.drop([Column Name or list],inplace=True,axis=1)   #will delete one or more co
 Dont use `inplace` if you don't want to change the original df
 
 ###Select column using column name
-####Select single column
+####Select single columncreate vpn server ubuntu
 ```python
 df['column name']
 ```
