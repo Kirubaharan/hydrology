@@ -604,8 +604,8 @@ stage_cal_599 = dry_wb_599_df['stage(m)'].values
 infilt_rate_cal_599 = dry_wb_599_df['infiltration_rate(m)'].values
 stage_cal_634 = dry_wb_634_df['stage(m)'].values
 infilt_rate_cal_634 = dry_wb_634_df['infiltration_rate(m)'].values
-dry_wb_591_df.loc[dry_wb_591_df['month'] == 1] = 13
-dry_wb_591_df.loc[dry_wb_591_df['month'] == 2] = 14
+dry_wb_591_df['month'].loc[dry_wb_591_df['month'] == 1] = 13
+dry_wb_591_df['month'].loc[dry_wb_591_df['month'] == 2] = 14
 print dry_wb_591_df['month'].unique()
 print dry_wb_599_df['month'].unique()
 print dry_wb_634_df['month'].unique()
@@ -722,7 +722,9 @@ ax_1.set_xlim(0, 2)
 ax_1.set_ylim(0, 0.08)
 ax_2.set_title('599')
 ax_3.set_title('634')
-cbar = fig.colorbar(scatter_591) #, format='%i')
+cbar = fig.colorbar(scatter_591, format='%i')
+cbar.ax.get_yaxis().labelpad = 30
+cbar.set_label(r"Days from inflow", rotation=90)
 # locators
 locator_x_591 = MaxNLocator(3)
 locator_x_599 = MaxNLocator(3)
@@ -742,7 +744,15 @@ ax_3.xaxis.set_major_formatter(FormatStrFormatter('%0.1f'))
 ax_2.set_xlabel(r"Stage (m)")
 ax_1.set_ylabel(r"Percolation rate ($m \ day^{-1}$)", labelpad=20)
 plt.show()
-raise SystemExit(0)
+"""
+Percolation rate  vs days from inflow
+"""
+print dry_wb_591_df['infiltration_rate(m)'].max()
+# days_from_inflow_df = dry_wb_591_df.loc[dry_wb_591_df['days_from_inflow'] > 0]
+fig = plt.figure()
+plt.plot(dry_wb_591_df.index,dry_wb_591_df['infiltration_rate(m)'], 'r-o')
+plt.show()
+# raise SystemExit(0)
 """
 fig , ax1 = plt.subplots(nrows=1, ncols=1, sharex=True, facecolor='white')
 bbox = ax1.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
@@ -828,9 +838,7 @@ ax1.set_ylabel(r"Rainfall ($mm \, day^{-1}$)")
 fig.autofmt_xdate(rotation=90)
 # # print evap
 plt.show()
-raise  SystemExit(0)
 
-"""
 
 print max_daily_rain_intensity_mm_hr.head()
 print '2014-08-20'
@@ -884,9 +892,15 @@ ax1.set_ylabel(r"Rainfall ($mm \, hr^{-1}$)")
 plt.show()
 # raise SystemExit(0)
 """
+print len(wb_591.index)
+print len(rain_df.index)
+print len(rain_df_daily.index)
+rain_df_hourly = rain_df.resample('H', how=np.sum)
+max_daily_rain_intensity_mm_hr = rain_df_hourly.resample('D', how=np.max)
+print len(max_daily_rain_intensity_mm_hr.index)
 #line plot
 fig, ax1 = plt.subplots(nrows=1, ncols=1, sharex=True, facecolor='white')
-bar_rain = ax1.bar(rain_df.index, rain_df['rain (mm)'], width=[(rain_df.index[j+1]-rain_df.index[j]).days for j in range(len(rain_df.index)-1)] + [30], color='#0000FF',alpha=0.9,label= 'Rainfall (mm)')
+bar_rain = ax1.bar(max_daily_rain_intensity_mm_hr.index, max_daily_rain_intensity_mm_hr['rain (mm)'],width=0.93684, color='#0000FF',alpha=0.9,label= 'Rainfall (mm)')
 ax1.set_ylim([0, 300])
 ax1.invert_yaxis()
 for t1 in ax1.get_yticklabels():
@@ -907,7 +921,7 @@ ax1_1.set_xlim([min(rain_df.index), max(wb_591.index)])
 ax1_1.legend([mpatches.Patch(color='#008000', alpha=0.5), mpatches.Patch(color='#FF0000', alpha=0.5),mpatches.Patch(color='#0000FF', alpha=0.9)], label_list)
 # ax1_1.legend([mpatches.Patch(color='#0000FF', alpha=0.5), mpatches.Patch(color='#FF0000', alpha=0.5)], label_list).draggable()
 ax1_1.set_ylabel(r"Flow ($m^{3} \, day^{-1}$)")
-ax1.set_ylabel(r"Rainfall ($mm \, day^{-1}$)")
+ax1.set_ylabel(r"Maximum daily rainfall intensity ($mm \, hour^{-1}$)")
 # ax1_1.set_title("Check dam 591")
 #
 fig.autofmt_xdate(rotation=90)
@@ -915,6 +929,7 @@ fig.autofmt_xdate(rotation=90)
 plt.show()
 raise SystemExit(0)
 
+"""
 #flow duration curve
 inflow = wb_591['Inflow (cu.m)'].values
 outflow = wb_591['overflow(cu.m)'].values
@@ -930,7 +945,7 @@ plt.plot(outflow_fit, outflow, '-go', label="Outflow")
 plt.xlim([-0.0020, 0.0040])
 plt.legend().draggable()
 plt.show()
-"""
+
 # barplot
 fig, ax1 = plt.subplots(nrows=1, ncols=1, sharex=True, facecolor='white')
 bar_rain = ax1.bar(max_daily_rain_intensity_mm_hr.index, max_daily_rain_intensity_mm_hr['rain (mm)'], width=[(max_daily_rain_intensity_mm_hr.index[j+1]-max_daily_rain_intensity_mm_hr.index[j]).days for j in range(len(max_daily_rain_intensity_mm_hr.index)-1)] + [30], color='#000000',alpha=0.5,label = 'Rainfall (mm)')
@@ -1021,6 +1036,4 @@ raise SystemExit(0)
 # fig.autofmt_xdate(rotation=90)
 # # plt.savefig('/media/kiruba/New Volume/AGU/poster/agu_checkdam/image/evap_infilt.pdf', dpi=400)
 # plt.show()
-
-
-
+"""

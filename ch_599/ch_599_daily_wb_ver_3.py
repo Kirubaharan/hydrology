@@ -263,7 +263,8 @@ for index, row in water_balance_df.iterrows():
 """
 Surface area to volume ratio
 """
-average_stage = full_stage/2.0
+# average_stage = full_stage/2.0
+average_stage = full_stage
 x1, x2 = cd.find_range(stage_vol_df['stage_m'].tolist(), average_stage)
 x_diff = x2 - x1
 y1 = stage_vol_df['total_vol_cu_m'][x1]
@@ -285,7 +286,7 @@ average_area = (slope*average_stage) + y_intercept
 print average_area
 surface_area_to_vol_ratio = average_area/average_volume
 print "surface area to vol ratio is %0.2f" %surface_area_to_vol_ratio
-# raise SystemExit(0)
+raise SystemExit(0)
 """
 Evaporation Volume estimation
 """

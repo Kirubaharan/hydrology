@@ -107,7 +107,7 @@ for i in range(1, 14, 1):
 
 # plt.show()
 # print water_level_13.head()
-# raise SystemExit(0)
+
 
 water_level_30min = pd.concat([water_level_1, water_level_2, water_level_3, water_level_4, water_level_5], axis=0)
 water_level_30 = water_level_30min.sort()
@@ -144,10 +144,18 @@ water_level_10min.index.name = 'Date'
 water_level = pd.concat([water_level_30min, water_level_10min], axis=0)
 water_level = water_level.resample('30min', how=np.mean, label='right', closed='right')
 water_level = water_level[:'2015-02-09']
-# print water_level.tail()
+print water_level.tail()
 # raise SystemExit(0)
 water_level.loc[:, 'stage(m)'] = cd.myround(water_level['stage(m)'], decimals=2)
 water_level.to_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/stage_591.csv')
+hour = water_level.index.hour
+minute = water_level.index.minute
+eleven_30_df = water_level.loc[((hour == 23) & (minute == 30))]
+print eleven_30_df.head()
+fig = plt.figure()
+plt.plot(eleven_30_df.index, eleven_30_df['raw value'], 'ro')
+plt.show()
+# raise SystemExit(0)
 # raise SystemExit(0)
 """
 Join weather and rain data
@@ -269,7 +277,7 @@ y_diff = y2 - y1
 slope = y_diff / x_diff
 y_intercept = y2 - (slope * x2)
 full_volume = (slope*full_stage) + y_intercept
-print full_volume
+print("full volume = %s" % full_volume)
 # overflow_check_df = water_balance_df['2014-08-21']
 # fig = plt.figure()
 # plt.plot_date(overflow_check_df.index, overflow_check_df['stage(m)'], 'bo-')
@@ -412,7 +420,8 @@ for index, row in water_balance_df.iterrows():
 """
 Surface area to volume ratio
 """
-average_stage = full_stage/2.0
+# average_stage = full_stage/2.0
+average_stage = full_stage
 x1, x2 = cd.find_range(stage_vol_df['stage_m'].tolist(), average_stage)
 x_diff = x2 - x1
 y1 = stage_vol_df['total_vol_cu_m'][x1]
@@ -431,7 +440,7 @@ y_diff = y2 - y1
 slope = y_diff / x_diff
 y_intercept = y2 - (slope * x2)
 average_area = (slope*average_stage) + y_intercept
-print average_area
+print("full surface area = %s" % average_area)
 surface_area_to_vol_ratio = average_area/average_volume
 print 'surface area to vol ratio is %0.2f' % surface_area_to_vol_ratio
 # raise SystemExit(0)
@@ -484,6 +493,10 @@ for index in ch_storage_df.index:
         d2_storage = ch_storage_df['volume (cu.m)'][index.strftime(daily_format)]
         water_balance_daily_df.loc[index.strftime(date_format), 'change_storage(cu.m)'] = d2_storage - d1_storage
 
+# fig = plt.figure()
+# plt.plot(water_balance_daily_df.index, water_balance_daily_df['change_storage(cu.m)'], '-ro')
+# plt.show()
+# raise SystemExit(0)
 
 # new_df = water_balance_daily_df.join(ch_storage_df, how='right')
 # new_df.to_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/ch_634/proof.csv')
@@ -525,9 +538,9 @@ for index, row in dry_water_balance_df.iterrows():
             dry_water_balance_df.loc[index.strftime(date_format), 'infiltration(cu.m)'] = -1.0 * (
                 delta_s[index.strftime(daily_format)] + evap[index.strftime(daily_format)])
 
-dry_water_balance_df.loc[:, 'infiltration(cu.m)'] = cd.myround(dry_water_balance_df['infiltration(cu.m)'], decimals=3)
+# dry_water_balance_df.loc[:, 'infiltration(cu.m)'] = cd.myround(dry_water_balance_df['infiltration(cu.m)'], decimals=3)
 dry_water_balance_df = dry_water_balance_df.loc[dry_water_balance_df['stage(m)'] > 0.1]
-dry_water_balance_df = dry_water_balance_df.loc[dry_water_balance_df['infiltration(cu.m)'] > 1]
+dry_water_balance_df = dry_water_balance_df.loc[dry_water_balance_df['infiltration(cu.m)'] > 1.0]
 # dry_water_balance_df = dry_water_balance_df.loc[dry_water_balance_df['infiltration(cu.m)'] < 60]
 dry_water_balance_df.loc[:, 'infiltration_rate(m)'] = dry_water_balance_df['infiltration(cu.m)']/dry_water_balance_df['ws_area(sq.m)']
 dry_water_balance_df.to_csv('/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/591/dry_wb.csv')
@@ -535,7 +548,13 @@ print dry_water_balance_df.head()
 print dry_water_balance_df['infiltration_rate(m)'].mean()
 average_infiltration_rate = cd.myround(dry_water_balance_df['infiltration_rate(m)'].mean(), decimals=3)
 print "infilt"
-# raise SystemExit(0)
+fig, (ax1, ax2, ax3, ax4) = plt.subplots(nrows=4, ncols=1, facecolor='white', sharex=True)
+ax1.plot(dry_water_balance_df.index, dry_water_balance_df['infiltration_rate(m)'], 'ro')
+ax2.plot(dry_water_balance_df.index, dry_water_balance_df['infiltration(cu.m)'], 'bo')
+ax3.plot(dry_water_balance_df.index, dry_water_balance_df['Evaporation (cu.m)'], 'go')
+ax4.plot(eleven_30_df.index, eleven_30_df['raw value'], 'ko')
+plt.show()
+raise SystemExit(0)
 
 """
 Fitting exponential function
