@@ -10,6 +10,64 @@ from matplotlib import cm
 from matplotlib.path import *
 from matplotlib.collections import PolyCollection
 import matplotlib as mpl
+from matplotlib.ticker import MultipleLocator
+from matplotlib.ticker import MaxNLocator
+import checkdam.checkdam as cd
+import checkdam.mynormalize as mn
+
+class MyAxes3D(axes3d.Axes3D):
+
+    def __init__(self, baseObject, sides_to_draw):
+        self.__class__ = type(baseObject.__class__.__name__,
+                              (self.__class__, baseObject.__class__),
+                              {})
+        self.__dict__ = baseObject.__dict__
+        self.sides_to_draw = list(sides_to_draw)
+        self.mouse_init()
+
+    def set_some_features_visibility(self, visible):
+        for t in self.w_zaxis.get_ticklines() + self.w_zaxis.get_ticklabels():
+            t.set_visible(visible)
+        self.w_zaxis.line.set_visible(visible)
+        self.w_zaxis.pane.set_visible(visible)
+        self.w_zaxis.label.set_visible(visible)
+
+    def draw(self, renderer):
+        # set visibility of some features False
+        self.set_some_features_visibility(False)
+        # draw the axes
+        super(MyAxes3D, self).draw(renderer)
+        # set visibility of some features True.
+        # This could be adapted to set your features to desired visibility,
+        # e.g. storing the previous values and restoring the values
+        self.set_some_features_visibility(True)
+
+        zaxis = self.zaxis
+        draw_grid_old = zaxis.axes._draw_grid
+        # disable draw grid
+        zaxis.axes._draw_grid = False
+
+        tmp_planes = zaxis._PLANES
+
+        if 'l' in self.sides_to_draw :
+            # draw zaxis on the left side
+            zaxis._PLANES = (tmp_planes[2], tmp_planes[3],
+                             tmp_planes[0], tmp_planes[1],
+                             tmp_planes[4], tmp_planes[5])
+            zaxis.draw(renderer)
+        if 'r' in self.sides_to_draw :
+            # draw zaxis on the right side
+            zaxis._PLANES = (tmp_planes[3], tmp_planes[2],
+                             tmp_planes[1], tmp_planes[0],
+                             tmp_planes[4], tmp_planes[5])
+            zaxis.draw(renderer)
+
+        zaxis._PLANES = tmp_planes
+
+        # disable draw grid
+        zaxis.axes._draw_grid = draw_grid_old
+
+
 # print mpl.__version__
 base_file = '/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/base_profile_591.csv'
 df_base = pd.read_csv(base_file, header=-1)
@@ -108,7 +166,52 @@ Z = data_1_df.z
 # plt.ylabel(r'\textbf{Y} (m)')
 # plt.title(r"Profile for 591", fontsize=16)
 # plt.show()
+# 3d plot for check dam paper
+fig = plt.figure(figsize=(12, 7.414), facecolor='white')
+ax1 = fig.gca(projection='3d')
+xi = np.linspace(X.min(), X.max(), 100)
+yi = np.linspace(Y.min(), Y.max(), 100)
+zi = griddata((X, Y), Z, (xi[None, :], yi[:, None]), method='linear')    # create a uniform spaced grid
+xig, yig = np.meshgrid(xi, yi)
+# surf = ax.plot_surface(xig, yig, zi, rstride=5, cstride=3, linewidth=0, cmap=cm.coolwarm, antialiased=False, rasterized=True)   # 3d plot
+surf = ax1.plot_surface(xig, yig, zi, rstride=1, cstride=1, cmap='Greys', shade=False, linewidth=0.25)   # 3d plot
+plt.subplots_adjust(right=0.80, bottom=0, wspace=0.22)
+cbar_ax = fig.add_axes([0.85, 0.4, 0.04, 0.5])
 
+# surf.set_edgecolor('k')
+ax1.set_xlabel(r'X')
+ax1.set_ylabel(r'Y')
+ax1.set_zlabel(r'Z')
+ax1.xaxis.set_rotate_label(False)
+ax1.yaxis.set_rotate_label(False)
+ax1.zaxis.set_rotate_label(False)
+ax1.view_init(elev=30, azim=-119)
+ax1.grid(False)
+ax1.xaxis.pane.set_edgecolor('black')
+ax1.yaxis.pane.set_edgecolor('black')
+ax1.zaxis.pane.set_edgecolor('black')
+ax1.xaxis.pane.fill = False
+ax1.yaxis.pane.fill = False
+ax1.zaxis.pane.fill = False
+ax1.xaxis.set_major_locator(MultipleLocator(10))
+ax1.yaxis.set_major_locator(MultipleLocator(20))
+ax1.zaxis.set_major_locator(MultipleLocator(1))
+[t.set_va('center') for t in ax1.get_yticklabels()]
+[t.set_ha('left') for t in ax1.get_yticklabels()]
+[t.set_va('center') for t in ax1.get_xticklabels()]
+[t.set_ha('right') for t in ax1.get_xticklabels()]
+[t.set_va('center') for t in ax1.get_zticklabels()]
+[t.set_ha('left') for t in ax1.get_zticklabels()]
+ax1.xaxis._axinfo['tick']['inward_factor'] = 0
+ax1.xaxis._axinfo['tick']['outward_factor'] = 0.4
+ax1.yaxis._axinfo['tick']['inward_factor'] = 0
+ax1.yaxis._axinfo['tick']['outward_factor'] = 0.4
+ax1.zaxis._axinfo['tick']['inward_factor'] = 0
+ax1.zaxis._axinfo['tick']['outward_factor'] = 0.4
+ax1.zaxis._axinfo['tick']['inward_factor'] = 0
+ax = fig.add_axes(MyAxes3D(ax1, 'lr'))
+plt.show()
+raise SystemExit(0)
 ## contour and 3d surface plotting
 fig = plt.figure(figsize=(16, 8))
 ax = fig.gca(projection='3d')
@@ -167,8 +270,8 @@ plt.yticks(np.arange(0,100, 5))
 plt.xticks(np.arange(-30,25, 5))
 plt.grid()
 plt.gca().invert_xaxis()
-m.save_html(fig, '/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_591/contour_html')
-plt.savefig('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/cont_2d')
+# m.save_html(fig, '/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_591/contour_html')
+# plt.savefig('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/cont_2d')
 plt.show()
 raise SystemExit(0)
 def contour_area(mpl_obj):

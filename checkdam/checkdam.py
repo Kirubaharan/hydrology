@@ -1,6 +1,6 @@
 __author__ = 'kiruba'
 import numpy as np
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import pandas as pd
 import itertools
 from fractions import Fraction
@@ -11,6 +11,7 @@ from datetime import timedelta
 import meteolib as met
 # import evaplib
 import scipy as sp
+import mynormalize
 
 date_format = '%Y-%m-%d %H:%M:%S'
 daily_format = '%Y-%m-%d'
@@ -19,39 +20,40 @@ stage_cutoff = 0.1
 
 
 def spread(start, end, count, mode=1):
-    # """spread(start, end, count [, mode]) -> generator
-    #
-    # Yield a sequence of evenly-spaced numbers between start and end.
-    #
-    # The range start...end is divided into count evenly-spaced (or as close to
-    # evenly-spaced as possible) intervals. The end-points of each interval are
-    # then yielded, optionally including or excluding start and end themselves.
-    # By default, start is included and end is excluded.
-    #
-    # For example, with start=0, end=2.1 and count=3, the range is divided into
-    # three intervals:
-    #
-    # (0.0)-----(0.7)-----(1.4)-----(2.1)
-    #
-    # resulting in:
-    #
-    #     >>> list(spread(0.0, 2.1, 3))
-    #     [0.0, 0.7, 1.4]
-    #
-    # Optional argument mode controls whether spread() includes the start and
-    # end values. mode must be an int. Bit zero of mode controls whether start
-    # is included (on) or excluded (off); bit one does the same for end. Hence:
-    #
-    #     0 -> open interval (start and end both excluded)
-    #     1 -> half-open (start included, end excluded)
-    #     2 -> half open (start excluded, end included)
-    #     3 -> closed (start and end both included)
-    #
-    # By default, mode=1 and only start is included in the output.
-    #
-    # (Note: depending on mode, the number of values returned can be count,
-    # count-1 or count+1.)
-    # """
+    """
+
+    Yield a sequence of evenly-spaced numbers between start and end.
+
+    spread(start, end, count [, mode]) -> generator
+
+    The range start...end is divided into count evenly-spaced (or as close to
+    evenly-spaced as possible) intervals. The end-points of each interval are
+    then yielded, optionally including or excluding start and end themselves.
+    By default, start is included and end is excluded.
+
+    Optional argument mode controls whether spread() includes the start and
+    end values. mode must be an int. Bit zero of mode controls whether start
+    is included (on) or excluded (off); bit one does the same for end. Hence:
+
+    0 -> open interval (start and end both excluded)
+    1 -> half-open (start included, end excluded)
+    2 -> half open (start excluded, end included)
+    3 -> closed (start and end both included)
+
+    By default, mode=1 and only start is included in the output.
+
+    (Note: depending on mode, the number of values returned can be count, count-1 or count+1.)
+
+    :param start: starting number
+    :param end: ending number
+    :param count: number of values returned
+    :param mode: controls the output, default is 1
+    :return: generator
+
+    Examples:
+        >>> list(spread(0.0, 2.1, 3))
+        [0.0, 0.7, 1.4]
+    """
     if not isinstance(mode, int):
         raise TypeError('mode must be an int')
     if count != int(count):
@@ -69,7 +71,12 @@ def spread(start, end, count, mode=1):
 
 
 def pairwise(iterable):
-    """s -> (s0,s1), (s1,s2), (s2,s3), ..."""
+    """
+    s -> (s0,s1), (s1,s2), (s2,s3)
+
+    :param iterable:
+    :return:
+    """
     a, b = itertools.tee(iterable)
     next(b, None)
     return itertools.izip(a, b)
@@ -77,7 +84,8 @@ def pairwise(iterable):
 
 def calcvolume(y_value_list, elevation_data, dam_height):
     """
-    Modified function to calculate stage vs volume from elevation data
+    Modified function to calculate stage vs volume relationship from elevation data
+
     :param y_value_list: List of Y values, y1, y2,...
     :param elevation_data: Elevation data with headers df.Yy1, df.Yy2
     :param dam_height: check dam height in metre
@@ -114,9 +122,21 @@ def calcvolume(y_value_list, elevation_data, dam_height):
     return final_results
 
 
-def find_range(array, ab):
-    if ab < max(array):
-        start = bisect_left(array, ab)
+def find_range(array, x):
+    """
+    Function to calculate bounding intervals from array to do piecewise linear interpolation.
+
+    :param array: list of values
+    :param x: interpolation value
+    :return: boundary interval
+
+    Examples:
+        >>> array = [0, 1, 2, 3, 4]
+        >>>find_range(array, 1.5)
+        1, 2
+    """
+    if x < max(array):
+        start = bisect_left(array, x)
         return array[start-1], array[start]
     else:
         return min(array), max(array)
@@ -124,11 +144,14 @@ def find_range(array, ab):
 
 def fill_profile(base_df, slope_df, midpoint_index):
     """
+    Function to fill profile data where only slope data is collected.
+    The difference between two slope is added to previous slope to get the current
+    cross section.
 
     :param base_df:  base profile
     :param slope_df: slope profile
     :param midpoint_index: index of midpoint(x=0)
-    :return:
+    :return: filled base profile
     """
     base_z = base_df.ix[midpoint_index, 0:]
     slope_z = slope_df.ix[:, 1]
@@ -150,7 +173,7 @@ def fill_profile(base_df, slope_df, midpoint_index):
 
 
 def set_column_sequence(dataframe, seq):
-    """Takes a dataframe and a subsequence of its columns, returns dataframe with seq as first columns"""
+    """Takes a dataframe and a sequence of its columns, returns dataframe with seq as first column"""
     cols = seq[:]  # copy so we don't mutate seq
     for x in dataframe.columns:
         if x not in cols:
@@ -162,10 +185,11 @@ def contour_area(mpl_obj):
     """
     Returns a array of contour levels and
     corresponding cumulative area of contours
+    # Refer: Nikolai Shokhirev http://www.numericalexpert.com/blog/area_calculation/
+
     :param mpl_obj: Matplotlib contour object
     :return: [(level1, area1), (level1, area1+area2)]
     """
-    # Refer: Nikolai Shokhirev http://www.numericalexpert.com/blog/area_calculation/
     global poly_area
     n_c = len(mpl_obj.collections)  # n_c = no of contours
     print 'No. of contours = {0}'.format(n_c)
@@ -189,6 +213,15 @@ def contour_area(mpl_obj):
 
 
 def polyfit(x, y, degree):
+    """
+    Wrapper around np.polyfit
+
+    :param x: x values
+    :param y: y values
+    :param degree: polynomial degree
+    :return: results, polynomial has coefficients, determination has r-squared
+    :rtype: dict
+    """
     results = {}
     coeffs = np.polyfit(x, y, degree)
     results['polynomial'] = coeffs.tolist()
@@ -203,15 +236,31 @@ def polyfit(x, y, degree):
 
 
 def myround(a, decimals=1):
+    """
+    Function to round, better than numpy around
+
+    :param a: float to be rounded
+    :param decimals: no of decimal places, default = 1
+    :return: float
+
+    Examples:
+        >>> myround(0.7568,decimals=2)
+        0.76
+    """
     return np.around(a - 10 ** (-(decimals + 5)), decimals=decimals)
 
 
 def read_correct_ch_dam_data(csv_file, calibration_slope, calibration_intercept):
     """
-    Function to read, calibrate and convert time format (day1 24:00:00
-    to day 2 00:00:00) in check dam data
-    :param csv_file:
+    Function to read and calibrate odyssey capacitance sensor data
+
+    :param csv_file: csv file created from sensor
+    :param calibration_slope: slope
+    :param calibration_intercept: intercept
     :return: calibrated and time corrected data
+
+    Examples:
+        >>> read_correct_ch_dam_data(csv_file=file.csv, calibration_slope=0.111, calibration_intercept=0.222)
     """
     water_level = pd.read_csv(csv_file, skiprows=9, sep=',', header=0,
                               names=['scan no', 'date', 'time', 'raw value', 'calibrated value'])
@@ -259,11 +308,12 @@ def read_correct_ch_dam_data(csv_file, calibration_slope, calibration_intercept)
 def extraterrestrial_irrad(local_datetime, latitude_deg, longitude_deg):
     """
     Calculates extraterrestrial radiation in MJ/m2/30min
-    :rtype : float
+
     :param local_datetime: datetime object
     :param latitude_deg: in decimal degree
     :param longitude_deg: in decimal degree
     :return: Extra terrestrial radiation in MJ/m2/30min
+    :rtype: float
     """
 
     s = 0.0820  # MJ m-2 min-1
@@ -302,6 +352,7 @@ def delta_calc(airtemp):
     """
     Calculates slope of saturation vapour pressure curve at air temperature [kPa/Celsius]
     http://www.fao.org/docrep/x0490e/x0490e07.htm
+
     :param airtemp: Temperature in Celsius
     :return: slope of saturation vapour pressure curve [kPa/Celsius]
     """
@@ -340,6 +391,9 @@ def half_hour_evaporation(airtemp=sp.array([]),
     :param u: average wind speed at 2 m from ground [m/s]
     :param z: site elevation, default is zero [metre]
     :return: Penman open water evaporation values [mm/30min]
+
+    Examples:
+          >>> half_hour_evaporation = E0(T,RH,press,Rs,N,Rext,u,1000.0) # at 1000 m a.s.l
     """
     # Set constants
     albedo = 0.06  # open water albedo
@@ -402,6 +456,7 @@ def half_hour_evaporation(airtemp=sp.array([]),
 def pick_incorrect_value(dataframe, **param):
     """
     Selects a unique list of timestamp that satisfies the condition given in the param dictionary
+
     :param dataframe: Pandas dataframe
     :param param: Conditonal Dictionary, Eg.{column name: [cutoff, '>']}
     :type param: dict
@@ -433,8 +488,10 @@ def pick_incorrect_value(dataframe, **param):
 
     return unique_list
 
+
 def day_interpolate(dataframe, column_name, wrong_date_time):
     """
+    Function to do linear interpolate on daily timescale
 
     :param dataframe: Pandas dataframe
     :param column_name: Interpolation target column name of dataframe
@@ -459,6 +516,8 @@ def day_interpolate(dataframe, column_name, wrong_date_time):
 def previous_interpolate(dataframe, column_name, wrong_date_time):
     """
 
+    Function to fill the missing values from corresponding previous day's time period
+
     :param dataframe: Pandas dataframe
     :param column_name: Interpolation target column name of dataframe
     :type column_name: str
@@ -477,100 +536,76 @@ def previous_interpolate(dataframe, column_name, wrong_date_time):
     return dataframe
 
 
+class DraggableColorbar(object):
+    def __init__(self, cbar, mappable):
+        self.cbar = cbar
+        self.mappable = mappable
+        self.press = None
+        self.cycle = sorted([i for i in dir(plt.cm) if hasattr(getattr(plt.cm,i),'N')])
+        self.index = self.cycle.index(cbar.get_cmap().name)
 
-#### For those who are familiar with pandas
-#### Correspondence:
-####    value <-> Orange.data.Value
-####        NaN <-> ["?", "~", "."] # Don't know, Don't care, Other
-####    dtype <-> Orange.feature.Descriptor
-####        category, int <-> Orange.feature.Discrete # category: > pandas 0.15
-####        int, float <-> Orange.feature.Continuous # Continuous = core.FloatVariable
-####                                                 # refer to feature/__init__.py
-####        str <-> Orange.feature.String
-####        object <-> Orange.feature.Python
-####    DataFrame.dtypes <-> Orange.data.Domain
-####    DataFrame.DataFrame <-> Orange.data.Table = Orange.orange.ExampleTable
-####                              # You will need this if you are reading sources
+    def connect(self):
+        """connect to all the events we need"""
+        self.cidpress = self.cbar.patch.figure.canvas.mpl_connect(
+            'button_press_event', self.on_press)
+        self.cidrelease = self.cbar.patch.figure.canvas.mpl_connect(
+            'button_release_event', self.on_release)
+        self.cidmotion = self.cbar.patch.figure.canvas.mpl_connect(
+            'motion_notify_event', self.on_motion)
+        self.keypress = self.cbar.patch.figure.canvas.mpl_connect(
+            'key_press_event', self.key_press)
 
-def series2descriptor(d, discrete=False):
-    if d.dtype is np.dtype("float"):
-        return Orange.feature.Continuous(str(d.name))
-    elif d.dtype is np.dtype("int"):
-        return Orange.feature.Continuous(str(d.name), number_of_decimals=0)
-    else:
-        t = d.unique()
-        if discrete or len(t) < len(d) / 2:
-            t.sort()
-            return Orange.feature.Discrete(str(d.name), values=list(t.astype("str")))
-        else:
-            return Orange.feature.String(str(d.name))
+    def on_press(self, event):
+        """on button press we will see if the mouse is over us and store some data"""
+        if event.inaxes != self.cbar.ax: return
+        self.press = event.x, event.y
 
+    def key_press(self, event):
+        if event.key=='down':
+            self.index += 1
+        elif event.key=='up':
+            self.index -= 1
+        if self.index<0:
+            self.index = len(self.cycle)
+        elif self.index>=len(self.cycle):
+            self.index = 0
+        cmap = self.cycle[self.index]
+        self.cbar.set_cmap(cmap)
+        self.cbar.draw_all()
+        self.mappable.set_cmap(cmap)
+        self.mappable.get_axes().set_title(cmap)
+        self.cbar.patch.figure.canvas.draw()
 
-def df2domain(df):
-    featurelist = [series2descriptor(df.icol(col)) for col in xrange(len(df.columns))]
-    return Orange.data.Domain(featurelist)
-
-
-def df2table(df):
-    # It seems they are using native python object/lists internally for Orange.data types (?)
-    # And I didn't find a constructor suitable for pandas.DataFrame since it may carry
-    # multiple dtypes
-    #  --> the best approximate is Orange.data.Table.__init__(domain, numpy.ndarray),
-    #  --> but the dtype of numpy array can only be "int" and "float"
-    #  -->  * refer to src/orange/lib_kernel.cpp 3059:
-    #  -->  *    if (((*vi)->varType != TValue::INTVAR) && ((*vi)->varType != TValue::FLOATVAR))
-    #  --> Documents never mentioned >_<
-    # So we use numpy constructor for those int/float columns, python list constructor for other
-
-    tdomain = df2domain(df)
-    ttables = [series2table(df.icol(i), tdomain[i]) for i in xrange(len(df.columns))]
-    return Orange.data.Table(ttables)
-
-    # For performance concerns, here are my results
-    # dtndarray = np.random.rand(100000, 100)
-    # dtlist = list(dtndarray)
-    # tdomain = Orange.data.Domain([Orange.feature.Continuous("var" + str(i)) for i in xrange(100)])
-    # tinsts = [Orange.data.Instance(tdomain, list(dtlist[i]) )for i in xrange(len(dtlist))]
-    # t = Orange.data.Table(tdomain, tinsts)
-    #
-    # timeit list(dtndarray)  # 45.6ms
-    # timeit [Orange.data.Instance(tdomain, list(dtlist[i])) for i in xrange(len(dtlist))] # 3.28s
-    # timeit Orange.data.Table(tdomain, tinsts) # 280ms
-
-    # timeit Orange.data.Table(tdomain, dtndarray) # 380ms
-    #
-    # As illustrated above, utilizing constructor with ndarray can greatly improve performance
-    # So one may conceive better converter based on these results
+    def on_motion(self, event):
+        'on motion we will move the rect if the mouse is over us'
+        if self.press is None: return
+        if event.inaxes != self.cbar.ax: return
+        xprev, yprev = self.press
+        dx = event.x - xprev
+        dy = event.y - yprev
+        self.press = event.x,event.y
+        #print 'x0=%f, xpress=%f, event.xdata=%f, dx=%f, x0+dx=%f'%(x0, xpress, event.xdata, dx, x0+dx)
+        scale = self.cbar.norm.vmax - self.cbar.norm.vmin
+        perc = 0.03
+        if event.button==1:
+            self.cbar.norm.vmin -= (perc*scale)*np.sign(dy)
+            self.cbar.norm.vmax -= (perc*scale)*np.sign(dy)
+        elif event.button==3:
+            self.cbar.norm.vmin -= (perc*scale)*np.sign(dy)
+            self.cbar.norm.vmax += (perc*scale)*np.sign(dy)
+        self.cbar.draw_all()
+        self.mappable.set_norm(self.cbar.norm)
+        self.cbar.patch.figure.canvas.draw()
 
 
-def series2table(series, variable):
-    if series.dtype is np.dtype("int") or series.dtype is np.dtype("float"):
-        # Use numpy
-        # Table._init__(Domain, numpy.ndarray)
-        return Orange.data.Table(Orange.data.Domain(variable), series.values[:, np.newaxis])
-    else:
-        # Build instance list
-        # Table.__init__(Domain, list_of_instances)
-        tdomain = Orange.data.Domain(variable)
-        tinsts = [Orange.data.Instance(tdomain, [i]) for i in series]
-        return Orange.data.Table(tdomain, tinsts)
-        # 5x performance
+    def on_release(self, event):
+        """on release we reset the press data"""
+        self.press = None
+        self.mappable.set_norm(self.cbar.norm)
+        self.cbar.patch.figure.canvas.draw()
 
-
-def column2df(col):
-    if type(col.domain[0]) is Orange.feature.Continuous:
-        return (col.domain[0].name, pd.Series(col.to_numpy()[0].flatten()))
-    else:
-        tmp = pd.Series(np.array(list(col)).flatten())  # type(tmp) -> np.array( dtype=list (Orange.data.Value) )
-        tmp = tmp.apply(lambda x: str(x[0]))
-        return (col.domain[0].name, tmp)
-
-def table2df(tab):
-    # Orange.data.Table().to_numpy() cannot handle strings
-    # So we must build the array column by column,
-    # When it comes to strings, python list is used
-    series = [column2df(tab.select(i)) for i in xrange(len(tab.domain))]
-    series_name = [i[0] for i in series]  # To keep the order of variables unchanged
-    series_data = dict(series)
-    print series_data
-    return pd.DataFrame(series_data, columns=series_name)
+    def disconnect(self):
+        """disconnect all the stored connection ids"""
+        self.cbar.patch.figure.canvas.mpl_disconnect(self.cidpress)
+        self.cbar.patch.figure.canvas.mpl_disconnect(self.cidrelease)
+        self.cbar.patch.figure.canvas.mpl_disconnect(self.cidmotion)

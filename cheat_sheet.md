@@ -212,7 +212,34 @@ date_1, date_2 should be a datetime object, or use date(2009, 09, 24)
 ### Basic Function
 ```python
 def my_add(a, b):
-    total = a + b
-    
+    total = a + b   
 ```
     
+# General Python
+This section is for my reference. It will contain sections from tutorials which helped me to grasp concepts. I am
+starting with Python __Class__ .
+
+## Class
+[Source: https://docs.python.org/2/tutorial/classes.html](https://docs.python.org/2/tutorial/classes.html)
+
+### Dog example
+```python
+
+    class Dog:
+
+        kind = 'canine'         # class variable shared by all instances
+
+        def __init__(self, name):
+            self.name = name    # instance variable unique to each instance
+
+    >>> d = Dog('Fido')
+    >>> e = Dog('Buddy')
+    >>> d.kind                  # shared by all dogs
+    'canine'
+    >>> e.kind                  # shared by all dogs
+    'canine'
+    >>> d.name                  # unique to d
+    'Fido'
+    >>> e.name                  # unique to e
+    'Buddy'
+```

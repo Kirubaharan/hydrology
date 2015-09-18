@@ -25,6 +25,7 @@ import powerlaw
 from matplotlib.ticker import FormatStrFormatter
 import checkdam.checkdam as cd
 
+
 # latex parameters
 rc('font', **{'family': 'sans-serif', 'serif': ['Computer Modern Roman']})
 rc('text', usetex=True)
@@ -599,7 +600,7 @@ dry_wb_591_df.loc[:, 'new_infiltration_rate(m)'] = dry_wb_591_df['infiltration(c
 print "Average Infiltration rate "
 print dry_wb_591_df['infiltration_rate(m)'].mean()
 stage_cal_591 = dry_wb_591_df['stage(m)'].values
-infilt_rate_cal_591 = dry_wb_591_df['new_infiltration_rate(m)'].values
+infilt_rate_cal_591 = dry_wb_591_df['infiltration_rate(m)'].values
 stage_cal_599 = dry_wb_599_df['stage(m)'].values
 infilt_rate_cal_599 = dry_wb_599_df['infiltration_rate(m)'].values
 stage_cal_634 = dry_wb_634_df['stage(m)'].values
@@ -714,9 +715,10 @@ find_previous_inflow_date(dry_wb_634_df, inflow_days_634_df.index)
 fig, (ax_1, ax_2, ax_3) = plt.subplots(nrows=1, ncols=3, facecolor='white', sharey=True)
 # fig = plt.figure()
 cmap = cm.get_cmap('Spectral_r')
-scatter_591 = ax_1.scatter(stage_cal_591, infilt_rate_cal_591, c=dry_wb_591_df['days_from_inflow'], cmap=cmap, edgecolor='None',s=(np.pi*(5**2)) )
-scatter_599 = ax_2.scatter(stage_cal_599, infilt_rate_cal_599, c=dry_wb_599_df['days_from_inflow'], cmap=cmap, edgecolor='None',s=(np.pi*(5**2)) )
-scatter_634 = ax_3.scatter(stage_cal_634, infilt_rate_cal_634, c=dry_wb_634_df['days_from_inflow'], cmap=cmap, edgecolor='None',s=(np.pi*(5**2)) )
+norm = matplotlib.colors.Normalize(vmin=0, vmax=np.max(dry_wb_591_df['days_from_inflow']), clip=False)
+scatter_591 = ax_1.scatter(stage_cal_591, infilt_rate_cal_591, c=dry_wb_591_df['days_from_inflow'], cmap=cmap, norm=norm, edgecolor='None',s=(np.pi*(5**2)) )
+scatter_599 = ax_2.scatter(stage_cal_599, infilt_rate_cal_599, c=dry_wb_599_df['days_from_inflow'], cmap=cmap, norm=norm, edgecolor='None',s=(np.pi*(5**2)) )
+scatter_634 = ax_3.scatter(stage_cal_634, infilt_rate_cal_634, c=dry_wb_634_df['days_from_inflow'], cmap=cmap, norm=norm, edgecolor='None',s=(np.pi*(5**2)) )
 ax_1.set_title('591')
 ax_1.set_xlim(0, 2)
 ax_1.set_ylim(0, 0.08)
@@ -892,15 +894,18 @@ ax1.set_ylabel(r"Rainfall ($mm \, hr^{-1}$)")
 plt.show()
 # raise SystemExit(0)
 """
+
 print len(wb_591.index)
 print len(rain_df.index)
 print len(rain_df_daily.index)
+wb_591['Inflow (cu.m)'].loc[wb_591['Inflow (cu.m)'] < 0] = 0.0
 rain_df_hourly = rain_df.resample('H', how=np.sum)
 max_daily_rain_intensity_mm_hr = rain_df_hourly.resample('D', how=np.max)
 print len(max_daily_rain_intensity_mm_hr.index)
+print float(len(wb_591.index))/len(max_daily_rain_intensity_mm_hr.index)
 #line plot
 fig, ax1 = plt.subplots(nrows=1, ncols=1, sharex=True, facecolor='white')
-bar_rain = ax1.bar(max_daily_rain_intensity_mm_hr.index, max_daily_rain_intensity_mm_hr['rain (mm)'],width=0.93684, color='#0000FF',alpha=0.9,label= 'Rainfall (mm)')
+bar_rain = ax1.bar(max_daily_rain_intensity_mm_hr.index, max_daily_rain_intensity_mm_hr['rain (mm)'],width=float(len(wb_591.index))/len(max_daily_rain_intensity_mm_hr.index), color='#0000FF',alpha=0.9,label= 'Rainfall (mm)')
 ax1.set_ylim([0, 300])
 ax1.invert_yaxis()
 for t1 in ax1.get_yticklabels():
