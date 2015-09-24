@@ -22,7 +22,7 @@ df.drop([Column Name or list],inplace=True,axis=1)   #will delete one or more co
 Dont use `inplace` if you don't want to change the original df
 
 ###Select column using column name
-####Select single columncreate vpn server ubuntu
+####Select single column
 ```python
 df['column name']
 ```
@@ -243,3 +243,63 @@ starting with Python __Class__ .
     >>> e.name                  # unique to e
     'Buddy'
 ```
+
+#### Adding a function in class and linking with class variable
+```python
+
+    class Dog:
+
+        def __init__(self, name):
+            self.name = name
+            self.tricks = []    # creates a new empty list for each dog
+
+        def add_trick(self, trick):
+            self.tricks.append(trick)
+
+    >>> d = Dog('Fido')
+    >>> e = Dog('Buddy')
+    >>> d.add_trick('roll over')
+    >>> e.add_trick('play dead')
+    >>> d.tricks
+    ['roll over']
+    >>> e.tricks
+    ['play dead']
+```
+
+#### Adding function defined outside the class
+
+```python
+   
+   def f1(self, x, y):
+       return min(x, x+y)
+
+   class C:
+       f = f1
+       def g(self):
+           return 'hello world'
+       h = g
+```
+
+> Now ``f``, ``g`` and ``h`` are all attributes of class :class:`C` that refer to
+> function objects, and consequently they are all methods of instances of
+> :class:`C` --- ``h`` being exactly equivalent to ``g``. Note that this practice usually only serves to confuse the reader of a program.
+
+#### Calling other methods
+
+```python
+
+   class Bag:
+       def __init__(self):
+           self.data = []
+       def add(self, x):
+           self.data.append(x)
+       def addtwice(self, x):
+           self.add(x)
+           self.add(x)
+```
+
+#### Why use self in python class?
+[http://stackoverflow.com/a/2725996/2632856](http://stackoverflow.com/a/2725996/2632856)
+
+#### Pass default values in a function which is inside a class
+[http://stackoverflow.com/a/8131960/2632856](http://stackoverflow.com/a/8131960/2632856)

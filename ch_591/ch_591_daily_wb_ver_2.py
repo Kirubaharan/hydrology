@@ -49,7 +49,13 @@ rain_df.set_index(rain_df['Date_Time'], inplace=True)
 rain_df.sort_index(inplace=True)
 # drop date time column
 rain_df = rain_df.drop('Date_Time', 1)
+print rain_df.head()
+# rain_df_hourly_sum = rain_df.resample('H', how=np.sum)
+# rain_df_hourly_mean = rain_df.resample('H', how=np.mean)
+# rain_df_hourly_sum.to_csv('/media/kiruba/New Volume/ACCUWA_Data/hourly_rain_sum_aral.csv')
+# rain_df_hourly_mean.to_csv('/media/kiruba/New Volume/ACCUWA_Data/hourly_rain_mean_aral.csv')
 
+raise SystemExit(0)
 """
 Check dam calibration
 """
@@ -59,6 +65,18 @@ a_stage = cd.polyfit(x_cal, y_cal, 1)
 coeff_cal = a_stage['polynomial']
 slope = coeff_cal[0]
 intercept = coeff_cal[1]
+print coeff_cal
+# # 2665
+y_cal_1 = [100, 400, 1000, 1500, 2000, 3000]
+x_cal_1 = [1971, 2336, 3083, 3720, 4335, 5604]
+coeff = np.polyfit(x_cal_1, y_cal_1,1)
+print coeff
+# print coeff[0]*3020 + coeff[1]
+# print coeff[0]*2810 + coeff[1]
+# raise SystemExit(0)
+fig = plt.figure()
+plt.plot(x_cal_1, y_cal_1, 'ro-')
+plt.show()
 
 """
 Read Check dam data
@@ -91,23 +109,34 @@ block_12 = '/media/kiruba/New Volume/ACCUWA_Data/check_dam_water_level/2525/2525
 water_level_12 = cd.read_correct_ch_dam_data(block_12, slope, intercept)
 block_13 = '/media/kiruba/New Volume/ACCUWA_Data/check_dam_water_level/2525/2525_008_007_02_03_2015.CSV'
 water_level_13 = cd.read_correct_ch_dam_data(block_13, slope, intercept)
+block_14 = '/media/kiruba/New Volume/ACCUWA_Data/check_dam_water_level/2665/check/2665_006_001.CSV-05-08-2015.CSV'
+water_level_14 = cd.read_correct_ch_dam_data(block_14, coeff[0], coeff[1])
+block_15 = '/media/kiruba/New Volume/ACCUWA_Data/check_dam_water_level/2665/check/2665_006_002.CSV-17-08-15.CSV'
+water_level_15 = cd.read_correct_ch_dam_data(block_15, coeff[0], coeff[1])
+block_16 = '/media/kiruba/New Volume/ACCUWA_Data/check_dam_water_level/2665/check/2665_006_003.CSV-8-9-15.CSV'
+water_level_16 = cd.read_correct_ch_dam_data(block_16, coeff[0], coeff[1])
+block_17 = '/media/kiruba/New Volume/ACCUWA_Data/check_dam_water_level/2665/check/2665_006_004_18_09_2015.CSV'
+water_level_17 = cd.read_correct_ch_dam_data(block_17, coeff[0], coeff[1])
+block_18 = '/media/kiruba/New Volume/ACCUWA_Data/check_dam_water_level/2665/check/2665_006_005.CSV'
+water_level_18 = cd.read_correct_ch_dam_data(block_18, coeff[0], coeff[1])
 
-for i in range(1, 14, 1):
+
+for i in range(1, 19, 1):
     eval("water_level_{0}.drop(water_level_{0}.tail(1).index, inplace=True, axis=0)".format(i))
     eval("water_level_{0}.drop(water_level_{0}.head(1).index, inplace=True, axis=0)".format(i))
 
 # for i in range(1, 11, 1):
 #     print "water_level_{0}".format(i)
 #     print eval("water_level_{0}.head()".format(i))
-# # fig = plt.figure()
-# for i in range(1, 14, 1):
-#     x = eval("water_level_{0}.index".format(i))
-#     y = eval("water_level_{0}['stage(m)']".format(i))
-#     plt.plot(x, y)
+fig = plt.figure()
+for i in range(1, 19, 1):
+    x = eval("water_level_{0}.index".format(i))
+    y = eval("water_level_{0}['stage(m)']".format(i))
+    plt.plot(x, y)
 
-# plt.show()
+plt.show()
 # print water_level_13.head()
-
+raise SystemExit(0)
 
 water_level_30min = pd.concat([water_level_1, water_level_2, water_level_3, water_level_4, water_level_5], axis=0)
 water_level_30 = water_level_30min.sort()

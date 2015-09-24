@@ -41,6 +41,8 @@ rain_df.set_index(rain_df['Date_Time'], inplace=True)
 rain_df.sort_index(inplace=True)
 # drop date time column
 rain_df = rain_df.drop('Date_Time', 1)
+print rain_df.head()
+raise SystemExit(0)
 """
 Check dam calibration
 """
