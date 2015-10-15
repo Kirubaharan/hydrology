@@ -1,4 +1,8 @@
+#!/usr/bin/env python
 __author__ = 'kiruba'
+""" This script is an attempt to model the cumulative impacts of check dam"""
+import sys
+sys.path.append('../checkdam/')
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -8,8 +12,10 @@ import simpy
 import scipy as sp
 import math
 from datetime import datetime
-import checkdam.checkdam as cd
+#import checkdam.checkdam as cd
 import networkx as nx
+import checkdam as cd
+from datetime import timedelta
 
 """
 Check dam network
@@ -23,34 +29,22 @@ Check dam network
 # plt.show()
 # raise SystemExit(0)
 
-"""
-Parameters
-"""
-INFLOW_463 = [0, 0, 10, 5, 0, 10]
-INFLOW_640 = [0, 0, 8, 3, 0, 8]
-EVAP_463 = [0, 0, 1, 1, 1, 1]
-EVAP_640 = [0, 0, 1, 1, 1, 1]
-TOTAL_VOL_463 = 8.5
-TOTAL_VOL_640 = 5
-INITIAL_VOL = 0
-TOTAL_DAYS = len(INFLOW_463)
-print TOTAL_DAYS
 
 
 @contextmanager
-def columns_in(df):
+def columns_in(dataframe):
     """
     Source: https://gist.github.com/aflaxman/4121076#file-sdm_diaper_delivery-ipynb
-    :param df: Pandas dataframe
+    :param dataframe: Pandas dataframe
     :return: column names in df as a tuple
     """
-    col_names = df.columns
-    col_list = [df[col] for col in col_names]
+    col_names = dataframe.columns
+    col_list = [dataframe[col] for col in col_names]
     try:
         yield tuple(col_list)
     finally:
         for i, col, in enumerate(col_names):
-            df[col] = col_list[i]
+            dataframe[col] = col_list[i]
 
 #
 # column_names = ['current_volume_463', 'current_volume_640', 'inflow_463', 'inflow_640', 'evap_463', 'evap_640',
@@ -82,6 +76,7 @@ def columns_in(df):
 # t.plot(linewidth=2, alpha=0.9)
 # plt.show()
 date_format = '%Y-%m-%d %H:%M:%S'
+daily_format = '%Y-%m-%d'
 # Weather file
 weather_file = '/media/kiruba/New Volume/ACCUWA_Data/weather_station/hadonahalli/corrected_weather_ws.csv'
 # Rain file
@@ -112,7 +107,7 @@ weather_df['index'] = weather_df.index
 weather_df.drop_duplicates(subset='index', take_last=True, inplace=True)
 del weather_df['index']
 weather_df = weather_df.sort()
-print weather_df.head()
+# print weather_df.head()
 
 class Open_Water_Evaporation(object):
     def __init__(self,check_dam_name, air_temperature, relative_humidity,incoming_solar_radiation, wind_speed_mps, date_time_index, elevation, latitdude, longitude):
@@ -129,17 +124,17 @@ class Open_Water_Evaporation(object):
         self.air_pressure = np.empty(len(self.date_time_index))
         self.air_pressure.fill(self.air_p_pa)
         self.extraterrestrial_irradiation = self.calculate_extraterrestrial_irradiation()
-        self.half_hour_EO = self.calculate_half_hour_EO()
+        self.half_hour_eo = self.calculate_half_hour_eo()
 
     def calculate_air_pressure(self, elevation=None):    # None is the key here
         z = elevation or self.elevation
         p = ((1 - (2.25577 * (10 ** -5) * z)))
-        air_p_pa = 101325* (p ** 5.25588)
+        air_p_pa = 101325 * (p ** 5.25588)
         return air_p_pa
 
     def calculate_extraterrestrial_irradiation(self, date_time=None, latitude=None, longitude=None):
         lat = latitude or self.latitude
-        long = longitude or self.longitude
+        lon = longitude or self.longitude
         date_time = date_time or self.date_time_index
         l = np.size(date_time)
         s = 0.0820  # MJ m-2 min-1
@@ -151,7 +146,7 @@ class Open_Water_Evaporation(object):
             b = ((2 * math.pi) * (day - 81)) / 364
             sc = 0.1645 * (math.sin(2 * b)) - 0.1255 * (math.cos(b)) - 0.025 * (math.sin(b))  # seasonal correction in hour
             lz = 270  # for India longitude of local time zone in degrees west of greenwich
-            lm = (180 + (180 - long))  # longitude of measurement site
+            lm = (180 + (180 - lon))  # longitude of measurement site
             t = (hour + (minute / 60)) - 0.25
             t1 = 0.5  # 0.5 for 30 minute 1 for hourly period
             w = (math.pi / 12) * ((t + (0.0667 * (lz - lm)) + sc) - 12)
@@ -174,7 +169,7 @@ class Open_Water_Evaporation(object):
                 b = ((2 * math.pi) * (day - 81)) / 364
                 sc = 0.1645 * (math.sin(2 * b)) - 0.1255 * (math.cos(b)) - 0.025 * (math.sin(b))  # seasonal correction in hour
                 lz = 270  # for India longitude of local time zone in degrees west of greenwich
-                lm = (180 + (180 - long))  # longitude of measurement site
+                lm = (180 + (180 - lon))  # longitude of measurement site
                 t = (hour + (minute / 60)) - 0.25
                 t1 = 0.5  # 0.5 for 30 minute 1 for hourly period
                 w = (math.pi / 12) * ((t + (0.0667 * (lz - lm)) + sc) - 12)
@@ -189,7 +184,7 @@ class Open_Water_Evaporation(object):
                     rext[i] = ((12 * 60) / math.pi) * s * dr * (((w2 - w1) * math.sin(lat_rad) * math.sin(dt)) + (math.cos(lat_rad) * math.cos(dt) * (math.sin(w2) - math.sin(w1))))  # MJm-2(30min)-1
         return rext
 
-    def calculate_half_hour_EO(self, airtemp=None, rh=None, airpress=None, rs=None, rext=None,u=None, z=None):
+    def calculate_half_hour_eo(self, airtemp=None, rh=None, airpress=None, rs=None, rext=None,u=None, z=None):
         at = airtemp or self.air_temperature
         rh = rh or self.relative_humidity
         ap = airpress or self.air_pressure
@@ -201,29 +196,61 @@ class Open_Water_Evaporation(object):
         return half_hour_eo
 
 
-class Checkdam_Parameters(object):
-    def __init__(self,check_dam_name, catchment_area, rainfall, date_time_index, evaporation, infiltration_rate):
+
+
+class CheckdamParameters(object):
+    def __init__(self, check_dam_name, catchment_area, evaporation, infiltration_rate, max_volume, stage_volume_csv, stage_area_csv, own_catchment_inflow_ratio, previous_check_dam=None, next_check_dam=None, initial_volume=None):
         self.check_dam_name = check_dam_name
         self.catchment_area = catchment_area
-        self.rainfall = rainfall
-        self.date_time_index = date_time_index
         self.evaporation = evaporation
         self.infiltration_rate = infiltration_rate
-        self.duration = len(date_time_index)
+        self.max_volume = max_volume
+        self.initial_volume = 0.0 or initial_volume
+        self.stage_cutoff = 0.1  # in meter constant
+        self.previous_check_dam = previous_check_dam
+        self.next_check_dam = next_check_dam
+        self.own_catchment_inflow_ratio = own_catchment_inflow_ratio
+        # self.stage_volume = stage_volume_csv
+        # self.stage_area = stage_area_csv
+        self.stage_volume_df = self.convert_stage_volume_csv_to_df(stage_volume_csv)
+        self.stage_area_df = self.convert_stage_area_csv_to_df(stage_area_csv)
 
-    def simulate_inflow(self, catchment_area, rainfall, date_time_index):
-        catchment_area = catchment_area or self.catchment_area
-        rainfall = rainfall or self.rainfall
-        date_time_index = date_time_index or self.date_time_index
-        duration = len(date_time_index) or self.duration
-        inflow = np.zeros(duration)
+    def convert_stage_volume_csv_to_df(self, csv):
+        df = pd.read_csv(csv, sep=',', header=0, names=['sno', 'stage_m', 'volume_cu_m'])   # x stage y= volume/area
+        df.drop('sno', inplace=True, axis=1)
+        df.set_index(df['volume_cu_m'], inplace=True)
+        return df
+
+    def convert_stage_area_csv_to_df(self, csv):
+        df = pd.read_csv(csv, sep=',', header=0, names=['sno', 'stage_m', 'area_sq_m'])
+        df.drop('sno', inplace=True, axis=1)
+        df.set_index(df['stage_m'], inplace=True)
+        return df
+
+    def convert_volume_to_area(self, volume):
+        vol_1, vol_2 = cd.find_range(self.stage_volume_df['volume_cu_m'].tolist(), volume) #x
+        stage_1 = self.stage_volume_df.loc[vol_1, 'stage_m'] # y
+        stage_2 = self.stage_volume_df.loc[vol_2, 'stage_m']
+        slope_vol = (stage_2 - stage_1) / (vol_2 - vol_1)
+        intercept_vol = stage_2 - (slope_vol*vol_2)
+        obs_stage = (slope_vol*volume) + intercept_vol
+        if obs_stage >= self.stage_cutoff:
+            stage_1, stage_2 = cd.find_range(self.stage_area_df['stage_m'].tolist(), obs_stage)
+            area_1 = self.stage_area_df.loc[stage_1, 'area_sq_m']
+            area_2 = self.stage_area_df.loc[stage_2, 'area_sq_m']
+            slope_area = (stage_2 - stage_1) / (area_2 - area_1)
+            intercept_area = area_2 - (slope_area *  stage_2)
+            area = (slope_area * obs_stage) + intercept_area
+        else:
+            area = 0.0
+        return area
 
 
     def __repr__(self):
-        return "Check dam no %s" %(self.check_dam_name)
+        return "Check dam no %s" % self.check_dam_name
 
 
-class Checkdam_routing(object):
+class CheckdamRouting(object):
     def __init__(self, inflow, infiltration, evaporation, current_volume, max_volume):
         self.inflow = inflow
         self.infiltration = infiltration
@@ -242,26 +269,107 @@ class Checkdam_routing(object):
         return self.current_volume, self.overflow
 
 
+class CheckdamChain(object):
+    def __init__(self, inflow_catchment_area_df, check_dam_chain):
+        self.inflow_catchment_area_df = inflow_catchment_area_df
+        self.check_dam_chain = check_dam_chain
+        self.duration = len(self.inflow_catchment_area_df.index)
+        self.no_of_check_dams = len(self.check_dam_chain)
+        self.output_df = self.create_output_df()
+
+    def create_output_df(self):
+        output_df = self.inflow_catchment_area_df
+        for checkdam in self.check_dam_chain:
+            if not isinstance(checkdam, CheckdamParameters):
+                raise TypeError("{0} is not an instance of CheckdamParameters()".format(checkdam.check_dam_name))
+            output_df[('volume_{0:d}'.format(checkdam.check_dam_name))] = 0.0
+            output_df[('inflow_{0:d}'.format(checkdam.check_dam_name))] = 0.0
+            output_df[('evap_{0:d}'.format(checkdam.check_dam_name))] = 0.0
+            output_df[('infilt_{0:d}'.format(checkdam.check_dam_name))] = 0.0
+            output_df[('overflow_{0:d}'.format(checkdam.check_dam_name))] = 0.0
+            # assign initial volume
+            output_df[('volume_{0:d}'.format(checkdam.check_dam_name))][0] = checkdam.initial_volume
+        return output_df
+
+
+    def simulate(self):
+        for dt in self.output_df.index:
+            print dt
+            for checkdam in self.check_dam_chain:
+                if not isinstance(checkdam, CheckdamParameters):
+                    raise TypeError("{0} is not an instance of CheckdamParameters()".format(checkdam.checkdam_name))
+                #inflow calculation
+                inflow = (checkdam.catchment_area*self.output_df.loc[dt, 'inflow_catchment_area_ratio'] * checkdam.own_catchment_inflow_ratio) + self.output_df.loc[dt, ('inflow_{0:d}'.format(checkdam.check_dam_name))]
+                self.output_df.loc[dt, ('inflow_{0:d}'.format(checkdam.check_dam_name))] = inflow
+                # calculate surface area
+                surface_area = checkdam.convert_volume_to_area(self.output_df.loc[dt, ('volume_{0:d}'.format(checkdam.check_dam_name))])
+                print (surface_area, self.output_df.loc[dt, ('volume_{0:d}'.format(checkdam.check_dam_name))])
+                # calculate evaporation
+                evaporation = surface_area * checkdam.evaporation.loc[dt]
+                # assign evaporation
+                self.output_df.loc[dt, ('evap_{0:d}'.format(checkdam.check_dam_name))] = evaporation
+                # calculate infiltration
+                infiltration = surface_area * checkdam.infiltration_rate
+                self.output_df.loc[dt, ('infilt_{0:d}'.format(checkdam.check_dam_name))] = infiltration
+                # assign current volume
+                current_volume = self.output_df.loc[dt, ('volume_{0:d}'.format(checkdam.check_dam_name))]
+                # do routing
+                checkdam_routing = CheckdamRouting(inflow=inflow, evaporation=evaporation, infiltration=infiltration, current_volume=current_volume, max_volume=checkdam.max_volume )
+                if checkdam_routing.overflow > 0.0:
+                    self.output_df.loc[dt, ('volume_{0:d}'.format(checkdam.check_dam_name))] = checkdam_routing.current_volume
+                    self.output_df.loc[dt, ('overflow_{0:d}'.format(checkdam.check_dam_name))] = checkdam_routing.overflow
+                    # add overflow from dt to dt + 1 day's inflow
+                    if checkdam.next_check_dam is not None:
+                        self.output_df.loc[dt+timedelta(days=1), ('inflow_{0:d}'.format(checkdam.next_check_dam))] = checkdam_routing.overflow
+
+        return self.output_df
+
+
+
+
+        # create pandas df, index , data with inflow catchment, create columns for each check dam attribute and assign
 
 
 
 
 
-# class Checkdam(Checkdam_Parameters):
-#     def __init__(self, max_volume, stage_area, stage_volume, initial_volume, catchment_area):
-#         self.max_volume = max_volume
-#         self.stage_area = stage_area
-#         self.stage_volume = stage_volume
-#         self.initial_volume = initial_volume
-#         self.catchment_area = catchment_area
 
 
+
+
+
+
+
+# check dam chain
+# http://stackoverflow.com/a/2482610/2632856
 
 
 """
-check dam chain
-http://stackoverflow.com/a/2482610/2632856
+stage vs volume / stage vs area
 """
+ch_463_stage_area_file = '/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/ch_463/cont_area.csv'
+ch_463_stage_area_df = pd.read_csv(ch_463_stage_area_file, sep=',', header=0)
+ch_463_stage_volume_file = '/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/ch_463/stage_vol.csv'
+ch_463_stage_volume_df = pd.read_csv(ch_463_stage_volume_file, sep=',', header=0)
+# print ch_463_stage_area_df
+# print ch_463_stage_volume_df
+
+# raise SystemExit(0)
+
+"""
+inflow per catchment area ratio
+"""
+catchment_area_634 = 5.0   # sq.km
+inflow_catchment_area_had_file = '/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/ch_634/et_infilt_634_w_of.csv'
+inflow_catchment_area_had_df = pd.read_csv(inflow_catchment_area_had_file, sep=',', header=0)
+inflow_catchment_area_had_df['Date'] = pd.to_datetime(inflow_catchment_area_had_df['Date'], format=daily_format)
+inflow_catchment_area_had_df.set_index(inflow_catchment_area_had_df['Date'], inplace=True)
+inflow_catchment_area_had_df.sort_index(inplace=True)
+inflow_catchment_area_had_df.drop('Date', 1, inplace=True)
+
+# divide inflow by catchment
+inflow_catchment_area_had_df['inflow_catchment_area_ratio'] = inflow_catchment_area_had_df['Inflow (cu.m)'] / catchment_area_634
+inflow_catchment_area_had_df = inflow_catchment_area_had_df.loc[:, ['inflow_catchment_area_ratio']]
 
 ch_463_lat = 13.360354
 ch_463_long = 77.527267
@@ -277,8 +385,45 @@ rs = weather_df['Solar Radiation (MJ/m2/30min)']
 wind_speed = weather_df['Wind Speed (mps)']
 
 weather_463 = Open_Water_Evaporation(check_dam_name="463",air_temperature=airtemp, relative_humidity=hum, incoming_solar_radiation=rs, wind_speed_mps=wind_speed,elevation=799, date_time_index=weather_df.index, latitdude=ch_463_lat, longitude=ch_463_long)
-weather_463 = weather_463.calculate_half_hour_EO()
+weather_463 = weather_463.calculate_half_hour_eo()
 weather_463_df = pd.DataFrame(weather_463, index=weather_df.index, columns=['Evaporation (mm)'])
 weather_463_df = weather_463_df.join(rain_df, how='right')
 weather_463_df_daily = weather_463_df.resample('D', how=np.sum)
-print(weather_463_df_daily.head())
+# print(weather_463_df_daily.head())
+
+"""
+Parametrisation of the model
+"""
+# common for hadonahalli
+rainfall_had = rain_df['rain (mm)']
+time_duration_had = inflow_catchment_area_had_df.index
+infiltration_rate = 0.002 # m/day
+# 463
+catchment_area_463 = 5.0  # dummy value as of now
+evaporation_463 = weather_463_df_daily['Evaporation (mm)']
+print evaporation_463
+max_volume_463 = 80.0
+stage_volume_463 = ch_463_stage_volume_file
+stage_area_463 = ch_463_stage_area_file
+own_catchment_inflow_ratio_463 = 1.0
+checkdam_463 = CheckdamParameters(check_dam_name=463, catchment_area=catchment_area_463, infiltration_rate=infiltration_rate, evaporation=evaporation_463, max_volume=max_volume_463, stage_volume_csv=stage_volume_463, stage_area_csv=stage_area_463,previous_check_dam=None, own_catchment_inflow_ratio=own_catchment_inflow_ratio_463)
+checkdam_463.initial_volume = 0.0
+
+
+# 640
+catchment_area_640 = 5.0  # dummy value as of now
+evaporation_640 = weather_463_df_daily['Evaporation (mm)']
+max_volume_640 = 80.0
+stage_volume_640 = ch_463_stage_volume_file
+stage_area_640 = ch_463_stage_area_file
+own_catchment_inflow_ratio_640 = 1.0
+
+
+checkdam_640 = CheckdamParameters(check_dam_name=640, catchment_area=catchment_area_640, infiltration_rate=infiltration_rate, evaporation=evaporation_640, max_volume=max_volume_640, stage_volume_csv=stage_volume_640, stage_area_csv=stage_area_640,previous_check_dam=checkdam_463, own_catchment_inflow_ratio=own_catchment_inflow_ratio_640)
+checkdam_463.next_check_dam = checkdam_640
+checkdam_463.initial_volume = 0.0  # check for assigning correct initial volume
+
+had_chain_1 = CheckdamChain(inflow_catchment_area_df=inflow_catchment_area_had_df, check_dam_chain=[checkdam_463, checkdam_640])
+had_chain_1.create_output_df()
+had_output_df = had_chain_1.simulate()
+print had_output_df.head()
