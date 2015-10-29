@@ -55,7 +55,7 @@ print rain_df.head()
 # rain_df_hourly_sum.to_csv('/media/kiruba/New Volume/ACCUWA_Data/hourly_rain_sum_aral.csv')
 # rain_df_hourly_mean.to_csv('/media/kiruba/New Volume/ACCUWA_Data/hourly_rain_mean_aral.csv')
 
-raise SystemExit(0)
+# raise SystemExit(0)
 """
 Check dam calibration
 """
@@ -77,7 +77,7 @@ print coeff
 fig = plt.figure()
 plt.plot(x_cal_1, y_cal_1, 'ro-')
 plt.show()
-
+raise SystemExit(0)
 """
 Read Check dam data
 """

@@ -10,6 +10,8 @@ from datetime import timedelta
 import math
 import ccy_classic_lstsqr
 
+
+
 # latex parameters
 rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica']})
 rc('text', usetex=True)

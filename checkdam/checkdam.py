@@ -15,7 +15,7 @@ import mynormalize
 
 date_format = '%Y-%m-%d %H:%M:%S'
 daily_format = '%Y-%m-%d'
-stage_cutoff = 0.1
+
 # check dam module
 
 
@@ -250,7 +250,7 @@ def myround(a, decimals=1):
     return np.around(a - 10 ** (-(decimals + 5)), decimals=decimals)
 
 
-def read_correct_ch_dam_data(csv_file, calibration_slope, calibration_intercept):
+def read_correct_ch_dam_data(csv_file, calibration_slope, calibration_intercept, stage_cutoff=0.1):
     """
     Function to read and calibrate odyssey capacitance sensor data
 

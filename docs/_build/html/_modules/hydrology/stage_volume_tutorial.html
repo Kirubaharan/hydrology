@@ -1,0 +1,236 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>hydrology.stage_volume_tutorial &mdash; Hydrology 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="Hydrology 1.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydrology.stage_volume_tutorial</h1><div class="highlight"><pre>
+<span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;kirubaharan&#39;</span>
+
+<span class="c">##area of curve</span>
+
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">spread</span> <span class="kn">import</span> <span class="n">spread</span>
+<span class="c"># copy the code from http://code.activestate.com/recipes/577878-generate-equally-spaced-floats/ #</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">rc</span>
+
+<span class="c">##read csv</span>
+<span class="n">csv_file</span> <span class="o">=</span> <span class="s">&#39;/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/634_profile_3_sec.csv&#39;</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">csv_file</span><span class="p">,</span><span class="n">header</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="c">##plot</span>
+<span class="c"># curve1 = plt.plot(x,y_1)</span>
+<span class="c"># curve2 = plt.plot(x,y_2)</span>
+<span class="c"># curve3 = plt.plot(x,y_3)</span>
+<span class="c"># line1 = plt.plot([-8,7], [0.7,.7], lw=2)</span>
+<span class="c"># curve1 + curve2 + curve3 + line1</span>
+<span class="c"># plt.show()</span>
+<span class="c">## function to create pairs of iterable elevations</span>
+<span class="k">def</span> <span class="nf">pairwise</span><span class="p">(</span><span class="n">iterable</span><span class="p">):</span>
+<div class="viewcode-block" id="pairwise"><a class="viewcode-back" href="../../hydrology.html#hydrology.stage_volume_tutorial.pairwise">[docs]</a>    <span class="s">&quot;s -&gt; (s0,s1), (s1,s2), (s2,s3), ...&quot;</span>
+    <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">tee</span><span class="p">(</span><span class="n">iterable</span><span class="p">)</span>
+    <span class="nb">next</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="bp">None</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">itertools</span><span class="o">.</span><span class="n">izip</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+
+<span class="c">#Enter the check dam height</span>
+<span class="n">check_dam_height</span> <span class="o">=</span> <span class="mf">0.70</span></div>
+<span class="c">#to create stage with 5 cm intervals</span>
+<span class="n">no_of_stage_interval</span> <span class="o">=</span> <span class="n">check_dam_height</span><span class="o">/.</span><span class="mo">05</span>
+<span class="c"># to create series of stage values</span>
+<span class="n">dz</span> <span class="o">=</span> <span class="nb">list</span><span class="p">((</span><span class="n">spread</span><span class="p">(</span><span class="mf">0.00</span><span class="p">,</span><span class="n">check_dam_height</span><span class="p">,</span><span class="nb">int</span><span class="p">(</span><span class="n">no_of_stage_interval</span><span class="p">),</span> <span class="n">mode</span><span class="o">=</span><span class="mi">3</span><span class="p">)))</span> <span class="c"># dz = stage</span>
+<span class="c"># y=1</span>
+<span class="c">#empty list to store the results in the end</span>
+<span class="n">results_1</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dz</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">Y1</span><span class="p">))</span>
+<span class="c"># for every value of 5 cm iteration</span>
+<span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">dz</span><span class="p">:</span> 
+<span class="c">#for every iteration initial value needs to be set to 0</span>
+    <span class="n">water_area_1</span> <span class="o">=</span> <span class="mi">0</span> 
+<span class="c"># creates consecutive no, see above for function</span>
+    <span class="k">for</span> <span class="n">y1</span><span class="p">,</span> <span class="n">y2</span> <span class="ow">in</span> <span class="n">pairwise</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">Y1</span><span class="p">):</span> 
+<span class="c">#to find delta elevation</span>
+        <span class="n">delev</span> <span class="o">=</span> <span class="p">(</span><span class="n">y2</span> <span class="o">-</span> <span class="n">y1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">10</span>
+<span class="c">#assign initial value to elev</span>
+        <span class="n">elev</span> <span class="o">=</span> <span class="n">y1</span>              
+<span class="c">#for iterating over 10 cm strip, this creates no from 1 to 10</span>
+        <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">1</span><span class="p">):</span> 
+<span class="c"># finding the next elevation value after measured value</span>
+            <span class="n">elev</span> <span class="o">=</span> <span class="n">elev</span> <span class="o">+</span> <span class="n">delev</span> 
+<span class="c"># if water level is above the estimated elev,area needs to be determined otherwise 0            </span>
+            <span class="k">if</span>  <span class="n">z</span> <span class="o">&gt;</span> <span class="n">elev</span><span class="p">:</span>  
+                <span class="n">water_area_1</span> <span class="o">=</span> <span class="n">water_area_1</span> <span class="o">+</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="p">(</span><span class="n">z</span><span class="o">-</span><span class="n">elev</span><span class="p">)</span>
+<span class="c"># first section so dy = 1    </span>
+    <span class="n">calc_vol_1</span> <span class="o">=</span> <span class="n">water_area_1</span> 
+<span class="c"># add the values to list    </span>
+    <span class="n">results_1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">calc_vol_1</span><span class="p">)</span>
+<span class="c">##create pandas dataframe/array to store the values</span>
+<span class="n">index</span> <span class="o">=</span> <span class="p">[</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">15</span><span class="p">,</span><span class="mi">1</span><span class="p">)]</span>
+<span class="c"># print range(len(dz))</span>
+<span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;stage_m&#39;</span><span class="p">]</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dz</span><span class="p">)</span>
+<span class="n">output</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span><span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">)</span>
+<span class="c">#append results to dataframe</span>
+<span class="n">output</span><span class="p">[</span><span class="s">&#39;Volume_1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">results_1</span> 
+<span class="c"># print output</span>
+
+<span class="c"># y=2</span>
+<span class="c">#empty list to store the results in the end/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/created_profile_607.csv</span>
+<span class="n">results_2</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="c"># for every value of 5 cm iteration</span>
+<span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">dz</span><span class="p">:</span> 
+<span class="c">#for every iteration initial value needs to be set to 0</span>
+    <span class="n">water_area_2</span> <span class="o">=</span> <span class="mi">0</span> 
+<span class="c"># creates consecutive no, see above for function</span>
+    <span class="k">for</span> <span class="n">y1</span><span class="p">,</span> <span class="n">y2</span> <span class="ow">in</span> <span class="n">pairwise</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">Y2</span><span class="p">):</span> 
+<span class="c">#to find delta elevation</span>
+        <span class="n">delev</span> <span class="o">=</span> <span class="p">(</span><span class="n">y2</span> <span class="o">-</span> <span class="n">y1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">10</span>
+<span class="c">#assign initial value to elev</span>
+        <span class="n">elev</span> <span class="o">=</span> <span class="n">y1</span>              
+<span class="c">#for iterating over 10 cm strip, this creates no from 1 to 10</span>
+        <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">1</span><span class="p">):</span> 
+<span class="c"># finding the next elevation value after measured value</span>
+            <span class="n">elev</span> <span class="o">=</span> <span class="n">elev</span> <span class="o">+</span> <span class="n">delev</span> 
+<span class="c"># if water level is above the estimated elev,area needs to be determined otherwise 0            </span>
+            <span class="k">if</span>  <span class="n">z</span> <span class="o">&gt;</span> <span class="n">elev</span><span class="p">:</span>  
+                <span class="n">water_area_2</span> <span class="o">=</span> <span class="n">water_area_2</span> <span class="o">+</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="p">(</span><span class="n">z</span><span class="o">-</span><span class="n">elev</span><span class="p">)</span>
+<span class="c"># first section so dy = 1    </span>
+    <span class="n">calc_vol_2</span> <span class="o">=</span> <span class="n">water_area_2</span> <span class="o">*</span> <span class="mi">2</span>
+<span class="c"># add the values to list    </span>
+    <span class="n">results_2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">calc_vol_2</span><span class="p">)</span>
+<span class="c">#append results to dataframe</span>
+<span class="n">output</span><span class="p">[</span><span class="s">&#39;Volume_2&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">results_2</span> 
+<span class="c"># print output</span>
+
+<span class="c"># y=1</span>
+<span class="c">#empty list to store the results in the end</span>
+<span class="n">results_3</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="c"># for every value of 5 cm iteration</span>
+<span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">dz</span><span class="p">:</span> 
+<span class="c">#for every iteration initial value needs to be set to 0</span>
+    <span class="n">water_area_3</span> <span class="o">=</span> <span class="mi">0</span> 
+<span class="c"># creates consecutive no, see above for function</span>
+    <span class="k">for</span> <span class="n">y1</span><span class="p">,</span> <span class="n">y2</span> <span class="ow">in</span> <span class="n">pairwise</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">Y3</span><span class="p">):</span>
+<span class="c">#to find delta elevation</span>
+        <span class="n">delev</span> <span class="o">=</span> <span class="p">(</span><span class="n">y2</span> <span class="o">-</span> <span class="n">y1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">10</span>
+<span class="c">#assign initial value to elev</span>
+        <span class="n">elev</span> <span class="o">=</span> <span class="n">y1</span>              
+<span class="c">#for iterating over 10 cm strip, this creates no from 1 to 10</span>
+        <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">1</span><span class="p">):</span> 
+<span class="c"># finding the next elevation value after measured value</span>
+            <span class="n">elev</span> <span class="o">=</span> <span class="n">elev</span> <span class="o">+</span> <span class="n">delev</span> 
+<span class="c"># if water level is above the estimated elev,area needs to be determined otherwise 0            </span>
+            <span class="k">if</span>  <span class="n">z</span> <span class="o">&gt;</span> <span class="n">elev</span><span class="p">:</span>  
+                <span class="n">water_area_3</span> <span class="o">=</span> <span class="n">water_area_3</span> <span class="o">+</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="p">(</span><span class="n">z</span><span class="o">-</span><span class="n">elev</span><span class="p">)</span>
+<span class="c"># first section so dy = 1    </span>
+    <span class="n">calc_vol_3</span> <span class="o">=</span> <span class="n">water_area_3</span> <span class="o">*</span><span class="mi">2</span>
+<span class="c"># add the values to list    </span>
+    <span class="n">results_3</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">calc_vol_3</span><span class="p">)</span>
+<span class="c">#append results to dataframe</span>
+<span class="n">output</span><span class="p">[</span><span class="s">&#39;Volume_3&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">results_3</span> 
+<span class="c"># print output</span>
+
+<span class="c"># add all the corresponding values</span>
+<span class="n">output</span><span class="p">[</span><span class="s">&#39;total_volume&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="s">&#39;Volume_1&#39;</span><span class="p">]</span><span class="o">+</span> <span class="n">output</span><span class="p">[</span><span class="s">&#39;Volume_2&#39;</span><span class="p">]</span><span class="o">+</span> <span class="n">output</span><span class="p">[</span><span class="s">&#39;Volume_3&#39;</span><span class="p">]</span>
+<span class="k">print</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+<span class="c">#plot values</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="s">&#39;stage_m&#39;</span><span class="p">],</span><span class="n">output</span><span class="p">[</span><span class="s">&#39;total_volume&#39;</span><span class="p">],</span><span class="n">label</span> <span class="o">=</span> <span class="s">&quot;Stage - Volume&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span> <span class="o">=</span> <span class="s">&#39;upper left&#39;</span><span class="p">)</span>
+<span class="c"># plt.xlabel(&#39;Stage (m)&#39;)</span>
+<span class="c"># plt.ylabel(&#39;Total Volume (cu.m&#39;)</span>
+<span class="c"># plt.title(&#39;Stage - volume relationship curve for Check Dam - 634&#39;)</span>
+<span class="c">##add axis labels</span>
+<span class="n">rc</span><span class="p">(</span><span class="s">&#39;font&#39;</span><span class="p">,</span><span class="o">**</span><span class="p">{</span><span class="s">&#39;family&#39;</span><span class="p">:</span><span class="s">&#39;sans-serif&#39;</span><span class="p">,</span><span class="s">&#39;sans-serif&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="s">&#39;Helvetica&#39;</span><span class="p">]})</span>
+<span class="n">rc</span><span class="p">(</span><span class="s">&#39;text&#39;</span><span class="p">,</span><span class="n">usetex</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s">&#39;text&#39;</span><span class="p">,</span><span class="n">usetex</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s">&#39;font&#39;</span><span class="p">,</span><span class="n">family</span><span class="o">=</span><span class="s">&#39;serif&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s">r&#39;\textbf{Stage} (m)&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s">r&#39;\textbf{Volume} ($m^3$)&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s">r&quot;Stage - Volume Relationship for Check Dam 634&quot;</span><span class="p">,</span><span class="n">fontsize</span> <span class="o">=</span> <span class="mi">16</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="c"># plt.savefig(&#39;/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/stage_vol_634.png&#39;)</span>
+<span class="n">output</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s">&#39;/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/test_634.csv&#39;</span><span class="p">,</span><span class="n">sep</span><span class="o">=</span><span class="s">&quot;,&quot;</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Kirubaharan Jeremiah.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

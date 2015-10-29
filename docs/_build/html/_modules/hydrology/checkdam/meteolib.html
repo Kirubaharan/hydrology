@@ -1,0 +1,987 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>hydrology.checkdam.meteolib &mdash; Hydrology 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="Hydrology 1.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydrology.checkdam.meteolib</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot; Meteolib: A libray with Python functions for calculations of micrometeorological parameters.</span>
+<span class="sd">    </span>
+<span class="sd">    Miscellaneous functions:</span>
+<span class="sd">        - dataload: Loads an ASCII data file into an array</span>
+<span class="sd">        - event2time: Convert (event) based measurements into equidistant time spaced data for a selected interval</span>
+<span class="sd">        - date2doy: Calculates day of year from day, month and year data</span>
+<span class="sd">        - sun_NR: Maximum sunshine duration [h] and extraterrestrial radiation [J/day]</span>
+
+<span class="sd">    Meteorological functions: </span>
+<span class="sd">        - es_calc:    Calculate saturation vapour pressures</span>
+<span class="sd">        - ea_calc:    Calculate actual vapour pressures</span>
+<span class="sd">        - vpd_calc:   Calculate vapour pressure deficits</span>
+<span class="sd">        - Delta_calc: Calculate slope of vapour pressure curve</span>
+<span class="sd">        - L_calc:     Calculate latent heat of vapourisation</span>
+<span class="sd">        - cp_calc:    Calculate specific heat </span>
+<span class="sd">        - gamma_calc: Calculate psychrometric constant</span>
+<span class="sd">        - rho_calc:   Calculate air density</span>
+<span class="sd">        - pottemp:    Calculate potential temperature (1000 hPa reference pressure)</span>
+<span class="sd">        - windvec:    Calculate average wind direction and speed</span>
+<span class="sd">    </span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">__author__</span> <span class="o">=</span> <span class="s">&quot;Maarten J. Waterloo &lt;m.j.waterloo@vu.nl&gt;&quot;</span>
+<span class="n">__version__</span> <span class="o">=</span> <span class="s">&quot;1.0&quot;</span>
+<span class="n">__date__</span> <span class="o">=</span> <span class="s">&quot;Nov 2012&quot;</span>
+
+    
+<span class="c"># Load some relevant python functions</span>
+<span class="kn">import</span> <span class="nn">math</span>     <span class="c"># import math library</span>
+<span class="kn">import</span> <span class="nn">scipy</span>    <span class="c"># import scientific python functions</span>
+<span class="kn">import</span> <span class="nn">datetime</span> <span class="c"># Get date and time module</span>
+
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    ================================================================</span>
+<span class="sd">    General functions for loading and saving data in files</span>
+<span class="sd">    ================================================================</span>
+<span class="sd">&#39;&#39;&#39;</span>
+
+<div class="viewcode-block" id="dataload"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.meteolib.dataload">[docs]</a><span class="k">def</span> <span class="nf">dataload</span><span class="p">(</span><span class="n">datafile</span><span class="p">,</span> <span class="n">delimiter</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Function to load data from an ASCII text file &quot;filename&quot; with values being</span>
+<span class="sd">    separated by a &quot;delimiter&quot;.</span>
+
+<span class="sd">    Usage:</span>
+<span class="sd">        data = dataload(filename,delimiter)</span>
+<span class="sd">    </span>
+<span class="sd">    This will place the data from the file into an array &quot;data&quot; that can be used</span>
+<span class="sd">    for further calculations. Both filename and delimiter are of type string.</span>
+
+<span class="sd">    The data must be regular, i.e. the same number of values should appear in</span>
+<span class="sd">    every row.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">        &gt;&gt;&gt; data = dataload(&#39;meteo.dat&#39;,&#39;,&#39;)  # meteo.dat comma delimited</span>
+<span class="sd">        &gt;&gt;&gt; data = dataload(&#39;meteo.dat&#39;,&#39; &#39;)  # meteo.dat space delimited</span>
+<span class="sd">        &gt;&gt;&gt; # Now using variables</span>
+<span class="sd">        &gt;&gt;&gt; filedir = &#39;d:/workdir/meteo.dat&#39;</span>
+<span class="sd">        &gt;&gt;&gt; separator = &#39;\t&#39;                  # tab delimited data file</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; data = loadtxt(filedir,separator) </span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    
+    <span class="c"># Open and read the file</span>
+    <span class="n">inputfile</span> <span class="o">=</span> <span class="nb">file</span><span class="p">(</span><span class="n">datafile</span><span class="p">,</span> <span class="s">&quot;r&quot;</span><span class="p">);</span>
+    
+    <span class="c"># Define array which will hold all data</span>
+    <span class="n">alldata</span> <span class="o">=</span> <span class="p">[]</span>
+    
+    <span class="c"># Start reading the data from the file into the linedata array</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">inputfile</span><span class="o">.</span><span class="n">readlines</span><span class="p">():</span>
+        <span class="c"># Define array holding single line of data</span>
+        <span class="n">linedata</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c"># split the dataline at &quot;separator&quot; (tab = \t) and get the values</span>
+        <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">delimiter</span><span class="p">):</span>
+            <span class="c"># Append each value in a line so that we have a complete data</span>
+            <span class="c"># line </span>
+            <span class="n">linedata</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+        <span class="c"># Append the values in linedata to the alldata array    </span>
+        <span class="n">alldata</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">linedata</span><span class="p">)</span>
+    <span class="c"># Now close the file</span>
+    <span class="n">inputfile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    
+    <span class="c"># Store the data in an array</span>
+    <span class="n">data_array</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">qarray</span><span class="p">(</span><span class="n">alldata</span><span class="p">)</span>
+    
+    <span class="c"># Make the data array available as function output </span>
+    <span class="k">return</span><span class="p">(</span><span class="n">data_array</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="event2time"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.meteolib.event2time">[docs]</a><span class="k">def</span> <span class="nf">event2time</span><span class="p">(</span><span class="n">yyyy</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span> <span class="n">doytime</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span> \
+               <span class="n">X</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span> <span class="n">method</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">interval</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Function to convert (event-based) time series data to equidistant time spaced data (Nov. 2012) at a specified interval.</span>
+<span class="sd">    The maximum interval for processing is 86400 s, resulting in daily values.</span>
+<span class="sd">    You can choose to sum (e.g. for event-based rainfall measurements) or average the input data over a given time interval.</span>
+<span class="sd">    If you choose to average, a -9999 value (missing value) will be output if there are no data in the specified interval. For summation,</span>
+<span class="sd">    a zero will be output, as required for event-based rainfall measurements.</span>
+<span class="sd">    </span>
+<span class="sd">    </span>
+<span class="sd">    Input:</span>
+<span class="sd">        - yyyy: Array of year values (e.g. 2008)</span>
+<span class="sd">        - doytime: Array of day of year (doy, 1-366) + decimal time values (0-1) (e.g. 133.4375)</span>
+<span class="sd">        - X: Array of data values (e.g. 0.2). for event-based precipitation data, data should be zero at start and end times of the event data record</span>
+<span class="sd">        - method: Enter &#39;sum&#39; to sum data (e.g. precipitation), and &#39;avg&#39; to average data over the selected time interval</span>
+<span class="sd">        - interval: Optional: interval in seconds (integer value, e.g. 900 for a 15-minute interval). A default value of 1800 s is assumed when interval is not specified as a function argument</span>
+<span class="sd">    </span>
+<span class="sd">    Output:</span>
+<span class="sd">        - YEAR: Array of year</span>
+<span class="sd">        - DOY_TIME: Array of day of year (1-366) + decimal time values (0-1), e.g. 153.5 for noon on day 153.</span>
+<span class="sd">        - Y: Array of corresponding summed or averaged data values, where -9999 indicates missing values when &#39;avg&#39; is selected and 0 when &#39;sum&#39; is se;ected.</span>
+<span class="sd">    </span>
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; import meteolib</span>
+<span class="sd">        &gt;&gt;&gt; year=[2008,2008,2008,2008,2008]</span>
+<span class="sd">        &gt;&gt;&gt; daytime=[153.5,153.9,154.1,154.3,154.4]</span>
+<span class="sd">        &gt;&gt;&gt; vals=[0,0.4,2.3,2.9,0]</span>
+<span class="sd">        &gt;&gt;&gt; meteolib.event2time(year,daytime,vals,&#39;sum&#39;,3600)</span>
+<span class="sd">        (array([ 2008, 2008, 2008, 2008, 2008, 2008, 2008, 2008, 2008, 2008, 2008,</span>
+<span class="sd">        2008, 2008, 2008, 2008, 2008, 2008, 2008, 2008, 2008]),</span>
+<span class="sd">        array([ 153.58333333, 153.625, 153.66666667, 153.70833333, 153.75,</span>
+<span class="sd">        153.79166667, 153.83333333, 153.875, 153.91666667, 153.95833333, 154.,</span>
+<span class="sd">        154.04166667, 154.08333333, 154.125, 154.16666667, 154.20833333, 154.25,</span>
+<span class="sd">        154.29166667, 154.33333333, 154.375 ]),</span>
+<span class="sd">        array([ 0.4, 0., 0., 0., 0., 0., 0., 0., 2.3, 0., 0., 0., 0., 2.9, 0.,</span>
+<span class="sd">        0., 0., 0., 0., 0. ]))</span>
+<span class="sd">        &gt;&gt;&gt; event2time(year,daytime,vals,&#39;avg&#39;,3600)</span>
+<span class="sd">        (array([ 2008, 2008, 2008, 2008, 2008, 2008, 2008, 2008, 2008, 2008, 2008,</span>
+<span class="sd">        2008, 2008, 2008, 2008, 2008, 2008, 2008, 2008, 2008 ]),</span>
+<span class="sd">        array([ 153.58333333, 153.625, 153.66666667, 153.70833333, 153.75,</span>
+<span class="sd">        153.79166667, 153.83333333, 153.875, 153.91666667, 153.95833333, 154.,</span>
+<span class="sd">        154.04166667, 154.08333333, 154.125, 154.16666667, 154.20833333, 154.25,</span>
+<span class="sd">        154.29166667, 154.33333333, 154.375 ]),</span>
+<span class="sd">        array([ 4.00000000e-01, -9.99900000e+03, -9.99900000e+03, -9.99900000e+03,</span>
+<span class="sd">        -9.99900000e+03, -9.99900000e+03, -9.99900000e+03, -9.99900000e+03,</span>
+<span class="sd">        2.30000000e+00, -9.99900000e+03, -9.99900000e+03, -9.99900000e+03,</span>
+<span class="sd">        -9.99900000e+03, 2.90000000e+00, -9.99900000e+03, -9.99900000e+03,</span>
+<span class="sd">        -9.99900000e+03, -9.99900000e+03, 0.00000000e+00, -9.99900000e+03 ]))</span>
+<span class="sd">        &gt;&gt;&gt; yr,day_time,sum_P = event2time(year,daytime,vals,&#39;sum&#39;,3600)</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="c"># Check for correct method input</span>
+    <span class="k">if</span> <span class="n">method</span> <span class="o">!=</span> <span class="s">&#39;sum&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">method</span> <span class="o">!=</span> <span class="s">&#39;avg&#39;</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;WARNING: method input unknown - set to default </span><span class="se">\&#39;</span><span class="s">sum</span><span class="se">\&#39;</span><span class="s">! </span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+            <span class="n">method</span> <span class="o">=</span> <span class="s">&#39;sum&#39;</span>
+    
+    <span class="c"># Provide default interval of 1800 seconds if not given as argument</span>
+    <span class="k">if</span> <span class="n">interval</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">interval</span> <span class="o">=</span> <span class="mi">1800</span>
+
+    <span class="c"># Do not accept intervals larger than 84600 s (one day)</span>
+    <span class="k">if</span> <span class="n">interval</span> <span class="o">&gt;</span> <span class="mi">86400</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&#39;WARNING: Function event2time(): Interval larger than 86400 s not accepted.&#39;</span>
+        <span class="k">print</span> <span class="s">&#39;INTERVAL SET TO 86400 s (ONE DAY).</span><span class="se">\n</span><span class="s">&#39;</span>
+        <span class="n">interval</span> <span class="o">=</span> <span class="mi">86400</span>
+
+    <span class="c"># Determine the start datetime of the new time series</span>
+    <span class="c"># Evaluate start time (first value in arrays)</span>
+    <span class="c"># First convert time of day to seconds</span>
+    <span class="n">startsecond</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">doytime</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">86400</span>
+    
+    <span class="c"># Check what time the first interval in the regular time series would be</span>
+    <span class="n">starttime</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">startsecond</span> <span class="o">/</span> <span class="n">interval</span><span class="p">)</span> <span class="o">*</span> <span class="n">interval</span>
+    <span class="c"># Increase to end of interval if it not exceeding one day (86400 s)</span>
+    <span class="k">if</span> <span class="n">interval</span> <span class="o">&lt;</span> <span class="mi">86400</span><span class="p">:</span>
+        <span class="n">starttime</span> <span class="o">=</span> <span class="n">starttime</span> <span class="o">+</span> <span class="n">interval</span> 
+    
+    <span class="c"># Make sure to start on the day of installation</span>
+    <span class="k">if</span> <span class="n">starttime</span> <span class="o">&gt;</span> <span class="mi">86400</span><span class="p">:</span>
+        <span class="n">starttime</span> <span class="o">=</span> <span class="mi">86400</span>
+        <span class="k">print</span> <span class="s">&#39;WARNING: interval exceeds past midnight of first day&#39;</span>
+        <span class="k">print</span> <span class="s">&#39;Start set to midnight of first day&#39;</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">starttime</span> <span class="o">/</span> <span class="mi">86400</span> <span class="o">+</span> <span class="n">scipy</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">doytime</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    
+    <span class="c"># Determine end time</span>
+    <span class="n">endsecond</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">doytime</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">doytime</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">86400</span>
+    
+    <span class="c"># Endtime is last full interval before the end of record</span>
+    <span class="n">endtime</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">endsecond</span> <span class="o">/</span> <span class="n">interval</span><span class="p">)</span> <span class="o">*</span> <span class="n">interval</span>
+    <span class="n">end</span> <span class="o">=</span> <span class="n">endtime</span> <span class="o">/</span> <span class="mi">86400</span> <span class="o">+</span> <span class="n">scipy</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">doytime</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">doytime</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span>
+    
+    <span class="c"># Determine start date and time, including year</span>
+    <span class="n">startdate</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">yyyy</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> \
+                <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">start</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> \
+                <span class="n">seconds</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">86400</span><span class="p">)</span>
+    
+    <span class="c"># Determine the end date and time of time series</span>
+    <span class="n">enddate</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">yyyy</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">yyyy</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> \
+              <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">end</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> \
+              <span class="n">seconds</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">end</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">86400</span><span class="p">)</span>
+    
+    <span class="c"># Create arrays for storing the equidistant time output</span>
+    <span class="n">YEAR</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">DECTIME</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">Y</span> <span class="o">=</span> <span class="p">[]</span>
+    
+    <span class="c"># Set initial date/time value to first date/time interval</span>
+    <span class="n">intervaldate</span> <span class="o">=</span> <span class="n">startdate</span>
+    
+    <span class="c"># Set counters to zero</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span> <span class="c"># desired time-index value counter</span>
+    <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span> <span class="c"># event data index counter</span>
+    <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span> <span class="c"># counts events in one time interval</span>
+    
+    <span class="c"># Set initial data value sum to zero</span>
+    <span class="n">processedY</span> <span class="o">=</span> <span class="mi">0</span>
+    
+    <span class="c"># Start data processing  </span>
+    <span class="k">while</span> <span class="n">intervaldate</span> <span class="o">&lt;</span> <span class="n">enddate</span><span class="p">:</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="c"># checkdate is event based date/time</span>
+        <span class="n">checkdate</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">yyyy</span><span class="p">[</span><span class="n">j</span><span class="p">]),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> \
+                    <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">doytime</span><span class="p">[</span><span class="n">j</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> \
+                    <span class="n">seconds</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">doytime</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">86400</span><span class="p">)</span>
+        <span class="c"># intervaldate is the date/time at regular interval</span>
+        <span class="n">intervaldate</span> <span class="o">=</span> <span class="n">intervaldate</span> <span class="o">+</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="n">interval</span><span class="p">)</span>
+        <span class="c"># If the statement below is true, we have event(s)</span>
+        <span class="k">while</span> <span class="n">checkdate</span> <span class="o">&lt;</span> <span class="n">intervaldate</span><span class="p">:</span>
+            <span class="n">counter</span> <span class="o">=</span> <span class="n">counter</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">j</span> <span class="o">=</span> <span class="n">j</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">checkdate</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">yyyy</span><span class="p">[</span><span class="n">j</span><span class="p">]),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> \
+                        <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">doytime</span><span class="p">[</span><span class="n">j</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> \
+                        <span class="n">seconds</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">doytime</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">86400</span><span class="p">)</span>
+            <span class="n">processedY</span> <span class="o">=</span> <span class="n">processedY</span> <span class="o">+</span> <span class="n">X</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+        <span class="c"># Append the time spaced data to the lists</span>
+        <span class="n">YEAR</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">intervaldate</span><span class="o">.</span><span class="n">year</span><span class="p">)</span>
+        <span class="c"># Recalculate to doy.decimaltime format</span>
+        <span class="n">dtime</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">intervaldate</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&quot;%j&quot;</span><span class="p">))</span> <span class="o">+</span> \
+                  <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">intervaldate</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&quot;%H&quot;</span><span class="p">))</span> <span class="o">*</span> <span class="mi">3600</span> <span class="o">+</span> \
+                   <span class="nb">int</span><span class="p">(</span><span class="n">intervaldate</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&quot;%M&quot;</span><span class="p">))</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">+</span> \
+                   <span class="nb">int</span><span class="p">(</span><span class="n">intervaldate</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&quot;%S&quot;</span><span class="p">)))</span> <span class="o">/</span> <span class="mf">86400.0</span><span class="p">)</span>
+        <span class="c"># Correct of error in day when interval is 86400 s</span>
+        <span class="c"># This because new day starts at midnight, but processed data</span>
+        <span class="c"># covers previous day ending at midnight</span>
+        <span class="k">if</span> <span class="n">interval</span> <span class="o">==</span> <span class="mi">86400</span><span class="p">:</span>
+            <span class="n">dtime</span> <span class="o">=</span> <span class="n">dtime</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">DECTIME</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dtime</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">method</span><span class="o">==</span><span class="s">&#39;sum&#39;</span><span class="p">:</span>
+            <span class="n">Y</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">processedY</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">method</span><span class="o">==</span><span class="s">&#39;avg&#39;</span><span class="p">:</span>
+            <span class="c"># In case there are missing data in the interval, division by zero</span>
+            <span class="c"># could occur while averaging. In this case we indicate missing data</span>
+            <span class="c"># by -9999  </span>
+            <span class="k">if</span> <span class="n">counter</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">counter</span><span class="o">=</span><span class="mf">1.</span>
+                <span class="n">processedY</span><span class="o">=-</span><span class="mi">9999</span>
+            <span class="n">Y</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">processedY</span><span class="o">/</span><span class="n">counter</span><span class="p">)</span> 
+        <span class="c"># Set processedY and counter to zero for next event</span>
+        <span class="n">processedY</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
+        
+    <span class="c"># Convert lists to arrays and output these arrays</span>
+    <span class="n">YEAR</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">YEAR</span><span class="p">)</span>
+    <span class="n">DECTIME</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">DECTIME</span><span class="p">)</span>
+    <span class="n">Y</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span>
+    
+    <span class="c"># Return year, doy.decimaltime and datavalue as output</span>
+    <span class="k">return</span> <span class="n">YEAR</span><span class="p">,</span> <span class="n">DECTIME</span><span class="p">,</span> <span class="n">Y</span>
+    </div>
+<div class="viewcode-block" id="date2doy"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.meteolib.date2doy">[docs]</a><span class="k">def</span> <span class="nf">date2doy</span><span class="p">(</span><span class="n">dd</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>\
+    <span class="n">mm</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>\
+    <span class="n">yyyy</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([])):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Function to calculate the julian day (day of year) from day,</span>
+<span class="sd">    month and year.</span>
+<span class="sd">        </span>
+<span class="sd">    Input:</span>
+<span class="sd">        - dd: (array of) day of month</span>
+<span class="sd">        - mm: (array of) month</span>
+<span class="sd">        - yyyy: (array of) year</span>
+<span class="sd">        </span>
+<span class="sd">    Output:</span>
+<span class="sd">        - jd: (array of) julian day of year</span>
+<span class="sd">        </span>
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; date2doy(04,11,2006)</span>
+<span class="sd">        308</span>
+<span class="sd">        &gt;&gt;&gt; date2doy(04,11,2008)</span>
+<span class="sd">        309</span>
+<span class="sd">        &gt;&gt;&gt; day=[10,10,10]</span>
+<span class="sd">        &gt;&gt;&gt; month=[1,2,3]</span>
+<span class="sd">        &gt;&gt;&gt; year=[2007,2008,2009]</span>
+<span class="sd">        &gt;&gt;&gt; date2doy(day,month,year)</span>
+<span class="sd">        array([ 10.,  41.,  69.])</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="c"># Determine length of array</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">dd</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>   <span class="c"># Dealing with single value...date2doy</span>
+        <span class="c"># Determine julian day     </span>
+        <span class="n">doy</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="mi">275</span> <span class="o">*</span> <span class="n">mm</span> <span class="o">/</span> <span class="mi">9</span> <span class="o">-</span> <span class="mi">30</span> <span class="o">+</span> <span class="n">dd</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span>
+        <span class="k">if</span> <span class="n">mm</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">doy</span> <span class="o">=</span> <span class="n">doy</span> <span class="o">+</span> <span class="mi">2</span>
+        <span class="c"># Correct for leap years</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">fmod</span><span class="p">(</span><span class="n">yyyy</span> <span class="o">/</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="mf">0.0</span> <span class="ow">and</span> <span class="n">math</span><span class="o">.</span><span class="n">fmod</span><span class="p">(</span><span class="n">yyyy</span> <span class="o">/</span> <span class="mf">100.0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">!=</span> <span class="mf">0.0</span><span class="p">)</span>\
+        <span class="ow">or</span> <span class="n">math</span><span class="o">.</span><span class="n">fmod</span><span class="p">(</span><span class="n">yyyy</span> <span class="o">/</span> <span class="mf">400.0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">mm</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">doy</span> <span class="o">=</span> <span class="n">doy</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">doy</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">doy</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>   <span class="c"># Dealing with an array</span>
+        <span class="c"># Initiate the output array  </span>
+        <span class="n">doy</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="c"># Calculate julian days   </span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+            <span class="n">doy</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="mi">275</span> <span class="o">*</span> <span class="n">mm</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="mi">9</span> <span class="o">-</span> <span class="mi">30</span> <span class="o">+</span> <span class="n">dd</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">-</span> <span class="mi">2</span>
+            <span class="k">if</span> <span class="n">mm</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="n">doy</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">doy</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="mi">2</span>
+            <span class="c"># Correct for leap years</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">fmod</span><span class="p">(</span><span class="n">yyyy</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="mf">0.0</span> <span class="ow">and</span> <span class="n">math</span><span class="o">.</span><span class="n">fmod</span><span class="p">(</span><span class="n">yyyy</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="mf">100.0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>\
+            <span class="o">!=</span> <span class="mf">0.0</span><span class="p">)</span> <span class="ow">or</span> <span class="n">math</span><span class="o">.</span><span class="n">fmod</span><span class="p">(</span><span class="n">yyyy</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="mf">400.0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">mm</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="n">doy</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">doy</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">doy</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">doy</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">doy</span> <span class="c"># Julian day [integer]</span>
+
+</div>
+<div class="viewcode-block" id="doy2date"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.meteolib.doy2date">[docs]</a><span class="k">def</span> <span class="nf">doy2date</span><span class="p">(</span><span class="n">doy</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>\
+             <span class="n">yyyy</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([])):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Function to calculate the date (dd, mm, yyyy) from Julian day and year.</span>
+
+<span class="sd">    Input:</span>
+<span class="sd">        - dd: (array of) day of month</span>
+<span class="sd">        - mm: (array of) month</span>
+<span class="sd">        - yy: (array of) year</span>
+
+<span class="sd">    Output:</span>
+<span class="sd">        - jd: (array of) julian day of year</span>
+
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; doy2date(04,11,2006)</span>
+<span class="sd">        308</span>
+<span class="sd">        &gt;&gt;&gt; doy2date(04,11,2008)</span>
+<span class="sd">        309</span>
+<span class="sd">        &gt;&gt;&gt; day=[10,10,10]</span>
+<span class="sd">        &gt;&gt;&gt; month=[1,2,3]</span>
+<span class="sd">        &gt;&gt;&gt; year=[2007,2008,2009]</span>
+<span class="sd">        &gt;&gt;&gt; doy2date(day,month,year)</span>
+<span class="sd">        array([ 10.,  41.,  69.])</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">print</span> <span class="s">&#39;This routine is under construction...&#39;</span>
+    <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="sun_NR"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.meteolib.sun_NR">[docs]</a><span class="k">def</span> <span class="nf">sun_NR</span><span class="p">(</span><span class="n">doy</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>\
+           <span class="n">lat</span><span class="o">=</span><span class="nb">float</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Function to calculate the maximum sunshine duration N and incoming radiation</span>
+<span class="sd">    at the top of the atmosphere from day of year and latitude.</span>
+
+<span class="sd">    NOTE: Only valid for latitudes between 0 and 67 degrees (tropics and</span>
+<span class="sd">    temperate zone)</span>
+
+<span class="sd">    Input:</span>
+<span class="sd">        - doy: (array of) day of year</span>
+<span class="sd">        - lat: latitude in degrees, negative for southern hemisphere</span>
+
+<span class="sd">    Output:</span>
+<span class="sd">        - N: (array of) maximum sunshine hours [h]</span>
+<span class="sd">        - Rext: (array of) extraterrestrial radiation [J/day]  </span>
+
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; sun_NR(50,60)</span>
+<span class="sd">        308</span>
+<span class="sd">        &gt;&gt;&gt; jd_calc(04,11,2008)</span>
+<span class="sd">        309</span>
+<span class="sd">        &gt;&gt;&gt; day=[10,10,10]</span>
+<span class="sd">        &gt;&gt;&gt; month=[1,2,3]</span>
+<span class="sd">        &gt;&gt;&gt; year=[2007,2008,2009]</span>
+<span class="sd">        &gt;&gt;&gt; jd_calc(day,month,year)</span>
+<span class="sd">        array([ 10.,  41.,  69.])</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="c"># Set solar constant [W/m2]</span>
+    <span class="n">S</span> <span class="o">=</span> <span class="mf">1367.0</span>  <span class="c">#[W/m2]</span>
+    <span class="c"># Convert latitude [degrees] to radians</span>
+    <span class="n">latrad</span> <span class="o">=</span> <span class="n">lat</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mf">180.0</span>
+    <span class="c"># Determine length of doy array</span>
+    <span class="n">l</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">doy</span><span class="p">)</span>
+    <span class="c"># Check if we have a single value or an array</span>
+    <span class="k">if</span> <span class="n">l</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>   <span class="c"># Dealing with single value...</span>
+        <span class="c"># calculate solar declination dt [radians]</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="mf">0.409</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">365</span> <span class="o">*</span> <span class="n">doy</span> <span class="o">-</span> <span class="mf">1.39</span><span class="p">)</span>
+        <span class="c"># calculate sunset hour angle [radians]</span>
+        <span class="n">ws</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="o">-</span><span class="n">math</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="n">latrad</span><span class="p">)</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="n">dt</span><span class="p">))</span>
+        <span class="c"># Calculate sunshine duration N [h]</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="mi">24</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">ws</span>
+        <span class="c"># Calculate day angle j [radians]</span>
+        <span class="n">j</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mf">365.25</span> <span class="o">*</span> <span class="n">doy</span>
+        <span class="c"># Calculate relative distance to sun</span>
+        <span class="n">dr</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">+</span> <span class="mf">0.03344</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">j</span> <span class="o">-</span> <span class="mf">0.048869</span><span class="p">)</span>
+        <span class="c"># Calculate Rext</span>
+        <span class="n">Rext</span> <span class="o">=</span> <span class="n">S</span> <span class="o">*</span> <span class="mi">86400</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">dr</span> <span class="o">*</span> <span class="p">(</span><span class="n">ws</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">latrad</span><span class="p">)</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>\
+               <span class="o">+</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">ws</span><span class="p">)</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">latrad</span><span class="p">)</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">dt</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>   <span class="c"># Dealing with an array     </span>
+        <span class="c"># Initiate the output arrays</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="n">Rext</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="n">ws</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="n">j</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="n">dr</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="c"># Calculate N and Rext</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">l</span><span class="p">):</span>       
+            <span class="c"># calculate solar declination dt [radians]</span>
+            <span class="n">dt</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.409</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">365</span> <span class="o">*</span> <span class="n">doy</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="mf">1.39</span><span class="p">)</span>
+            <span class="c"># calculate sunset hour angle [radians]</span>
+            <span class="n">ws</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="o">-</span><span class="n">math</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="n">latrad</span><span class="p">)</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="n">dt</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+            <span class="c"># Calculate sunshine duration N [h]</span>
+            <span class="n">N</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">24</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">ws</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="c"># Calculate day angle j [radians]</span>
+            <span class="n">j</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mf">365.25</span> <span class="o">*</span> <span class="n">doy</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="c"># Calculate relative distance to sun</span>
+            <span class="n">dr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">+</span> <span class="mf">0.03344</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">j</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.048869</span><span class="p">)</span>
+            <span class="c"># Calculate Rext</span>
+            <span class="n">Rext</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">S</span> <span class="o">*</span> <span class="mf">86400.0</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">dr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">ws</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">latrad</span><span class="p">)</span>\
+                      <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">dt</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">+</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">ws</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">latrad</span><span class="p">)</span>\
+                      <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">dt</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+    <span class="c"># Convert to arrays</span>
+    <span class="n">N</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+    <span class="n">Rext</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Rext</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">N</span><span class="p">,</span> <span class="n">Rext</span>
+</div>
+<div class="viewcode-block" id="es_calc"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.meteolib.es_calc">[docs]</a><span class="k">def</span> <span class="nf">es_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([])):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Function to calculate saturated vapour pressure from temperature.</span>
+<span class="sd">    For T&lt;0 C:  Saturation vapour pressure equation for ice: Goff, J.A.,and S.</span>
+<span class="sd">    Gratch, Low-pressure properties of water from \-160 to 212 F. </span>
+<span class="sd">    Transactions of the American society of</span>
+<span class="sd">    heating and ventilating engineers, pp 95-122, presented</span>
+<span class="sd">    at the 52nd annual meeting of the American society of</span>
+<span class="sd">    heating and ventilating engineers, New York, 1946.</span>
+<span class="sd">    </span>
+<span class="sd">    For T&gt;=0 C: Goff, J. A. Saturation pressure of water on the new Kelvin</span>
+<span class="sd">    temperature scale, Transactions of the American</span>
+<span class="sd">    society of heating and ventilating engineers, pp 347-354,</span>
+<span class="sd">    presented at the semi-annual meeting of the American</span>
+<span class="sd">    society of heating and ventilating engineers, Murray Bay,</span>
+<span class="sd">    Quebec. Canada, 1957.</span>
+<span class="sd">                </span>
+<span class="sd">    Input:</span>
+<span class="sd">        - airtemp: (array of) measured air temperature [Celsius]</span>
+<span class="sd">        </span>
+<span class="sd">    Output:</span>
+<span class="sd">        - es: (array of) saturated vapour pressure [Pa]</span>
+<span class="sd">        </span>
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; es_calc(30.0)</span>
+<span class="sd">        4242.7259946566316</span>
+<span class="sd">        &gt;&gt;&gt; x = [20, 25]</span>
+<span class="sd">        &gt;&gt;&gt; es_calc(x)</span>
+<span class="sd">        array([ 2337.080198,  3166.824419])</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="c"># Determine length of array</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">airtemp</span><span class="p">)</span>
+    <span class="c"># Check if we have a single (array) value or an array</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="c"># Calculate saturated vapour pressures, distinguish between water/ice</span>
+        <span class="k">if</span> <span class="n">airtemp</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c"># Calculate saturation vapour pressure for ice</span>
+            <span class="n">log_pi</span> <span class="o">=</span> <span class="o">-</span> <span class="mf">9.09718</span> <span class="o">*</span> <span class="p">(</span><span class="mf">273.16</span> <span class="o">/</span> <span class="p">(</span><span class="n">airtemp</span> <span class="o">+</span> <span class="mf">273.15</span><span class="p">)</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span> \
+                     <span class="o">-</span> <span class="mf">3.56654</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="mf">273.16</span> <span class="o">/</span> <span class="p">(</span><span class="n">airtemp</span> <span class="o">+</span> <span class="mf">273.15</span><span class="p">))</span> \
+                     <span class="o">+</span> <span class="mf">0.876793</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="p">(</span><span class="n">airtemp</span> <span class="o">+</span> <span class="mf">273.15</span><span class="p">)</span> <span class="o">/</span> <span class="mf">273.16</span><span class="p">)</span> \
+                     <span class="o">+</span> <span class="n">math</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="mf">6.1071</span><span class="p">)</span>
+            <span class="n">es</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">log_pi</span><span class="p">)</span>   
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># Calculate saturation vapour pressure for water</span>
+            <span class="n">log_pw</span> <span class="o">=</span> <span class="mf">10.79574</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="mf">273.16</span> <span class="o">/</span> <span class="p">(</span><span class="n">airtemp</span> <span class="o">+</span> <span class="mf">273.15</span><span class="p">))</span> \
+                     <span class="o">-</span> <span class="mf">5.02800</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">log10</span><span class="p">((</span><span class="n">airtemp</span> <span class="o">+</span> <span class="mf">273.15</span><span class="p">)</span> <span class="o">/</span> <span class="mf">273.16</span><span class="p">)</span> \
+                     <span class="o">+</span> <span class="mf">1.50475E-4</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mf">8.2969</span> <span class="o">*</span> <span class="p">((</span><span class="n">airtemp</span> <span class="o">+</span>\
+                     <span class="mf">273.15</span><span class="p">)</span> <span class="o">/</span> <span class="mf">273.16</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">))))</span> <span class="o">+</span> <span class="mf">0.42873E-3</span> <span class="o">*</span> \
+                     <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="p">(</span><span class="o">+</span><span class="mf">4.76955</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="mf">273.16</span>\
+                     <span class="o">/</span> <span class="p">(</span><span class="n">airtemp</span> <span class="o">+</span> <span class="mf">273.15</span><span class="p">))))</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.78614</span>
+            <span class="n">es</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">log_pw</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>   <span class="c"># Dealing with an array     </span>
+        <span class="c"># Initiate the output array</span>
+        <span class="n">es</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="c"># Calculate saturated vapour pressures, distinguish between water/ice</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>              
+            <span class="k">if</span> <span class="n">airtemp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c"># Saturation vapour pressure equation for ice</span>
+                <span class="n">log_pi</span> <span class="o">=</span> <span class="o">-</span> <span class="mf">9.09718</span> <span class="o">*</span> <span class="p">(</span><span class="mf">273.16</span> <span class="o">/</span> <span class="p">(</span><span class="n">airtemp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="mf">273.15</span><span class="p">)</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span> \
+                         <span class="o">-</span> <span class="mf">3.56654</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="mf">273.16</span> <span class="o">/</span> <span class="p">(</span><span class="n">airtemp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="mf">273.15</span><span class="p">))</span> \
+                         <span class="o">+</span> <span class="mf">0.876793</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="p">(</span><span class="n">airtemp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="mf">273.15</span><span class="p">)</span> <span class="o">/</span> <span class="mf">273.16</span><span class="p">)</span> \
+                         <span class="o">+</span> <span class="n">math</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="mf">6.1071</span><span class="p">)</span>
+                <span class="n">es</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">log_pi</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c"># Calculate saturation vapour pressure for water  </span>
+                <span class="n">log_pw</span> <span class="o">=</span> <span class="mf">10.79574</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="mf">273.16</span> <span class="o">/</span> <span class="p">(</span><span class="n">airtemp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="mf">273.15</span><span class="p">))</span> \
+                         <span class="o">-</span> <span class="mf">5.02800</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">log10</span><span class="p">((</span><span class="n">airtemp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="mf">273.15</span><span class="p">)</span> <span class="o">/</span> <span class="mf">273.16</span><span class="p">)</span> \
+                         <span class="o">+</span> <span class="mf">1.50475E-4</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mf">8.2969</span>\
+                         <span class="o">*</span> <span class="p">((</span><span class="n">airtemp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="mf">273.15</span><span class="p">)</span> <span class="o">/</span> <span class="mf">273.16</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">))))</span> <span class="o">+</span> <span class="mf">0.42873E-3</span>\
+                         <span class="o">*</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="p">(</span><span class="o">+</span><span class="mf">4.76955</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="mf">273.16</span>\
+                         <span class="o">/</span> <span class="p">(</span><span class="n">airtemp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="mf">273.15</span><span class="p">))))</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.78614</span>
+                <span class="n">es</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">pow</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">log_pw</span><span class="p">)</span>
+    <span class="c"># Convert from hPa to Pa</span>
+    <span class="n">es</span> <span class="o">=</span> <span class="n">es</span> <span class="o">*</span> <span class="mf">100.0</span>
+    <span class="k">return</span> <span class="n">es</span> <span class="c"># in Pa</span>
+
+</div>
+<div class="viewcode-block" id="Delta_calc"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.meteolib.Delta_calc">[docs]</a><span class="k">def</span> <span class="nf">Delta_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([])):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Function to calculate the slope of the temperature - vapour pressure curve</span>
+<span class="sd">    (Delta) from air temperatures. Source: Technical regulations 49, World</span>
+<span class="sd">    Meteorological Organisation, 1984. Appendix A. 1-Ap-A-3.</span>
+<span class="sd">    </span>
+<span class="sd">    Input:</span>
+<span class="sd">        - airtemp: (array of) air temperature [Celsius]</span>
+<span class="sd">    </span>
+<span class="sd">    Output:</span>
+<span class="sd">        - Delta: (array of) slope of saturated vapour curve [Pa K-1]</span>
+<span class="sd">    </span>
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; Delta_calc(30.0)</span>
+<span class="sd">        243.34309166827097</span>
+<span class="sd">        &gt;&gt;&gt; x = [20, 25]</span>
+<span class="sd">        &gt;&gt;&gt; Delta_calc(x)</span>
+<span class="sd">        array([ 144.665841,  188.625046])</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="c"># Determine length of array</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">airtemp</span><span class="p">)</span>
+    <span class="c"># Check if we have a single value or an array</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>   <span class="c"># Dealing with single value...</span>
+        <span class="c"># calculate vapour pressure</span>
+        <span class="n">es</span> <span class="o">=</span> <span class="n">es_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">)</span> <span class="c"># in Pa</span>
+        <span class="c"># Convert es (Pa) to kPa</span>
+        <span class="n">es</span> <span class="o">=</span> <span class="n">es</span> <span class="o">/</span> <span class="mf">1000.0</span>
+        <span class="c"># Calculate Delta</span>
+        <span class="n">Delta</span> <span class="o">=</span> <span class="n">es</span> <span class="o">*</span> <span class="mf">4098.0</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">((</span><span class="n">airtemp</span> <span class="o">+</span> <span class="mf">237.3</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="mi">1000</span>
+    <span class="k">else</span><span class="p">:</span>   <span class="c"># Dealing with an array         </span>
+        <span class="c"># Initiate the output arrays</span>
+        <span class="n">Delta</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="c"># calculate vapour pressure</span>
+        <span class="n">es</span> <span class="o">=</span> <span class="n">es_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">)</span> <span class="c"># in Pa</span>
+        <span class="c"># Convert es (Pa) to kPa</span>
+        <span class="n">es</span> <span class="o">=</span> <span class="n">es</span> <span class="o">/</span> <span class="mf">1000.0</span>
+        <span class="c"># Calculate Delta</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+            <span class="n">Delta</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">es</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="mf">4098.0</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">((</span><span class="n">airtemp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="mf">237.3</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="mi">1000</span>
+    <span class="k">return</span> <span class="n">Delta</span> <span class="c"># in Pa/K</span>
+
+</div>
+<div class="viewcode-block" id="ea_calc"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.meteolib.ea_calc">[docs]</a><span class="k">def</span> <span class="nf">ea_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>\
+            <span class="n">rh</span><span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([])):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Function to calculate actual saturation vapour pressure.</span>
+
+<span class="sd">    Input:</span>
+<span class="sd">        - airtemp: array of measured air temperatures [Celsius]</span>
+<span class="sd">        - rh: Relative humidity [%]</span>
+
+<span class="sd">    Output:</span>
+<span class="sd">        - ea: array of actual vapour pressure [Pa]</span>
+
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; ea_calc(25,60)</span>
+<span class="sd">        1900.0946514729308</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="c"># Determine length of array</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">airtemp</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>   <span class="c"># Dealing with single value...    </span>
+        <span class="c"># Calculate saturation vapour pressures</span>
+        <span class="n">es</span> <span class="o">=</span> <span class="n">es_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">)</span>
+        <span class="c"># Calculate actual vapour pressure</span>
+        <span class="n">eact</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">rh</span><span class="p">)</span> <span class="o">/</span> <span class="mf">100.0</span> <span class="o">*</span> <span class="n">es</span>
+    <span class="k">else</span><span class="p">:</span>   <span class="c"># Dealing with an array</span>
+        <span class="c"># Initiate the output arrays</span>
+        <span class="n">eact</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="c"># Calculate saturation vapour pressures</span>
+        <span class="n">es</span> <span class="o">=</span> <span class="n">es_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+            <span class="c"># Calculate actual vapour pressure</span>
+            <span class="n">eact</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">rh</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">/</span> <span class="mf">100.0</span> <span class="o">*</span> <span class="n">es</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">eact</span> <span class="c"># in Pa</span>
+
+</div>
+<div class="viewcode-block" id="vpd_calc"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.meteolib.vpd_calc">[docs]</a><span class="k">def</span> <span class="nf">vpd_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>\
+             <span class="n">rh</span><span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([])):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Function to calculate vapour pressure deficit.</span>
+
+<span class="sd">    Input:</span>
+<span class="sd">        - airtemp: measured air temperatures [Celsius]</span>
+<span class="sd">        - rh: (array of) rRelative humidity [%]</span>
+<span class="sd">        </span>
+<span class="sd">    Output:</span>
+<span class="sd">        - vpd: (array of) vapour pressure deficits [Pa]</span>
+<span class="sd">        </span>
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; vpd_calc(30,60)</span>
+<span class="sd">        1697.0903978626527</span>
+<span class="sd">        &gt;&gt;&gt; T=[20,25]</span>
+<span class="sd">        &gt;&gt;&gt; RH=[50,100]</span>
+<span class="sd">        &gt;&gt;&gt; vpd_calc(T,RH)</span>
+<span class="sd">        array([ 1168.540099,   0.        ])</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="c"># Determine length of array</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">airtemp</span><span class="p">)</span>
+    <span class="c"># Check if we have a single value or an array</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>   <span class="c"># Dealing with single value...</span>
+        <span class="c"># Calculate saturation vapour pressures</span>
+        <span class="n">es</span> <span class="o">=</span> <span class="n">es_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">)</span>
+        <span class="n">eact</span> <span class="o">=</span> <span class="n">ea_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">,</span> <span class="n">rh</span><span class="p">)</span> 
+        <span class="c"># Calculate vapour pressure deficit</span>
+        <span class="n">vpd</span> <span class="o">=</span> <span class="n">es</span> <span class="o">-</span> <span class="n">eact</span>
+    <span class="k">else</span><span class="p">:</span>   <span class="c"># Dealing with an array</span>
+        <span class="c"># Initiate the output arrays</span>
+        <span class="n">vpd</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="c"># Calculate saturation vapor pressures</span>
+        <span class="n">es</span> <span class="o">=</span> <span class="n">es_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">)</span>
+        <span class="n">eact</span> <span class="o">=</span> <span class="n">ea_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">,</span> <span class="n">rh</span><span class="p">)</span>
+        <span class="c"># Calculate vapour pressure deficit</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+            <span class="n">vpd</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">es</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">eact</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">vpd</span> <span class="c"># in hPa</span>
+</div>
+<div class="viewcode-block" id="L_calc"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.meteolib.L_calc">[docs]</a><span class="k">def</span> <span class="nf">L_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([])):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Function to calculate the latent heat of vapourisation,</span>
+<span class="sd">    lambda, from air temperature. Source: J. Bringfelt. Test of a forest</span>
+<span class="sd">    evapotranspiration model. Meteorology and Climatology Reports 52,</span>
+<span class="sd">    SMHI, Norrkopping, Sweden, 1986.</span>
+<span class="sd">    </span>
+<span class="sd">    Input:</span>
+<span class="sd">        - airtemp: (array of) air temperature [Celsius]</span>
+<span class="sd">        </span>
+<span class="sd">    Output:</span>
+<span class="sd">        - L: (array of) lambda [J kg-1 K-1]</span>
+<span class="sd">        </span>
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; L_calc(25)</span>
+<span class="sd">        2440883.8804624998</span>
+<span class="sd">        &gt;&gt;&gt; t</span>
+<span class="sd">        [10, 20, 30]</span>
+<span class="sd">        &gt;&gt;&gt; L_calc(t)</span>
+<span class="sd">        array([ 2476387.3842125,  2452718.3817125,  2429049.3792125])</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="c"># Determine length of array</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">airtemp</span><span class="p">)</span>
+    <span class="c"># Check if we have a single value or an array</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>   <span class="c"># Dealing with single value...</span>
+        <span class="c"># Calculate lambda</span>
+        <span class="n">L</span> <span class="o">=</span> <span class="mf">4185.5</span> <span class="o">*</span> <span class="p">(</span><span class="mf">751.78</span> <span class="o">-</span> <span class="mf">0.5655</span> <span class="o">*</span> <span class="p">(</span><span class="n">airtemp</span> <span class="o">+</span> <span class="mf">273.15</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>   <span class="c"># Dealing with an array</span>
+       <span class="c"># Initiate the output arrays</span>
+        <span class="n">L</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>    
+        <span class="c"># Calculate lambda</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+            <span class="n">L</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mf">4185.5</span> <span class="o">*</span> <span class="p">(</span><span class="mf">751.78</span> <span class="o">-</span> <span class="mf">0.5655</span> <span class="o">*</span> <span class="p">(</span><span class="n">airtemp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="mf">273.15</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">L</span> <span class="c"># in J/kg</span>
+
+</div>
+<div class="viewcode-block" id="cp_calc"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.meteolib.cp_calc">[docs]</a><span class="k">def</span> <span class="nf">cp_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>\
+            <span class="n">rh</span><span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>\
+            <span class="n">airpress</span><span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([])):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Function to calculate the specific heat of air, c_p, from air temperatures, relative humidity and air pressure.</span>
+<span class="sd">    </span>
+<span class="sd">    Input:</span>
+<span class="sd">        - airtemp: (array of) air temperature [Celsius]</span>
+<span class="sd">        - rh: (array of) relative humidity data [%]</span>
+<span class="sd">        - airpress: (array of) air pressure data [Pa]</span>
+<span class="sd">        </span>
+<span class="sd">    Output:</span>
+<span class="sd">        cp: array of saturated c_p values [J kg-1 K-1]</span>
+<span class="sd">        </span>
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; cp_calc(25,60,101300)</span>
+<span class="sd">        1014.0749457208065</span>
+<span class="sd">        &gt;&gt;&gt; t</span>
+<span class="sd">        [10, 20, 30]</span>
+<span class="sd">        &gt;&gt;&gt; rh</span>
+<span class="sd">        [10, 20, 30]</span>
+<span class="sd">        &gt;&gt;&gt; airpress</span>
+<span class="sd">        [100000, 101000, 102000]</span>
+<span class="sd">        &gt;&gt;&gt; cp_calc(t,rh,airpress)</span>
+<span class="sd">        array([ 1005.13411289,  1006.84399787,  1010.83623841])</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="c"># Determine length of array</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">airtemp</span><span class="p">)</span>
+    <span class="c"># Check if we have a single value or an array</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>   <span class="c"># Dealing with single value...</span>
+        <span class="c"># calculate vapour pressures</span>
+        <span class="n">eact</span> <span class="o">=</span> <span class="n">ea_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">,</span> <span class="n">rh</span><span class="p">)</span>
+        <span class="c"># Calculate cp</span>
+        <span class="n">cp</span> <span class="o">=</span> <span class="mf">0.24</span> <span class="o">*</span> <span class="mf">4185.5</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mf">0.8</span> <span class="o">*</span> <span class="p">(</span><span class="mf">0.622</span> <span class="o">*</span> <span class="n">eact</span> <span class="o">/</span> <span class="p">(</span><span class="n">airpress</span> <span class="o">-</span> <span class="n">eact</span><span class="p">)))</span>
+    <span class="k">else</span><span class="p">:</span>   <span class="c"># Dealing with an array</span>
+        <span class="c"># Initiate the output arrays</span>
+        <span class="n">cp</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="c"># calculate vapour pressures</span>
+        <span class="n">eact</span> <span class="o">=</span> <span class="n">ea_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">,</span> <span class="n">rh</span><span class="p">)</span>
+        <span class="c"># Calculate cp</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+            <span class="n">cp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.24</span> <span class="o">*</span> <span class="mf">4185.5</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mf">0.8</span> <span class="o">*</span> <span class="p">(</span><span class="mf">0.622</span> <span class="o">*</span> <span class="n">eact</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="n">airpress</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">eact</span><span class="p">[</span><span class="n">i</span><span class="p">])))</span>
+    <span class="k">return</span> <span class="n">cp</span> <span class="c"># in J/kg/K</span>
+
+</div>
+<div class="viewcode-block" id="gamma_calc"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.meteolib.gamma_calc">[docs]</a><span class="k">def</span> <span class="nf">gamma_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>\
+               <span class="n">rh</span><span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>\
+               <span class="n">airpress</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([])):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Function to calculate the psychrometric constant gamma.</span>
+<span class="sd">    Source: J. Bringfelt. Test of a forest evapotranspiration model.</span>
+<span class="sd">    Meteorology and Climatology Reports 52, SMHI, Norrköpping, Sweden,</span>
+<span class="sd">    1986.</span>
+<span class="sd">    </span>
+<span class="sd">    Input:</span>
+<span class="sd">        - airtemp: array of measured air temperature [Celsius]</span>
+<span class="sd">        - rh: array of relative humidity values[%]</span>
+<span class="sd">        - airpress: array of air pressure data [Pa]</span>
+<span class="sd">        </span>
+<span class="sd">    Output:</span>
+<span class="sd">        - gamma: array of psychrometric constant values [Pa\K]</span>
+<span class="sd">        </span>
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; gamma_calc(10,50,101300)</span>
+<span class="sd">        66.263433186572274</span>
+<span class="sd">        &gt;&gt;&gt; t</span>
+<span class="sd">        [10, 20, 30]</span>
+<span class="sd">        &gt;&gt;&gt; rh</span>
+<span class="sd">        [10, 20, 30]</span>
+<span class="sd">        &gt;&gt;&gt; airpress</span>
+<span class="sd">        [100000, 101000, 102000]</span>
+<span class="sd">        &gt;&gt;&gt; gamma_calc(t,rh,airpress)</span>
+<span class="sd">        array([ 65.255188,  66.656958,  68.242393])</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="c"># Determine length of array</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">airtemp</span><span class="p">)</span>
+    <span class="c"># Check if we have a single value or an array</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>   <span class="c"># Dealing with single value...</span>
+        <span class="n">cp</span> <span class="o">=</span> <span class="n">cp_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">,</span> <span class="n">rh</span><span class="p">,</span> <span class="n">airpress</span><span class="p">)</span>
+        <span class="n">L</span> <span class="o">=</span> <span class="n">L_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">)</span>
+        <span class="c"># Calculate gamma</span>
+        <span class="n">gamma</span> <span class="o">=</span> <span class="n">cp</span> <span class="o">*</span> <span class="n">airpress</span> <span class="o">/</span> <span class="p">(</span><span class="mf">0.622</span> <span class="o">*</span> <span class="n">L</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>   <span class="c"># Dealing with an array</span>
+        <span class="c"># Initiate the output arrays</span>
+        <span class="n">gamma</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="c"># Calculate cp and Lambda values</span>
+        <span class="n">cp</span> <span class="o">=</span> <span class="n">cp_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">,</span> <span class="n">rh</span><span class="p">,</span> <span class="n">airpress</span><span class="p">)</span>
+        <span class="n">L</span> <span class="o">=</span> <span class="n">L_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">)</span>
+        <span class="c"># Calculate gamma</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+            <span class="n">gamma</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">cp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">airpress</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="mf">0.622</span> <span class="o">*</span> <span class="n">L</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">gamma</span> <span class="c"># in Pa\K</span>
+
+</div>
+<div class="viewcode-block" id="rho_calc"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.meteolib.rho_calc">[docs]</a><span class="k">def</span> <span class="nf">rho_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>\
+             <span class="n">rh</span><span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>\
+             <span class="n">airpress</span><span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([])):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Function to calculate the density of air, rho, from air</span>
+<span class="sd">    temperatures, relative humidity and air pressure.</span>
+<span class="sd">    </span>
+<span class="sd">    Input:</span>
+<span class="sd">        - airtemp: (array of) air temperature data [Celsius]</span>
+<span class="sd">        - rh: (array of) relative humidity data [%]</span>
+<span class="sd">        - airpress: (array of) air pressure data [Pa]</span>
+<span class="sd">        </span>
+<span class="sd">    Output:</span>
+<span class="sd">        - rho: (array of) air density data [kg m-3]</span>
+<span class="sd">        </span>
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; t</span>
+<span class="sd">        [10, 20, 30]</span>
+<span class="sd">        &gt;&gt;&gt; rh</span>
+<span class="sd">        [10, 20, 30]</span>
+<span class="sd">        &gt;&gt;&gt; airpress</span>
+<span class="sd">        [100000, 101000, 102000]</span>
+<span class="sd">        &gt;&gt;&gt; rho_calc(t,rh,airpress)</span>
+<span class="sd">        array([ 1.22948419,  1.19787662,  1.16635358])</span>
+<span class="sd">        &gt;&gt; rho_calc(10,50,101300)</span>
+<span class="sd">        1.2431927125520903</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="c"># Determine length of array</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">airtemp</span><span class="p">)</span>    
+    <span class="c"># Check if we have a single value or an array</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>   <span class="c"># Dealing with single value...</span>
+        <span class="n">eact</span> <span class="o">=</span> <span class="n">ea_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">,</span> <span class="n">rh</span><span class="p">)</span>
+        <span class="n">rho</span> <span class="o">=</span> <span class="mf">1.201</span> <span class="o">*</span> <span class="p">(</span><span class="mf">290.0</span> <span class="o">*</span> <span class="p">(</span><span class="n">airpress</span> <span class="o">-</span> <span class="mf">0.378</span> <span class="o">*</span> <span class="n">eact</span><span class="p">))</span> \
+                 <span class="o">/</span> <span class="p">(</span><span class="mf">1000.0</span> <span class="o">*</span> <span class="p">(</span><span class="n">airtemp</span> <span class="o">+</span> <span class="mf">273.15</span><span class="p">))</span> <span class="o">/</span> <span class="mf">100.0</span>
+    <span class="k">else</span><span class="p">:</span>   <span class="c"># Dealing with an array        </span>
+        <span class="c"># Initiate the output arrays</span>
+        <span class="n">rho</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="c"># Calculate actual vapour pressure</span>
+        <span class="n">eact</span> <span class="o">=</span> <span class="n">ea_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">,</span> <span class="n">rh</span><span class="p">)</span>
+        <span class="c"># calculate rho</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+            <span class="n">rho</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.201</span> <span class="o">*</span> <span class="p">(</span><span class="mf">290.0</span> <span class="o">*</span> <span class="p">(</span><span class="n">airpress</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.378</span> <span class="o">*</span> <span class="n">eact</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span> \
+                 <span class="o">/</span> <span class="p">(</span><span class="mf">1000.0</span> <span class="o">*</span> <span class="p">(</span><span class="n">airtemp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="mf">273.15</span><span class="p">))</span> <span class="o">/</span> <span class="mf">100.0</span>
+    <span class="k">return</span> <span class="n">rho</span> <span class="c"># in kg/m3</span>
+
+</div>
+<div class="viewcode-block" id="pottemp"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.meteolib.pottemp">[docs]</a><span class="k">def</span> <span class="nf">pottemp</span><span class="p">(</span><span class="n">airtemp</span><span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>\
+            <span class="n">rh</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>\
+            <span class="n">airpress</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([])):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Function to calculate the potential temperature air, theta, from air</span>
+<span class="sd">    temperatures, relative humidity and air pressure. Reference pressure</span>
+<span class="sd">    1000 hPa.</span>
+<span class="sd">    </span>
+<span class="sd">    Input:</span>
+<span class="sd">        - airtemp: (array of) air temperature data [Celsius]</span>
+<span class="sd">        - rh: (array of) relative humidity data [%]</span>
+<span class="sd">        - airpress: (array of) air pressure data [Pa]</span>
+<span class="sd">        </span>
+<span class="sd">    Output:</span>
+<span class="sd">        - theta: (array of) potential air temperature data [Celsius]</span>
+<span class="sd">        </span>
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; t</span>
+<span class="sd">        [5, 10, 20]</span>
+<span class="sd">        &gt;&gt;&gt; rh</span>
+<span class="sd">        [45, 65, 89]</span>
+<span class="sd">        &gt;&gt;&gt; airpress</span>
+<span class="sd">        [101300, 102000, 99800]</span>
+<span class="sd">        &gt;&gt;&gt; pottemp(t,rh,airpress)</span>
+<span class="sd">        array([  3.97741582,   8.40874555,  20.16596828])</span>
+<span class="sd">        &gt;&gt;&gt; pottemp(5,45,101300)</span>
+<span class="sd">        3.977415823848844</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="c"># Determine length of array</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">airtemp</span><span class="p">)</span>
+    <span class="c"># Check if we have a single value or an array</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>   <span class="c"># Dealing with single value...</span>
+        <span class="c"># Determine cp</span>
+        <span class="n">cp</span> <span class="o">=</span> <span class="n">cp_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">,</span> <span class="n">rh</span><span class="p">,</span> <span class="n">airpress</span><span class="p">)</span>
+        <span class="n">theta</span> <span class="o">=</span> <span class="p">(</span><span class="n">airtemp</span> <span class="o">+</span> <span class="mf">273.15</span><span class="p">)</span> <span class="o">*</span> <span class="nb">pow</span><span class="p">((</span><span class="mf">100000.0</span> <span class="o">/</span> <span class="n">airpress</span><span class="p">),</span> \
+                                       <span class="p">(</span><span class="mf">287.0</span> <span class="o">/</span> <span class="n">cp</span><span class="p">))</span> <span class="o">-</span> <span class="mf">273.15</span>
+    <span class="k">else</span><span class="p">:</span>   <span class="c"># Dealing with an array</span>
+        <span class="c"># Initiate the output array  </span>
+        <span class="n">theta</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="c"># Determine cp</span>
+        <span class="n">cp</span> <span class="o">=</span> <span class="n">cp_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">,</span> <span class="n">rh</span><span class="p">,</span> <span class="n">airpress</span><span class="p">)</span>
+        <span class="c"># Calculate potential temperature   </span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+            <span class="n">theta</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="n">airtemp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="mf">273.15</span><span class="p">)</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">((</span><span class="mf">100000.0</span> <span class="o">/</span> <span class="n">airpress</span><span class="p">[</span><span class="n">i</span><span class="p">]),</span> \
+                       <span class="p">(</span><span class="mf">287.0</span> <span class="o">/</span> <span class="n">cp</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span> <span class="o">-</span> <span class="mf">273.15</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">theta</span> <span class="c"># in degrees celsius</span>
+</div>
+<div class="viewcode-block" id="windvec"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.meteolib.windvec">[docs]</a><span class="k">def</span> <span class="nf">windvec</span><span class="p">(</span><span class="n">u</span><span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>\
+            <span class="n">D</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([])):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Function to calculate the wind vector from time series of wind</span>
+<span class="sd">    speed and direction </span>
+<span class="sd">    </span>
+<span class="sd">    Input:</span>
+<span class="sd">        - u: array of wind speeds [m/s]</span>
+<span class="sd">        - D: array of wind directions [degrees from North]</span>
+<span class="sd">        </span>
+<span class="sd">    Output:</span>
+<span class="sd">        - uv: Vector wind speed [m/s]</span>
+<span class="sd">        - Dv: Vector wind direction [degrees from North]</span>
+<span class="sd">        </span>
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; u</span>
+<span class="sd">        array([[ 3. ],</span>
+<span class="sd">               [ 7.5],</span>
+<span class="sd">               [ 2.1]])</span>
+<span class="sd">        &gt;&gt;&gt; D</span>
+<span class="sd">        array([[340],</span>
+<span class="sd">               [356],</span>
+<span class="sd">               [  2]])</span>
+<span class="sd">        &gt;&gt;&gt; windvec(u,D)</span>
+<span class="sd">        (4.1623542028369052, 353.21188820369366)</span>
+<span class="sd">        &gt;&gt;&gt; uv,Dv=windvec(u,D)</span>
+<span class="sd">        &gt;&gt;&gt; uv</span>
+<span class="sd">        4.1623542028369052</span>
+<span class="sd">        &gt;&gt;&gt; Dv</span>
+<span class="sd">        353.21188820369366</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">ve</span> <span class="o">=</span> <span class="mf">0.0</span> <span class="c"># define east component of wind speed</span>
+    <span class="n">vn</span> <span class="o">=</span> <span class="mf">0.0</span> <span class="c"># define north component of wind speed</span>
+    <span class="n">D</span> <span class="o">=</span> <span class="n">D</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mf">180.0</span> <span class="c"># convert wind direction degrees to radians</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">u</span><span class="p">)):</span>
+        <span class="n">ve</span> <span class="o">=</span> <span class="n">ve</span> <span class="o">+</span> <span class="n">u</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">D</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="c"># calculate sum east speed components</span>
+        <span class="n">vn</span> <span class="o">=</span> <span class="n">vn</span> <span class="o">+</span> <span class="n">u</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">D</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="c"># calculate sum north speed components</span>
+    <span class="n">ve</span> <span class="o">=</span> <span class="o">-</span> <span class="n">ve</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">u</span><span class="p">)</span> <span class="c"># determine average east speed component</span>
+    <span class="n">vn</span> <span class="o">=</span> <span class="o">-</span> <span class="n">vn</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">u</span><span class="p">)</span> <span class="c"># determine average north speed component</span>
+    <span class="n">uv</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">ve</span> <span class="o">*</span> <span class="n">ve</span> <span class="o">+</span> <span class="n">vn</span> <span class="o">*</span> <span class="n">vn</span><span class="p">)</span> <span class="c"># calculate wind speed vector magnitude</span>
+    <span class="c"># Calculate wind speed vector direction</span>
+    <span class="n">vdir</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">ve</span><span class="p">,</span> <span class="n">vn</span><span class="p">)</span>
+    <span class="n">vdir</span> <span class="o">=</span> <span class="n">vdir</span> <span class="o">*</span> <span class="mf">180.0</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="c"># Convert radians to degrees</span>
+    <span class="k">if</span> <span class="n">vdir</span> <span class="o">&lt;</span> <span class="mi">180</span><span class="p">:</span>
+        <span class="n">Dv</span> <span class="o">=</span> <span class="n">vdir</span> <span class="o">+</span> <span class="mf">180.0</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">vdir</span> <span class="o">&gt;</span> <span class="mf">180.0</span><span class="p">:</span>
+            <span class="n">Dv</span> <span class="o">=</span> <span class="n">vdir</span> <span class="o">-</span> <span class="mi">180</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">Dv</span> <span class="o">=</span> <span class="n">vdir</span>
+    <span class="k">return</span> <span class="n">uv</span><span class="p">,</span> <span class="n">Dv</span> <span class="c"># uv in m/s, Dv in dgerees from North</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Kirubaharan Jeremiah.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

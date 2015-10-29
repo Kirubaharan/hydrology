@@ -1,0 +1,278 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>hydrology.checkdam.mynormalize &mdash; Hydrology 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="Hydrology 1.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydrology.checkdam.mynormalize</h1><div class="highlight"><pre>
+<span class="c"># The Normalize class is largely based on code provided by Sarah Graves.</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy.ma</span> <span class="kn">as</span> <span class="nn">ma</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib.cbook</span> <span class="kn">as</span> <span class="nn">cbook</span>
+<span class="kn">from</span> <span class="nn">matplotlib.colors</span> <span class="kn">import</span> <span class="n">Normalize</span>
+
+
+<div class="viewcode-block" id="MyNormalize"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.mynormalize.MyNormalize">[docs]</a><span class="k">class</span> <span class="nc">MyNormalize</span><span class="p">(</span><span class="n">Normalize</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    A Normalize class for imshow that allows different stretching functions</span>
+<span class="sd">    for astronomical images.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stretch</span><span class="o">=</span><span class="s">&#39;linear&#39;</span><span class="p">,</span> <span class="n">exponent</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">vmid</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">vmax</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">clip</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Initalize an APLpyNormalize instance.</span>
+
+<span class="sd">        Optional Keyword Arguments:</span>
+
+<span class="sd">            *vmin*: [ None | float ]</span>
+<span class="sd">                Minimum pixel value to use for the scaling.</span>
+
+<span class="sd">            *vmax*: [ None | float ]</span>
+<span class="sd">                Maximum pixel value to use for the scaling.</span>
+
+<span class="sd">            *stretch*: [ &#39;linear&#39; | &#39;log&#39; | &#39;sqrt&#39; | &#39;arcsinh&#39; | &#39;power&#39; ]</span>
+<span class="sd">                The stretch function to use (default is &#39;linear&#39;).</span>
+
+<span class="sd">            *vmid*: [ None | float ]</span>
+<span class="sd">                Mid-pixel value used for the log and arcsinh stretches. If</span>
+<span class="sd">                set to None, a default value is picked.</span>
+
+<span class="sd">            *exponent*: [ float ]</span>
+<span class="sd">                if self.stretch is set to &#39;power&#39;, this is the exponent to use.</span>
+
+<span class="sd">            *clip*: [ True | False ]</span>
+<span class="sd">                If clip is True and the given value falls outside the range,</span>
+<span class="sd">                the returned value will be 0 or 1, whichever is closer.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="k">if</span> <span class="n">vmax</span> <span class="o">&lt;</span> <span class="n">vmin</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;vmax should be larger than vmin&quot;</span><span class="p">)</span>
+
+        <span class="c"># Call original initalization routine</span>
+        <span class="n">Normalize</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="n">vmin</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="n">vmax</span><span class="p">,</span> <span class="n">clip</span><span class="o">=</span><span class="n">clip</span><span class="p">)</span>
+
+        <span class="c"># Save parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stretch</span> <span class="o">=</span> <span class="n">stretch</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">exponent</span> <span class="o">=</span> <span class="n">exponent</span>
+
+        <span class="k">if</span> <span class="n">stretch</span> <span class="o">==</span> <span class="s">&#39;power&#39;</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">exponent</span><span class="p">,</span> <span class="bp">None</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;For stretch==&#39;power&#39;, an exponent should be specified&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">vmid</span><span class="p">,</span> <span class="bp">None</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">stretch</span> <span class="o">==</span> <span class="s">&#39;log&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">vmin</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">midpoint</span> <span class="o">=</span> <span class="n">vmax</span> <span class="o">/</span> <span class="n">vmin</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;When using a log stretch, if vmin &lt; 0, then vmid has to be specified&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">stretch</span> <span class="o">==</span> <span class="s">&#39;arcsinh&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">midpoint</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.</span> <span class="o">/</span> <span class="mf">30.</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">midpoint</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">stretch</span> <span class="o">==</span> <span class="s">&#39;log&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">vmin</span> <span class="o">&lt;</span> <span class="n">vmid</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;When using a log stretch, vmin should be larger than vmid&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">midpoint</span> <span class="o">=</span> <span class="p">(</span><span class="n">vmax</span> <span class="o">-</span> <span class="n">vmid</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">vmin</span> <span class="o">-</span> <span class="n">vmid</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">stretch</span> <span class="o">==</span> <span class="s">&#39;arcsinh&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">midpoint</span> <span class="o">=</span> <span class="p">(</span><span class="n">vmid</span> <span class="o">-</span> <span class="n">vmin</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">vmax</span> <span class="o">-</span> <span class="n">vmin</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">midpoint</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">clip</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+
+        <span class="c">#read in parameters</span>
+        <span class="n">method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stretch</span>
+        <span class="n">exponent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">exponent</span>
+        <span class="n">midpoint</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">midpoint</span>
+
+        <span class="c"># ORIGINAL MATPLOTLIB CODE</span>
+
+        <span class="k">if</span> <span class="n">clip</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">clip</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">clip</span>
+
+        <span class="k">if</span> <span class="n">cbook</span><span class="o">.</span><span class="n">iterable</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+            <span class="n">vtype</span> <span class="o">=</span> <span class="s">&#39;array&#39;</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">vtype</span> <span class="o">=</span> <span class="s">&#39;scalar&#39;</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">value</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">autoscale_None</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+        <span class="n">vmin</span><span class="p">,</span> <span class="n">vmax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vmin</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vmax</span>
+        <span class="k">if</span> <span class="n">vmin</span> <span class="o">&gt;</span> <span class="n">vmax</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;minvalue must be less than or equal to maxvalue&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">vmin</span> <span class="o">==</span> <span class="n">vmax</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">0.0</span> <span class="o">*</span> <span class="n">val</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">clip</span><span class="p">:</span>
+                <span class="n">mask</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">getmask</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">val</span><span class="o">.</span><span class="n">filled</span><span class="p">(</span><span class="n">vmax</span><span class="p">),</span> <span class="n">vmin</span><span class="p">,</span> <span class="n">vmax</span><span class="p">),</span>
+                                <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="n">val</span> <span class="o">-</span> <span class="n">vmin</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="n">vmax</span> <span class="o">-</span> <span class="n">vmin</span><span class="p">))</span>
+
+            <span class="c"># CUSTOM APLPY CODE</span>
+
+            <span class="c"># Keep track of negative values</span>
+            <span class="n">negative</span> <span class="o">=</span> <span class="n">result</span> <span class="o">&lt;</span> <span class="mf">0.</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stretch</span> <span class="o">==</span> <span class="s">&#39;linear&#39;</span><span class="p">:</span>
+
+                <span class="k">pass</span>
+
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">stretch</span> <span class="o">==</span> <span class="s">&#39;log&#39;</span><span class="p">:</span>
+
+                <span class="n">result</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">result</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">midpoint</span> <span class="o">-</span> <span class="mf">1.</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1.</span><span class="p">)</span> \
+                       <span class="o">/</span> <span class="n">ma</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">midpoint</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">stretch</span> <span class="o">==</span> <span class="s">&#39;sqrt&#39;</span><span class="p">:</span>
+
+                <span class="n">result</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">stretch</span> <span class="o">==</span> <span class="s">&#39;arcsinh&#39;</span><span class="p">:</span>
+
+                <span class="n">result</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">arcsinh</span><span class="p">(</span><span class="n">result</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">midpoint</span><span class="p">)</span> \
+                       <span class="o">/</span> <span class="n">ma</span><span class="o">.</span><span class="n">arcsinh</span><span class="p">(</span><span class="mf">1.</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">midpoint</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">stretch</span> <span class="o">==</span> <span class="s">&#39;power&#39;</span><span class="p">:</span>
+
+                <span class="n">result</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">exponent</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;Unknown stretch in APLpyNormalize: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">stretch</span><span class="p">)</span>
+
+            <span class="c"># Now set previously negative values to 0, as these are</span>
+            <span class="c"># different from true NaN values in the FITS image</span>
+            <span class="n">result</span><span class="p">[</span><span class="n">negative</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+
+        <span class="k">if</span> <span class="n">vtype</span> <span class="o">==</span> <span class="s">&#39;scalar&#39;</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">result</span>
+
+<div class="viewcode-block" id="MyNormalize.inverse"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.mynormalize.MyNormalize.inverse">[docs]</a>    <span class="k">def</span> <span class="nf">inverse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+
+        <span class="c"># ORIGINAL MATPLOTLIB CODE</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">scaled</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;Not invertible until scaled&quot;</span><span class="p">)</span>
+
+        <span class="n">vmin</span><span class="p">,</span> <span class="n">vmax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vmin</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vmax</span>
+
+        <span class="c"># CUSTOM APLPY CODE</span>
+
+        <span class="k">if</span> <span class="n">cbook</span><span class="o">.</span><span class="n">iterable</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">value</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stretch</span> <span class="o">==</span> <span class="s">&#39;linear&#39;</span><span class="p">:</span>
+
+            <span class="k">pass</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">stretch</span> <span class="o">==</span> <span class="s">&#39;log&#39;</span><span class="p">:</span>
+
+            <span class="n">val</span> <span class="o">=</span> <span class="p">(</span><span class="n">ma</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="mf">10.</span><span class="p">,</span> <span class="n">val</span> <span class="o">*</span> <span class="n">ma</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">midpoint</span><span class="p">))</span> <span class="o">-</span> <span class="mf">1.</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">midpoint</span> <span class="o">-</span> <span class="mf">1.</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">stretch</span> <span class="o">==</span> <span class="s">&#39;sqrt&#39;</span><span class="p">:</span>
+
+            <span class="n">val</span> <span class="o">=</span> <span class="n">val</span> <span class="o">*</span> <span class="n">val</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">stretch</span> <span class="o">==</span> <span class="s">&#39;arcsinh&#39;</span><span class="p">:</span>
+
+            <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">midpoint</span> <span class="o">*</span> \
+                  <span class="n">ma</span><span class="o">.</span><span class="n">sinh</span><span class="p">(</span><span class="n">val</span> <span class="o">*</span> <span class="n">ma</span><span class="o">.</span><span class="n">arcsinh</span><span class="p">(</span><span class="mf">1.</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">midpoint</span><span class="p">))</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">stretch</span> <span class="o">==</span> <span class="s">&#39;power&#39;</span><span class="p">:</span>
+
+            <span class="n">val</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">exponent</span><span class="p">))</span>
+
+        <span class="k">else</span><span class="p">:</span>
+
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;Unknown stretch in APLpyNormalize: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">stretch</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">vmin</span> <span class="o">+</span> <span class="n">val</span> <span class="o">*</span> <span class="p">(</span><span class="n">vmax</span> <span class="o">-</span> <span class="n">vmin</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Kirubaharan Jeremiah.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

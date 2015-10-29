@@ -1,0 +1,1439 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>hydrology.checkdam package &mdash; Hydrology 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Hydrology 1.0 documentation" href="index.html" />
+    <link rel="up" title="hydrology package" href="hydrology.html" />
+    <link rel="prev" title="hydrology package" href="hydrology.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="hydrology-checkdam-package">
+<h1>hydrology.checkdam package<a class="headerlink" href="#hydrology-checkdam-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-hydrology.checkdam.checkdam">
+<span id="hydrology-checkdam-checkdam-module"></span><h2>hydrology.checkdam.checkdam module<a class="headerlink" href="#module-hydrology.checkdam.checkdam" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="hydrology.checkdam.checkdam.DraggableColorbar">
+<em class="property">class </em><code class="descclassname">hydrology.checkdam.checkdam.</code><code class="descname">DraggableColorbar</code><span class="sig-paren">(</span><em>cbar</em>, <em>mappable</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/checkdam.html#DraggableColorbar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.checkdam.DraggableColorbar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="hydrology.checkdam.checkdam.DraggableColorbar.connect">
+<code class="descname">connect</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/checkdam.html#DraggableColorbar.connect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.checkdam.DraggableColorbar.connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>connect to all the events we need</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydrology.checkdam.checkdam.DraggableColorbar.disconnect">
+<code class="descname">disconnect</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/checkdam.html#DraggableColorbar.disconnect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.checkdam.DraggableColorbar.disconnect" title="Permalink to this definition">¶</a></dt>
+<dd><p>disconnect all the stored connection ids</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydrology.checkdam.checkdam.DraggableColorbar.key_press">
+<code class="descname">key_press</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/checkdam.html#DraggableColorbar.key_press"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.checkdam.DraggableColorbar.key_press" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="hydrology.checkdam.checkdam.DraggableColorbar.on_motion">
+<code class="descname">on_motion</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/checkdam.html#DraggableColorbar.on_motion"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.checkdam.DraggableColorbar.on_motion" title="Permalink to this definition">¶</a></dt>
+<dd><p>on motion we will move the rect if the mouse is over us</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydrology.checkdam.checkdam.DraggableColorbar.on_press">
+<code class="descname">on_press</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/checkdam.html#DraggableColorbar.on_press"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.checkdam.DraggableColorbar.on_press" title="Permalink to this definition">¶</a></dt>
+<dd><p>on button press we will see if the mouse is over us and store some data</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydrology.checkdam.checkdam.DraggableColorbar.on_release">
+<code class="descname">on_release</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/checkdam.html#DraggableColorbar.on_release"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.checkdam.DraggableColorbar.on_release" title="Permalink to this definition">¶</a></dt>
+<dd><p>on release we reset the press data</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="hydrology.checkdam.checkdam.calcvolume">
+<code class="descclassname">hydrology.checkdam.checkdam.</code><code class="descname">calcvolume</code><span class="sig-paren">(</span><em>y_value_list</em>, <em>elevation_data</em>, <em>dam_height</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/checkdam.html#calcvolume"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.checkdam.calcvolume" title="Permalink to this definition">¶</a></dt>
+<dd><p>Modified function to calculate stage vs volume relationship from elevation data</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>y_value_list</strong> &#8211; List of Y values, y1, y2,...</li>
+<li><strong>elevation_data</strong> &#8211; Elevation data with headers df.Yy1, df.Yy2</li>
+<li><strong>dam_height</strong> &#8211; check dam height in metre</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">pandas dataframe with stage and corresponding volume</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="hydrology.checkdam.checkdam.contour_area">
+<code class="descclassname">hydrology.checkdam.checkdam.</code><code class="descname">contour_area</code><span class="sig-paren">(</span><em>mpl_obj</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/checkdam.html#contour_area"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.checkdam.contour_area" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a array of contour levels and
+corresponding cumulative area of contours
+# Refer: Nikolai Shokhirev <a class="reference external" href="http://www.numericalexpert.com/blog/area_calculation/">http://www.numericalexpert.com/blog/area_calculation/</a></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>mpl_obj</strong> &#8211; Matplotlib contour object</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">[(level1, area1), (level1, area1+area2)]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="hydrology.checkdam.checkdam.day_interpolate">
+<code class="descclassname">hydrology.checkdam.checkdam.</code><code class="descname">day_interpolate</code><span class="sig-paren">(</span><em>dataframe</em>, <em>column_name</em>, <em>wrong_date_time</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/checkdam.html#day_interpolate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.checkdam.day_interpolate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to do linear interpolate on daily timescale</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>dataframe</strong> &#8211; Pandas dataframe</li>
+<li><strong>column_name</strong> (<em>str</em>) &#8211; Interpolation target column name of dataframe</li>
+<li><strong>wrong_date_time</strong> (<em>list</em>) &#8211; List of error timestamp</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Corrected dataframe</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="hydrology.checkdam.checkdam.delta_calc">
+<code class="descclassname">hydrology.checkdam.checkdam.</code><code class="descname">delta_calc</code><span class="sig-paren">(</span><em>airtemp</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/checkdam.html#delta_calc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.checkdam.delta_calc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates slope of saturation vapour pressure curve at air temperature [kPa/Celsius]
+<a class="reference external" href="http://www.fao.org/docrep/x0490e/x0490e07.htm">http://www.fao.org/docrep/x0490e/x0490e07.htm</a></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>airtemp</strong> &#8211; Temperature in Celsius</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">slope of saturation vapour pressure curve [kPa/Celsius]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="hydrology.checkdam.checkdam.extraterrestrial_irrad">
+<code class="descclassname">hydrology.checkdam.checkdam.</code><code class="descname">extraterrestrial_irrad</code><span class="sig-paren">(</span><em>local_datetime</em>, <em>latitude_deg</em>, <em>longitude_deg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/checkdam.html#extraterrestrial_irrad"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.checkdam.extraterrestrial_irrad" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates extraterrestrial radiation in MJ/m2/30min</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>local_datetime</strong> &#8211; datetime object</li>
+<li><strong>latitude_deg</strong> &#8211; in decimal degree</li>
+<li><strong>longitude_deg</strong> &#8211; in decimal degree</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Extra terrestrial radiation in MJ/m2/30min</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">float</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="hydrology.checkdam.checkdam.fill_profile">
+<code class="descclassname">hydrology.checkdam.checkdam.</code><code class="descname">fill_profile</code><span class="sig-paren">(</span><em>base_df</em>, <em>slope_df</em>, <em>midpoint_index</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/checkdam.html#fill_profile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.checkdam.fill_profile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to fill profile data where only slope data is collected.
+The difference between two slope is added to previous slope to get the current
+cross section.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>base_df</strong> &#8211; base profile</li>
+<li><strong>slope_df</strong> &#8211; slope profile</li>
+<li><strong>midpoint_index</strong> &#8211; index of midpoint(x=0)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">filled base profile</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="hydrology.checkdam.checkdam.find_range">
+<code class="descclassname">hydrology.checkdam.checkdam.</code><code class="descname">find_range</code><span class="sig-paren">(</span><em>array</em>, <em>x</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/checkdam.html#find_range"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.checkdam.find_range" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to calculate bounding intervals from array to do piecewise linear interpolation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>array</strong> &#8211; list of values</li>
+<li><strong>x</strong> &#8211; interpolation value</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">boundary interval</p>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>Examples:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">array</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
+<span class="go">&gt;&gt;&gt;find_range(array, 1.5)</span>
+<span class="go">1, 2</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="hydrology.checkdam.checkdam.half_hour_evaporation">
+<code class="descclassname">hydrology.checkdam.checkdam.</code><code class="descname">half_hour_evaporation</code><span class="sig-paren">(</span><em>airtemp=array([]</em>, <em>dtype=float64)</em>, <em>rh=array([]</em>, <em>dtype=float64)</em>, <em>airpress=array([]</em>, <em>dtype=float64)</em>, <em>rs=array([]</em>, <em>dtype=float64)</em>, <em>rext=array([]</em>, <em>dtype=float64)</em>, <em>u=array([]</em>, <em>dtype=float64)</em>, <em>z=0.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/checkdam.html#half_hour_evaporation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.checkdam.half_hour_evaporation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to calculate daily Penman open water evaporation (in mm/30min).
+Equation according to
+Shuttleworth, W. J. 2007. &#8220;Putting the &#8216;Vap&#8217; into Evaporation.&#8221;
+Hydrology and Earth System Sciences 11 (1): 210-44. doi:10.5194/hess-11-210-2007.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>airtemp</strong> &#8211; average air temperature [Celsius]</li>
+<li><strong>rh</strong> &#8211; relative humidity[%]</li>
+<li><strong>airpress</strong> &#8211; average air pressure[Pa]</li>
+<li><strong>rs</strong> &#8211; Incoming solar radiation [MJ/m2/30min]</li>
+<li><strong>rext</strong> &#8211; Extraterrestrial radiation [MJ/m2/30min]</li>
+<li><strong>u</strong> &#8211; average wind speed at 2 m from ground [m/s]</li>
+<li><strong>z</strong> &#8211; site elevation, default is zero [metre]</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Penman open water evaporation values [mm/30min]</p>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>Examples:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">half_hour_evaporation</span> <span class="o">=</span> <span class="n">E0</span><span class="p">(</span><span class="n">T</span><span class="p">,</span><span class="n">RH</span><span class="p">,</span><span class="n">press</span><span class="p">,</span><span class="n">Rs</span><span class="p">,</span><span class="n">N</span><span class="p">,</span><span class="n">Rext</span><span class="p">,</span><span class="n">u</span><span class="p">,</span><span class="mf">1000.0</span><span class="p">)</span> <span class="c"># at 1000 m a.s.l</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="hydrology.checkdam.checkdam.myround">
+<code class="descclassname">hydrology.checkdam.checkdam.</code><code class="descname">myround</code><span class="sig-paren">(</span><em>a</em>, <em>decimals=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/checkdam.html#myround"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.checkdam.myround" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to round, better than numpy around</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>a</strong> &#8211; float to be rounded</li>
+<li><strong>decimals</strong> &#8211; no of decimal places, default = 1</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>:return:rounded float</p>
+<dl class="docutils">
+<dt>Examples:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">myround</span><span class="p">(</span><span class="mf">0.7568</span><span class="p">,</span><span class="n">decimals</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="go">0.76</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="hydrology.checkdam.checkdam.pairwise">
+<code class="descclassname">hydrology.checkdam.checkdam.</code><code class="descname">pairwise</code><span class="sig-paren">(</span><em>iterable</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/checkdam.html#pairwise"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.checkdam.pairwise" title="Permalink to this definition">¶</a></dt>
+<dd><p>s -&gt; (s0,s1), (s1,s2), (s2,s3)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>iterable</strong> &#8211; </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="hydrology.checkdam.checkdam.pick_incorrect_value">
+<code class="descclassname">hydrology.checkdam.checkdam.</code><code class="descname">pick_incorrect_value</code><span class="sig-paren">(</span><em>dataframe</em>, <em>**param</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/checkdam.html#pick_incorrect_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.checkdam.pick_incorrect_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Selects a unique list of timestamp that satisfies the condition given in the param dictionary</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>dataframe</strong> &#8211; Pandas dataframe</li>
+<li><strong>param</strong> (<em>dict</em>) &#8211; Conditonal Dictionary, Eg.{column name: [cutoff, &#8216;&gt;&#8217;]}</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">unique list of timestamp</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="hydrology.checkdam.checkdam.polyfit">
+<code class="descclassname">hydrology.checkdam.checkdam.</code><code class="descname">polyfit</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>degree</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/checkdam.html#polyfit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.checkdam.polyfit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper around np.polyfit</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> &#8211; x values</li>
+<li><strong>y</strong> &#8211; y values</li>
+<li><strong>degree</strong> &#8211; polynomial degree</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">results, polynomial has coefficients, determination has r-squared</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="hydrology.checkdam.checkdam.previous_interpolate">
+<code class="descclassname">hydrology.checkdam.checkdam.</code><code class="descname">previous_interpolate</code><span class="sig-paren">(</span><em>dataframe</em>, <em>column_name</em>, <em>wrong_date_time</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/checkdam.html#previous_interpolate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.checkdam.previous_interpolate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to fill the missing values from corresponding previous day&#8217;s time period</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>dataframe</strong> &#8211; Pandas dataframe</li>
+<li><strong>column_name</strong> (<em>str</em>) &#8211; Interpolation target column name of dataframe</li>
+<li><strong>wrong_date_time</strong> (<em>list</em>) &#8211; List of error timestamp</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Corrected dataframe</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="hydrology.checkdam.checkdam.read_correct_ch_dam_data">
+<code class="descclassname">hydrology.checkdam.checkdam.</code><code class="descname">read_correct_ch_dam_data</code><span class="sig-paren">(</span><em>csv_file</em>, <em>calibration_slope</em>, <em>calibration_intercept</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/checkdam.html#read_correct_ch_dam_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.checkdam.read_correct_ch_dam_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to read and calibrate odyssey capacitance sensor data</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>csv_file</strong> &#8211; csv file created from sensor</li>
+<li><strong>calibration_slope</strong> &#8211; slope</li>
+<li><strong>calibration_intercept</strong> &#8211; intercept</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">calibrated and time corrected data</p>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>Examples:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">read_correct_ch_dam_data</span><span class="p">(</span><span class="n">csv_file</span><span class="o">=</span><span class="nb">file</span><span class="o">.</span><span class="n">csv</span><span class="p">,</span> <span class="n">calibration_slope</span><span class="o">=</span><span class="mf">0.111</span><span class="p">,</span> <span class="n">calibration_intercept</span><span class="o">=</span><span class="mf">0.222</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="hydrology.checkdam.checkdam.set_column_sequence">
+<code class="descclassname">hydrology.checkdam.checkdam.</code><code class="descname">set_column_sequence</code><span class="sig-paren">(</span><em>dataframe</em>, <em>seq</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/checkdam.html#set_column_sequence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.checkdam.set_column_sequence" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes a dataframe and a sequence of its columns, returns dataframe with seq as first column</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="hydrology.checkdam.checkdam.spread">
+<code class="descclassname">hydrology.checkdam.checkdam.</code><code class="descname">spread</code><span class="sig-paren">(</span><em>start</em>, <em>end</em>, <em>count</em>, <em>mode=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/checkdam.html#spread"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.checkdam.spread" title="Permalink to this definition">¶</a></dt>
+<dd><p>Yield a sequence of evenly-spaced numbers between start and end.</p>
+<p>spread(start, end, count [, mode]) -&gt; generator</p>
+<p>The range start...end is divided into count evenly-spaced (or as close to
+evenly-spaced as possible) intervals. The end-points of each interval are
+then yielded, optionally including or excluding start and end themselves.
+By default, start is included and end is excluded.</p>
+<p>Optional argument mode controls whether spread() includes the start and
+end values. mode must be an int. Bit zero of mode controls whether start
+is included (on) or excluded (off); bit one does the same for end. Hence:</p>
+<p>0 -&gt; open interval (start and end both excluded)
+1 -&gt; half-open (start included, end excluded)
+2 -&gt; half open (start excluded, end included)
+3 -&gt; closed (start and end both included)</p>
+<p>By default, mode=1 and only start is included in the output.</p>
+<p>(Note: depending on mode, the number of values returned can be count, count-1 or count+1.)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>start</strong> &#8211; starting number</li>
+<li><strong>end</strong> &#8211; ending number</li>
+<li><strong>count</strong> &#8211; number of values returned</li>
+<li><strong>mode</strong> &#8211; controls the output, default is 1</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">generator</p>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>Examples:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="nb">list</span><span class="p">(</span><span class="n">spread</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">2.1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="go">[0.0, 0.7, 1.4]</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-hydrology.checkdam.evaplib">
+<span id="hydrology-checkdam-evaplib-module"></span><h2>hydrology.checkdam.evaplib module<a class="headerlink" href="#module-hydrology.checkdam.evaplib" title="Permalink to this headline">¶</a></h2>
+<p>Evaplib: A libray with Python functions for calculation of 
+evaporation from meteorological data.</p>
+<p>Functions:</p>
+<blockquote>
+<div><ul class="simple">
+<li>penman: Calculate Penman (1948, 1956) open water evaporation</li>
+<li>makkink: Calculate evaporation according to Makkink (1965)</li>
+<li>Ept: Calculate evaporation according to Priestley and Taylor (1972)</li>
+<li>ET0pm: Calculate Penman Monteith reference evaporation short grass</li>
+<li>Epm: Calculate Penman-Monteith evaporation (actual)</li>
+<li>ra: Calculate aerodynamic resistance from windspeed and
+roughnes parameters</li>
+<li>tvardry: calculate sensible heat flux from temperature variations
+(Vugts et al., 1993)</li>
+<li>gash79: Gash (1979) analytical rainfall interception model</li>
+</ul>
+</div></blockquote>
+<dl class="function">
+<dt id="hydrology.checkdam.evaplib.E0">
+<code class="descclassname">hydrology.checkdam.evaplib.</code><code class="descname">E0</code><span class="sig-paren">(</span><em>airtemp=array([]</em>, <em>dtype=float64)</em>, <em>rh=array([]</em>, <em>dtype=float64)</em>, <em>airpress=array([]</em>, <em>dtype=float64)</em>, <em>Rs=array([]</em>, <em>dtype=float64)</em>, <em>Rext=array([]</em>, <em>dtype=float64)</em>, <em>u=array([]</em>, <em>dtype=float64)</em>, <em>Z=0.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/evaplib.html#E0"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.evaplib.E0" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to calculate daily Penman open water evaporation (in mm/day).
+Equation according to J.D. Valiantzas (2006). Simplified versions
+for the Penman evaporation equation using routine weather data.
+J. Hydrology 331: 690-702. Following Penman (1948,1956). Albedo set
+at 0.06 for open water.</p>
+<dl class="docutils">
+<dt>Input (measured at 2 m height):</dt>
+<dd><ul class="first last simple">
+<li>airtemp: (array of) daily average air temperatures [Celsius]</li>
+<li>rh: (array of) daily average relative humidity [%]</li>
+<li>airpress: (array of) daily average air pressure data [Pa]</li>
+<li>Rs: (array of) daily incoming solar radiation [J/m2/day]</li>
+<li>N: (array of) maximum daily sunshine hours [h]</li>
+<li>Rext: (array of) daily extraterrestrial radiation [J/m2/day]</li>
+<li>u: (array of) daily average wind speed at 2 m [m/s]</li>
+<li>Z: (array of) site elevation [m a.s.l.], default is zero...</li>
+</ul>
+</dd>
+<dt>Output:</dt>
+<dd><ul class="first last simple">
+<li>E0: (array of) Penman open water evaporation values [mm/day]</li>
+</ul>
+</dd>
+<dt>Examples:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># T, RH, etc. are arrays of data...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">E0_data</span> <span class="o">=</span> <span class="n">E0</span><span class="p">(</span><span class="n">T</span><span class="p">,</span><span class="n">RH</span><span class="p">,</span><span class="n">press</span><span class="p">,</span><span class="n">Rs</span><span class="p">,</span><span class="n">N</span><span class="p">,</span><span class="n">Rext</span><span class="p">,</span><span class="n">u</span><span class="p">)</span> <span class="c"># for zero elevation</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">E0_data</span> <span class="o">=</span> <span class="n">E0</span><span class="p">(</span><span class="n">T</span><span class="p">,</span><span class="n">RH</span><span class="p">,</span><span class="n">press</span><span class="p">,</span><span class="n">Rs</span><span class="p">,</span><span class="n">N</span><span class="p">,</span><span class="n">Rext</span><span class="p">,</span><span class="n">u</span><span class="p">,</span><span class="mf">1000.0</span><span class="p">)</span> <span class="c"># at 1000 m a.s.l</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># With single values and default elevation...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">E0</span><span class="p">(</span><span class="mf">20.67</span><span class="p">,</span><span class="mf">67.0</span><span class="p">,</span><span class="mf">101300.0</span><span class="p">,</span><span class="mi">22600000</span><span class="p">,</span><span class="mf">14.4</span><span class="p">,</span><span class="mi">42000000</span><span class="p">,</span><span class="mf">2.0</span><span class="p">)</span>
+<span class="go">6.3102099052283389</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># for elevation of 1.0 m a.s.l.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">E0</span><span class="p">(</span><span class="mf">21.65</span><span class="p">,</span><span class="mf">67.0</span><span class="p">,</span><span class="mf">101300.0</span><span class="p">,</span><span class="mi">24200000</span><span class="p">,</span><span class="mf">14.66</span><span class="p">,</span><span class="mi">42200000</span><span class="p">,</span><span class="mf">1.51</span><span class="p">,</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="go">6.5991748573832343</span>
+<span class="gp">&gt;&gt;&gt; </span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="hydrology.checkdam.evaplib.ET0pm">
+<code class="descclassname">hydrology.checkdam.evaplib.</code><code class="descname">ET0pm</code><span class="sig-paren">(</span><em>airtemp=array([]</em>, <em>dtype=float64)</em>, <em>rh=array([]</em>, <em>dtype=float64)</em>, <em>airpress=array([]</em>, <em>dtype=float64)</em>, <em>Rs=array([]</em>, <em>dtype=float64)</em>, <em>N=array([]</em>, <em>dtype=float64)</em>, <em>Rext=array([]</em>, <em>dtype=float64)</em>, <em>u=array([]</em>, <em>dtype=float64)</em>, <em>Z=0.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/evaplib.html#ET0pm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.evaplib.ET0pm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to calculate daily Penman Monteith reference evaporation
+(in mm/day). Source: R.G. Allen, L.S. Pereira, D. Raes and M. Smith
+(1998). Crop evapotranspiration - Guidelines for computing crop
+water requirements - FAO Irrigation and drainage paper 56. FAO -
+Food and Agriculture Organization of the United Nations, Rome, 1998</p>
+<dl class="docutils">
+<dt>Input (measured at 2 m height):</dt>
+<dd><ul class="first last simple">
+<li>airtemp: (array of) daily average air temperatures [Celsius]</li>
+<li>rh: (array of) daily average relative humidity values[%]</li>
+<li>airpress: (array of) daily average air pressure data [hPa]</li>
+<li>Rs: (array of) total incoming shortwave radiation [J/m2/day]</li>
+<li>N: daylength [h]</li>
+<li>Rext: Incoming shortwave radiation at the top of the atmosphere [J/m2/day]</li>
+<li>u: windspeed [m/s]</li>
+<li>Z: elevation [m], default is 0.0 m</li>
+</ul>
+</dd>
+<dt>Output:</dt>
+<dd><ul class="first last simple">
+<li>ET0pm: (array of) Penman Monteith reference evaporation (short grass with optimum water supply) values [mm]</li>
+</ul>
+</dd>
+<dt>Examples:&#8211;</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Eref_data</span> <span class="o">=</span> <span class="n">ET0pm</span><span class="p">(</span><span class="n">T</span><span class="p">,</span><span class="n">RH</span><span class="p">,</span><span class="n">press</span><span class="p">,</span><span class="n">Rs</span><span class="p">,</span><span class="n">N</span><span class="p">,</span><span class="n">Rext</span><span class="p">,</span><span class="n">u</span><span class="p">)</span>    
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="hydrology.checkdam.evaplib.Em">
+<code class="descclassname">hydrology.checkdam.evaplib.</code><code class="descname">Em</code><span class="sig-paren">(</span><em>airtemp=array([]</em>, <em>dtype=float64)</em>, <em>rh=array([]</em>, <em>dtype=float64)</em>, <em>airpress=array([]</em>, <em>dtype=float64)</em>, <em>Rs=array([]</em>, <em>dtype=float64)</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/evaplib.html#Em"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.evaplib.Em" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to calculate Makkink evaporation (in mm/day). The Makkink
+evaporation is a reference crop evaporation used in the Netherlands,
+which is combined with a crop factor to provide an estimate of actual
+crop evaporation. Source: De Bruin, H.A.R.,1987. From Penman to
+Makkink&#8217;, in Hooghart, C. (Ed.), Evaporation and Weather, Proceedings
+and Information. Comm. Hydrological Research TNO, The Hague. pp. 5-30.</p>
+<dl class="docutils">
+<dt>Input (measured at 2 m height):</dt>
+<dd><ul class="first last simple">
+<li>airtemp: (array of) daily average air temperatures [Celsius]</li>
+<li>rh: (array of) daily average relative humidity values[%]</li>
+<li>airpress: (array of) daily average air pressure data [Pa]</li>
+<li>Rs: (array of) average daily incoming solar radiation [J/m2/day]</li>
+</ul>
+</dd>
+<dt>Output:</dt>
+<dd><ul class="first last simple">
+<li>Em: (array of) Makkink evaporation values [mm]</li>
+</ul>
+</dd>
+<dt>Examples:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Em_data</span> <span class="o">=</span> <span class="n">Em</span><span class="p">(</span><span class="n">T</span><span class="p">,</span><span class="n">RH</span><span class="p">,</span><span class="n">press</span><span class="p">,</span><span class="n">Rs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Em</span><span class="p">(</span><span class="mf">21.65</span><span class="p">,</span><span class="mf">67.0</span><span class="p">,</span><span class="mi">101300</span><span class="p">,</span><span class="mi">24200000</span><span class="p">)</span>
+<span class="go">4.5038304791979913</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="hydrology.checkdam.evaplib.Epm">
+<code class="descclassname">hydrology.checkdam.evaplib.</code><code class="descname">Epm</code><span class="sig-paren">(</span><em>airtemp=array([]</em>, <em>dtype=float64)</em>, <em>rh=array([]</em>, <em>dtype=float64)</em>, <em>airpress=array([]</em>, <em>dtype=float64)</em>, <em>Rn=array([]</em>, <em>dtype=float64)</em>, <em>G=array([]</em>, <em>dtype=float64)</em>, <em>ra=array([]</em>, <em>dtype=float64)</em>, <em>rs=array([]</em>, <em>dtype=float64)</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/evaplib.html#Epm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.evaplib.Epm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to calculate the Penman Monteith evaporation
+(in mm) Monteith, J.L. (1965) Evaporation and environment.
+Symp. Soc. Exp. Biol. 19, 205-224</p>
+<dl class="docutils">
+<dt>Input (measured at 2 m height):</dt>
+<dd><ul class="first last simple">
+<li>airtemp: (array of) daily average air temperatures [C]</li>
+<li>rh: (array of) daily average relative humidity values[%]</li>
+<li>airpress: (array of) daily average air pressure data [hPa]</li>
+<li>Rn: (array of) average daily net radiation [J]</li>
+<li>G: (array of) average daily soil heat flux [J]</li>
+<li>ra: aerodynamic resistance [s/m]</li>
+<li>rs: surface resistance [s/m]</li>
+</ul>
+</dd>
+<dt>Output:</dt>
+<dd><ul class="first last simple">
+<li>Epm: (array of) Penman Monteith evaporation values [mm]</li>
+</ul>
+</dd>
+<dt>Examples:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Epm_data</span> <span class="o">=</span> <span class="n">Epm</span><span class="p">(</span><span class="n">T</span><span class="p">,</span><span class="n">RH</span><span class="p">,</span><span class="n">press</span><span class="p">,</span><span class="n">Rn</span><span class="p">,</span><span class="n">G</span><span class="p">,</span><span class="n">ra</span><span class="p">,</span><span class="n">rs</span><span class="p">)</span>    
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="hydrology.checkdam.evaplib.Ept">
+<code class="descclassname">hydrology.checkdam.evaplib.</code><code class="descname">Ept</code><span class="sig-paren">(</span><em>airtemp=array([]</em>, <em>dtype=float64)</em>, <em>rh=array([]</em>, <em>dtype=float64)</em>, <em>airpress=array([]</em>, <em>dtype=float64)</em>, <em>Rn=array([]</em>, <em>dtype=float64)</em>, <em>G=array([]</em>, <em>dtype=float64)</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/evaplib.html#Ept"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.evaplib.Ept" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to calculate daily Priestley - Taylor evaporation (in mm).
+Source: Priestley, C.H.B. and R.J. Taylor, 1972. On the assessment
+of surface heat flux and evaporation using large-scale parameters.
+Mon. Weather Rev. 100:81-82.</p>
+<dl class="docutils">
+<dt>Input (measured at 2 m height):</dt>
+<dd><ul class="first last simple">
+<li>airtemp: (array of) daily average air temperatures [Celsius]</li>
+<li>rh: (array of) daily average relative humidity values[%]</li>
+<li>airpress: (array of) daily average air pressure data [Pa]</li>
+<li>Rn: (array of) average daily net radiation [J/m2/day]</li>
+<li>G: (array of) average daily soil heat flux [J/m2/day]</li>
+</ul>
+</dd>
+<dt>Output:</dt>
+<dd><ul class="first last simple">
+<li>Ept: (array of) Priestley Taylor evaporation values [mm]</li>
+</ul>
+</dd>
+<dt>Examples:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Ept_data</span> <span class="o">=</span> <span class="n">Ept</span><span class="p">(</span><span class="n">T</span><span class="p">,</span><span class="n">RH</span><span class="p">,</span><span class="n">press</span><span class="p">,</span><span class="n">Rn</span><span class="p">,</span><span class="n">G</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Ept</span><span class="p">(</span><span class="mf">21.65</span><span class="p">,</span><span class="mf">67.0</span><span class="p">,</span><span class="mi">101300</span><span class="p">,</span><span class="mi">18200000</span><span class="p">,</span><span class="mi">600000</span><span class="p">)</span>
+<span class="go">6.3494561161280778</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="hydrology.checkdam.evaplib.evaplib">
+<code class="descclassname">hydrology.checkdam.evaplib.</code><code class="descname">evaplib</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/evaplib.html#evaplib"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.evaplib.evaplib" title="Permalink to this definition">¶</a></dt>
+<dd><p>A libray with Python functions for calculation of 
+evaporation from meteorological data.</p>
+<p>Functions:</p>
+<blockquote>
+<div><ul class="simple">
+<li>E0: Calculate Penman (1948, 1956) open water evaporation</li>
+<li>Em: Calculate evaporation according to Makkink (1965)</li>
+<li>Ept: Calculate evaporation according to Priestley and Taylor (1972)</li>
+<li>ET0pm: Calculate Penman Monteith reference evaporation short grass (FAO)</li>
+<li>Epm: Calculate Penman Monteith reference evaporation (Monteith, 1965)</li>
+<li>ra: Calculate  from windspeed and roughnes parameters</li>
+<li>tvardry: calculate sensible heat flux from temperature variations
+(Vugts et al., 1993)</li>
+<li>gash79: calculate rainfall interception (Gash, 1979)</li>
+</ul>
+</div></blockquote>
+<p>Author: Maarten J. Waterloo &lt;<a class="reference external" href="mailto:m&#46;j&#46;waterloo&#37;&#52;&#48;vu&#46;nl">m<span>&#46;</span>j<span>&#46;</span>waterloo<span>&#64;</span>vu<span>&#46;</span>nl</a>&gt;
+Version 1.0
+Date: Sep 2012</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="hydrology.checkdam.evaplib.gash79">
+<code class="descclassname">hydrology.checkdam.evaplib.</code><code class="descname">gash79</code><span class="sig-paren">(</span><em>Pg=array([]</em>, <em>dtype=float64)</em>, <em>ER=&lt;type 'float'&gt;</em>, <em>S=&lt;type 'float'&gt;</em>, <em>St=&lt;type 'float'&gt;</em>, <em>p=&lt;type 'float'&gt;</em>, <em>pt=&lt;type 'float'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/evaplib.html#gash79"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.evaplib.gash79" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the help text: Function to calculate precipitation interception loss
+according to J.H.C. Gash, An analytical model of rainfall interception by
+forests, Quarterly Journal of the Royal Meteorological Society, 1979, 105,
+pp. 43&#8211;55,</p>
+<dl class="docutils">
+<dt>Input:</dt>
+<dd><ul class="first last simple">
+<li>Pg: daily rainfall data [mm]</li>
+<li>ER: evaporation percentage of total rainfall [mm/h]</li>
+<li>S: storage capacity canopy [mm]</li>
+<li>St: stem storage capacity [mm]</li>
+<li>p: direct throughfall [mm]</li>
+<li>pt: stem precipitation [mm]</li>
+</ul>
+</dd>
+<dt>Output:</dt>
+<dd><ul class="first last simple">
+<li>date:</li>
+<li>Pg: Daily rainfall [mm]</li>
+<li>Ei: Interception [mm]</li>
+<li>TF: through fall [mm]</li>
+<li>SF: stemflow [mm]</li>
+</ul>
+</dd>
+<dt>Examples:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">gash79</span><span class="p">(</span><span class="n">Pg</span><span class="p">,</span> <span class="n">ER</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">St</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">pt</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="hydrology.checkdam.evaplib.ra">
+<code class="descclassname">hydrology.checkdam.evaplib.</code><code class="descname">ra</code><span class="sig-paren">(</span><em>z=&lt;type 'float'&gt;</em>, <em>z0=&lt;type 'float'&gt;</em>, <em>d=&lt;type 'float'&gt;</em>, <em>u=array([]</em>, <em>dtype=float64)</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/evaplib.html#ra"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.evaplib.ra" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to calculate the aerodynamic resistance 
+(in s/m) from windspeed and height/roughness values</p>
+<dl class="docutils">
+<dt>Input (measured at 2 m height):</dt>
+<dd><ul class="first last simple">
+<li>z: measurement height [m]</li>
+<li>z0: roughness length [m]</li>
+<li>d: displacement length [m]</li>
+<li>u: (array of) windspeed [m/s]</li>
+</ul>
+</dd>
+<dt>Output:</dt>
+<dd><ul class="first last simple">
+<li>ra: (array of) aerodynamic resistances [s/m]</li>
+</ul>
+</dd>
+<dt>Examples:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">ra</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mf">0.12</span><span class="p">,</span><span class="mf">2.4</span><span class="p">,</span><span class="mf">5.0</span><span class="p">)</span>
+<span class="go">3.2378629924752942</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">u</span><span class="o">=</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">6</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ra</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mf">0.12</span><span class="p">,</span><span class="mf">2.4</span><span class="p">,</span><span class="n">u</span><span class="p">)</span>
+<span class="go">array([ 8.09465748,  4.04732874,  2.69821916])</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="hydrology.checkdam.evaplib.tvardry">
+<code class="descclassname">hydrology.checkdam.evaplib.</code><code class="descname">tvardry</code><span class="sig-paren">(</span><em>rho=array([]</em>, <em>dtype=float64)</em>, <em>cp=array([]</em>, <em>dtype=float64)</em>, <em>T=array([]</em>, <em>dtype=float64)</em>, <em>sigma_t=array([]</em>, <em>dtype=float64)</em>, <em>z=0.0</em>, <em>d=0.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/evaplib.html#tvardry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.evaplib.tvardry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to calculate the sensible heat flux (H, in W/m2) from high
+frequency temperature measurements and its standard deviation. 
+Source: H.F. Vugts, M.J. Waterloo, F.J. Beekman, K.F.A. Frumau and L.A.
+Bruijnzeel. The temperature variance method: a powerful tool in the
+estimation of actual evaporation rates. In J. S. Gladwell, editor, 
+Hydrology of Warm Humid Regions, Proc. of the Yokohama Symp., IAHS
+Publication No. 216, pages 251-260, July 1993.</p>
+<p>NOTE: This function holds only for free convective conditions when C2*z/L
+&gt;&gt;1, where L is the Obhukov length.</p>
+<dl class="docutils">
+<dt>Input:</dt>
+<dd><ul class="first last simple">
+<li>rho: (array of) air density values [kg m-3]</li>
+<li>cp: (array of) specific heat at constant temperature values [J kg-1 K-1]</li>
+<li>T: (array of) temperature data [Celsius]</li>
+<li>sigma_t: (array of) standard deviation of temperature data [Celsius]</li>
+<li>z: temperature measurement height above the surface [m]</li>
+<li>d: displacement height due to vegetation, default is zero [m]</li>
+</ul>
+</dd>
+<dt>Output:</dt>
+<dd><ul class="first last simple">
+<li>H: (array of) sensible heat flux [W/m2]</li>
+</ul>
+</dd>
+<dt>Example:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">H</span><span class="o">=</span><span class="n">tvardry</span><span class="p">(</span><span class="n">rho</span><span class="p">,</span><span class="n">cp</span><span class="p">,</span><span class="n">T</span><span class="p">,</span><span class="n">sigma_t</span><span class="p">,</span><span class="n">z</span><span class="p">,</span><span class="n">d</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">H</span>
+<span class="go">35.139511191461651</span>
+<span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-hydrology.checkdam.meteolib">
+<span id="hydrology-checkdam-meteolib-module"></span><h2>hydrology.checkdam.meteolib module<a class="headerlink" href="#module-hydrology.checkdam.meteolib" title="Permalink to this headline">¶</a></h2>
+<p>Meteolib: A libray with Python functions for calculations of micrometeorological parameters.</p>
+<dl class="docutils">
+<dt>Miscellaneous functions:</dt>
+<dd><ul class="first last simple">
+<li>dataload: Loads an ASCII data file into an array</li>
+<li>event2time: Convert (event) based measurements into equidistant time spaced data for a selected interval</li>
+<li>date2doy: Calculates day of year from day, month and year data</li>
+<li>sun_NR: Maximum sunshine duration [h] and extraterrestrial radiation [J/day]</li>
+</ul>
+</dd>
+<dt>Meteorological functions: </dt>
+<dd><ul class="first last simple">
+<li>es_calc:    Calculate saturation vapour pressures</li>
+<li>ea_calc:    Calculate actual vapour pressures</li>
+<li>vpd_calc:   Calculate vapour pressure deficits</li>
+<li>Delta_calc: Calculate slope of vapour pressure curve</li>
+<li>L_calc:     Calculate latent heat of vapourisation</li>
+<li>cp_calc:    Calculate specific heat</li>
+<li>gamma_calc: Calculate psychrometric constant</li>
+<li>rho_calc:   Calculate air density</li>
+<li>pottemp:    Calculate potential temperature (1000 hPa reference pressure)</li>
+<li>windvec:    Calculate average wind direction and speed</li>
+</ul>
+</dd>
+</dl>
+<dl class="function">
+<dt id="hydrology.checkdam.meteolib.Delta_calc">
+<code class="descclassname">hydrology.checkdam.meteolib.</code><code class="descname">Delta_calc</code><span class="sig-paren">(</span><em>airtemp=array([]</em>, <em>dtype=float64)</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/meteolib.html#Delta_calc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.meteolib.Delta_calc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to calculate the slope of the temperature - vapour pressure curve
+(Delta) from air temperatures. Source: Technical regulations 49, World
+Meteorological Organisation, 1984. Appendix A. 1-Ap-A-3.</p>
+<dl class="docutils">
+<dt>Input:</dt>
+<dd><ul class="first last simple">
+<li>airtemp: (array of) air temperature [Celsius]</li>
+</ul>
+</dd>
+<dt>Output:</dt>
+<dd><ul class="first last simple">
+<li>Delta: (array of) slope of saturated vapour curve [Pa K-1]</li>
+</ul>
+</dd>
+<dt>Examples:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Delta_calc</span><span class="p">(</span><span class="mf">30.0</span><span class="p">)</span>
+<span class="go">243.34309166827097</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="mi">20</span><span class="p">,</span> <span class="mi">25</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Delta_calc</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="go">array([ 144.665841,  188.625046])</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="hydrology.checkdam.meteolib.L_calc">
+<code class="descclassname">hydrology.checkdam.meteolib.</code><code class="descname">L_calc</code><span class="sig-paren">(</span><em>airtemp=array([]</em>, <em>dtype=float64)</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/meteolib.html#L_calc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.meteolib.L_calc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to calculate the latent heat of vapourisation,
+lambda, from air temperature. Source: J. Bringfelt. Test of a forest
+evapotranspiration model. Meteorology and Climatology Reports 52,
+SMHI, Norrkopping, Sweden, 1986.</p>
+<dl class="docutils">
+<dt>Input:</dt>
+<dd><ul class="first last simple">
+<li>airtemp: (array of) air temperature [Celsius]</li>
+</ul>
+</dd>
+<dt>Output:</dt>
+<dd><ul class="first last simple">
+<li>L: (array of) lambda [J kg-1 K-1]</li>
+</ul>
+</dd>
+<dt>Examples:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">L_calc</span><span class="p">(</span><span class="mi">25</span><span class="p">)</span>
+<span class="go">2440883.8804624998</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span>
+<span class="go">[10, 20, 30]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">L_calc</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="go">array([ 2476387.3842125,  2452718.3817125,  2429049.3792125])</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="hydrology.checkdam.meteolib.cp_calc">
+<code class="descclassname">hydrology.checkdam.meteolib.</code><code class="descname">cp_calc</code><span class="sig-paren">(</span><em>airtemp=array([]</em>, <em>dtype=float64)</em>, <em>rh=array([]</em>, <em>dtype=float64)</em>, <em>airpress=array([]</em>, <em>dtype=float64)</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/meteolib.html#cp_calc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.meteolib.cp_calc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to calculate the specific heat of air, c_p, from air temperatures, relative humidity and air pressure.</p>
+<dl class="docutils">
+<dt>Input:</dt>
+<dd><ul class="first last simple">
+<li>airtemp: (array of) air temperature [Celsius]</li>
+<li>rh: (array of) relative humidity data [%]</li>
+<li>airpress: (array of) air pressure data [Pa]</li>
+</ul>
+</dd>
+<dt>Output:</dt>
+<dd>cp: array of saturated c_p values [J kg-1 K-1]</dd>
+<dt>Examples:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">cp_calc</span><span class="p">(</span><span class="mi">25</span><span class="p">,</span><span class="mi">60</span><span class="p">,</span><span class="mi">101300</span><span class="p">)</span>
+<span class="go">1014.0749457208065</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span>
+<span class="go">[10, 20, 30]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rh</span>
+<span class="go">[10, 20, 30]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">airpress</span>
+<span class="go">[100000, 101000, 102000]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cp_calc</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="n">rh</span><span class="p">,</span><span class="n">airpress</span><span class="p">)</span>
+<span class="go">array([ 1005.13411289,  1006.84399787,  1010.83623841])</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="hydrology.checkdam.meteolib.dataload">
+<code class="descclassname">hydrology.checkdam.meteolib.</code><code class="descname">dataload</code><span class="sig-paren">(</span><em>datafile</em>, <em>delimiter</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/meteolib.html#dataload"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.meteolib.dataload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to load data from an ASCII text file &#8220;filename&#8221; with values being
+separated by a &#8220;delimiter&#8221;.</p>
+<dl class="docutils">
+<dt>Usage:</dt>
+<dd>data = dataload(filename,delimiter)</dd>
+</dl>
+<p>This will place the data from the file into an array &#8220;data&#8221; that can be used
+for further calculations. Both filename and delimiter are of type string.</p>
+<p>The data must be regular, i.e. the same number of values should appear in
+every row.</p>
+<dl class="docutils">
+<dt>Examples</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">dataload</span><span class="p">(</span><span class="s">&#39;meteo.dat&#39;</span><span class="p">,</span><span class="s">&#39;,&#39;</span><span class="p">)</span>  <span class="c"># meteo.dat comma delimited</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">dataload</span><span class="p">(</span><span class="s">&#39;meteo.dat&#39;</span><span class="p">,</span><span class="s">&#39; &#39;</span><span class="p">)</span>  <span class="c"># meteo.dat space delimited</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Now using variables</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filedir</span> <span class="o">=</span> <span class="s">&#39;d:/workdir/meteo.dat&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">separator</span> <span class="o">=</span> <span class="s">&#39;       &#39;</span>                  <span class="c"># tab delimited data file</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">loadtxt</span><span class="p">(</span><span class="n">filedir</span><span class="p">,</span><span class="n">separator</span><span class="p">)</span> 
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="hydrology.checkdam.meteolib.date2doy">
+<code class="descclassname">hydrology.checkdam.meteolib.</code><code class="descname">date2doy</code><span class="sig-paren">(</span><em>dd=array([]</em>, <em>dtype=float64)</em>, <em>mm=array([]</em>, <em>dtype=float64)</em>, <em>yyyy=array([]</em>, <em>dtype=float64)</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/meteolib.html#date2doy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.meteolib.date2doy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to calculate the julian day (day of year) from day,
+month and year.</p>
+<dl class="docutils">
+<dt>Input:</dt>
+<dd><ul class="first last simple">
+<li>dd: (array of) day of month</li>
+<li>mm: (array of) month</li>
+<li>yyyy: (array of) year</li>
+</ul>
+</dd>
+<dt>Output:</dt>
+<dd><ul class="first last simple">
+<li>jd: (array of) julian day of year</li>
+</ul>
+</dd>
+<dt>Examples:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">date2doy</span><span class="p">(</span><span class="mo">04</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">2006</span><span class="p">)</span>
+<span class="go">308</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">date2doy</span><span class="p">(</span><span class="mo">04</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">2008</span><span class="p">)</span>
+<span class="go">309</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">day</span><span class="o">=</span><span class="p">[</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">month</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">year</span><span class="o">=</span><span class="p">[</span><span class="mi">2007</span><span class="p">,</span><span class="mi">2008</span><span class="p">,</span><span class="mi">2009</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">date2doy</span><span class="p">(</span><span class="n">day</span><span class="p">,</span><span class="n">month</span><span class="p">,</span><span class="n">year</span><span class="p">)</span>
+<span class="go">array([ 10.,  41.,  69.])</span>
+<span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="hydrology.checkdam.meteolib.doy2date">
+<code class="descclassname">hydrology.checkdam.meteolib.</code><code class="descname">doy2date</code><span class="sig-paren">(</span><em>doy=array([]</em>, <em>dtype=float64)</em>, <em>yyyy=array([]</em>, <em>dtype=float64)</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/meteolib.html#doy2date"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.meteolib.doy2date" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to calculate the date (dd, mm, yyyy) from Julian day and year.</p>
+<dl class="docutils">
+<dt>Input:</dt>
+<dd><ul class="first last simple">
+<li>dd: (array of) day of month</li>
+<li>mm: (array of) month</li>
+<li>yy: (array of) year</li>
+</ul>
+</dd>
+<dt>Output:</dt>
+<dd><ul class="first last simple">
+<li>jd: (array of) julian day of year</li>
+</ul>
+</dd>
+<dt>Examples:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">doy2date</span><span class="p">(</span><span class="mo">04</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">2006</span><span class="p">)</span>
+<span class="go">308</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">doy2date</span><span class="p">(</span><span class="mo">04</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">2008</span><span class="p">)</span>
+<span class="go">309</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">day</span><span class="o">=</span><span class="p">[</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">month</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">year</span><span class="o">=</span><span class="p">[</span><span class="mi">2007</span><span class="p">,</span><span class="mi">2008</span><span class="p">,</span><span class="mi">2009</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">doy2date</span><span class="p">(</span><span class="n">day</span><span class="p">,</span><span class="n">month</span><span class="p">,</span><span class="n">year</span><span class="p">)</span>
+<span class="go">array([ 10.,  41.,  69.])</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="hydrology.checkdam.meteolib.ea_calc">
+<code class="descclassname">hydrology.checkdam.meteolib.</code><code class="descname">ea_calc</code><span class="sig-paren">(</span><em>airtemp=array([]</em>, <em>dtype=float64)</em>, <em>rh=array([]</em>, <em>dtype=float64)</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/meteolib.html#ea_calc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.meteolib.ea_calc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to calculate actual saturation vapour pressure.</p>
+<dl class="docutils">
+<dt>Input:</dt>
+<dd><ul class="first last simple">
+<li>airtemp: array of measured air temperatures [Celsius]</li>
+<li>rh: Relative humidity [%]</li>
+</ul>
+</dd>
+<dt>Output:</dt>
+<dd><ul class="first last simple">
+<li>ea: array of actual vapour pressure [Pa]</li>
+</ul>
+</dd>
+<dt>Examples:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">ea_calc</span><span class="p">(</span><span class="mi">25</span><span class="p">,</span><span class="mi">60</span><span class="p">)</span>
+<span class="go">1900.0946514729308</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="hydrology.checkdam.meteolib.es_calc">
+<code class="descclassname">hydrology.checkdam.meteolib.</code><code class="descname">es_calc</code><span class="sig-paren">(</span><em>airtemp=array([]</em>, <em>dtype=float64)</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/meteolib.html#es_calc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.meteolib.es_calc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to calculate saturated vapour pressure from temperature.
+For T&lt;0 C:  Saturation vapour pressure equation for ice: Goff, J.A.,and S.
+Gratch, Low-pressure properties of water from -160 to 212 F. 
+Transactions of the American society of
+heating and ventilating engineers, pp 95-122, presented
+at the 52nd annual meeting of the American society of
+heating and ventilating engineers, New York, 1946.</p>
+<p>For T&gt;=0 C: Goff, J. A. Saturation pressure of water on the new Kelvin
+temperature scale, Transactions of the American
+society of heating and ventilating engineers, pp 347-354,
+presented at the semi-annual meeting of the American
+society of heating and ventilating engineers, Murray Bay,
+Quebec. Canada, 1957.</p>
+<dl class="docutils">
+<dt>Input:</dt>
+<dd><ul class="first last simple">
+<li>airtemp: (array of) measured air temperature [Celsius]</li>
+</ul>
+</dd>
+<dt>Output:</dt>
+<dd><ul class="first last simple">
+<li>es: (array of) saturated vapour pressure [Pa]</li>
+</ul>
+</dd>
+<dt>Examples:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">es_calc</span><span class="p">(</span><span class="mf">30.0</span><span class="p">)</span>
+<span class="go">4242.7259946566316</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="mi">20</span><span class="p">,</span> <span class="mi">25</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">es_calc</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="go">array([ 2337.080198,  3166.824419])</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="hydrology.checkdam.meteolib.event2time">
+<code class="descclassname">hydrology.checkdam.meteolib.</code><code class="descname">event2time</code><span class="sig-paren">(</span><em>yyyy=array([]</em>, <em>dtype=float64)</em>, <em>doytime=array([]</em>, <em>dtype=float64)</em>, <em>X=array([]</em>, <em>dtype=float64)</em>, <em>method=&lt;type 'str'&gt;</em>, <em>interval=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/meteolib.html#event2time"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.meteolib.event2time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to convert (event-based) time series data to equidistant time spaced data (Nov. 2012) at a specified interval.
+The maximum interval for processing is 86400 s, resulting in daily values.
+You can choose to sum (e.g. for event-based rainfall measurements) or average the input data over a given time interval.
+If you choose to average, a -9999 value (missing value) will be output if there are no data in the specified interval. For summation,
+a zero will be output, as required for event-based rainfall measurements.</p>
+<dl class="docutils">
+<dt>Input:</dt>
+<dd><ul class="first last simple">
+<li>yyyy: Array of year values (e.g. 2008)</li>
+<li>doytime: Array of day of year (doy, 1-366) + decimal time values (0-1) (e.g. 133.4375)</li>
+<li>X: Array of data values (e.g. 0.2). for event-based precipitation data, data should be zero at start and end times of the event data record</li>
+<li>method: Enter &#8216;sum&#8217; to sum data (e.g. precipitation), and &#8216;avg&#8217; to average data over the selected time interval</li>
+<li>interval: Optional: interval in seconds (integer value, e.g. 900 for a 15-minute interval). A default value of 1800 s is assumed when interval is not specified as a function argument</li>
+</ul>
+</dd>
+<dt>Output:</dt>
+<dd><ul class="first last simple">
+<li>YEAR: Array of year</li>
+<li>DOY_TIME: Array of day of year (1-366) + decimal time values (0-1), e.g. 153.5 for noon on day 153.</li>
+<li>Y: Array of corresponding summed or averaged data values, where -9999 indicates missing values when &#8216;avg&#8217; is selected and 0 when &#8216;sum&#8217; is se;ected.</li>
+</ul>
+</dd>
+<dt>Examples:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">meteolib</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">year</span><span class="o">=</span><span class="p">[</span><span class="mi">2008</span><span class="p">,</span><span class="mi">2008</span><span class="p">,</span><span class="mi">2008</span><span class="p">,</span><span class="mi">2008</span><span class="p">,</span><span class="mi">2008</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">daytime</span><span class="o">=</span><span class="p">[</span><span class="mf">153.5</span><span class="p">,</span><span class="mf">153.9</span><span class="p">,</span><span class="mf">154.1</span><span class="p">,</span><span class="mf">154.3</span><span class="p">,</span><span class="mf">154.4</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vals</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mf">0.4</span><span class="p">,</span><span class="mf">2.3</span><span class="p">,</span><span class="mf">2.9</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">meteolib</span><span class="o">.</span><span class="n">event2time</span><span class="p">(</span><span class="n">year</span><span class="p">,</span><span class="n">daytime</span><span class="p">,</span><span class="n">vals</span><span class="p">,</span><span class="s">&#39;sum&#39;</span><span class="p">,</span><span class="mi">3600</span><span class="p">)</span>
+<span class="go">(array([ 2008, 2008, 2008, 2008, 2008, 2008, 2008, 2008, 2008, 2008, 2008,</span>
+<span class="go">2008, 2008, 2008, 2008, 2008, 2008, 2008, 2008, 2008]),</span>
+<span class="go">array([ 153.58333333, 153.625, 153.66666667, 153.70833333, 153.75,</span>
+<span class="go">153.79166667, 153.83333333, 153.875, 153.91666667, 153.95833333, 154.,</span>
+<span class="go">154.04166667, 154.08333333, 154.125, 154.16666667, 154.20833333, 154.25,</span>
+<span class="go">154.29166667, 154.33333333, 154.375 ]),</span>
+<span class="go">array([ 0.4, 0., 0., 0., 0., 0., 0., 0., 2.3, 0., 0., 0., 0., 2.9, 0.,</span>
+<span class="go">0., 0., 0., 0., 0. ]))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">event2time</span><span class="p">(</span><span class="n">year</span><span class="p">,</span><span class="n">daytime</span><span class="p">,</span><span class="n">vals</span><span class="p">,</span><span class="s">&#39;avg&#39;</span><span class="p">,</span><span class="mi">3600</span><span class="p">)</span>
+<span class="go">(array([ 2008, 2008, 2008, 2008, 2008, 2008, 2008, 2008, 2008, 2008, 2008,</span>
+<span class="go">2008, 2008, 2008, 2008, 2008, 2008, 2008, 2008, 2008 ]),</span>
+<span class="go">array([ 153.58333333, 153.625, 153.66666667, 153.70833333, 153.75,</span>
+<span class="go">153.79166667, 153.83333333, 153.875, 153.91666667, 153.95833333, 154.,</span>
+<span class="go">154.04166667, 154.08333333, 154.125, 154.16666667, 154.20833333, 154.25,</span>
+<span class="go">154.29166667, 154.33333333, 154.375 ]),</span>
+<span class="go">array([ 4.00000000e-01, -9.99900000e+03, -9.99900000e+03, -9.99900000e+03,</span>
+<span class="go">-9.99900000e+03, -9.99900000e+03, -9.99900000e+03, -9.99900000e+03,</span>
+<span class="go">2.30000000e+00, -9.99900000e+03, -9.99900000e+03, -9.99900000e+03,</span>
+<span class="go">-9.99900000e+03, 2.90000000e+00, -9.99900000e+03, -9.99900000e+03,</span>
+<span class="go">-9.99900000e+03, -9.99900000e+03, 0.00000000e+00, -9.99900000e+03 ]))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">yr</span><span class="p">,</span><span class="n">day_time</span><span class="p">,</span><span class="n">sum_P</span> <span class="o">=</span> <span class="n">event2time</span><span class="p">(</span><span class="n">year</span><span class="p">,</span><span class="n">daytime</span><span class="p">,</span><span class="n">vals</span><span class="p">,</span><span class="s">&#39;sum&#39;</span><span class="p">,</span><span class="mi">3600</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="hydrology.checkdam.meteolib.gamma_calc">
+<code class="descclassname">hydrology.checkdam.meteolib.</code><code class="descname">gamma_calc</code><span class="sig-paren">(</span><em>airtemp=array([]</em>, <em>dtype=float64)</em>, <em>rh=array([]</em>, <em>dtype=float64)</em>, <em>airpress=array([]</em>, <em>dtype=float64)</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/meteolib.html#gamma_calc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.meteolib.gamma_calc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to calculate the psychrometric constant gamma.
+Source: J. Bringfelt. Test of a forest evapotranspiration model.
+Meteorology and Climatology Reports 52, SMHI, Norrköpping, Sweden,
+1986.</p>
+<dl class="docutils">
+<dt>Input:</dt>
+<dd><ul class="first last simple">
+<li>airtemp: array of measured air temperature [Celsius]</li>
+<li>rh: array of relative humidity values[%]</li>
+<li>airpress: array of air pressure data [Pa]</li>
+</ul>
+</dd>
+<dt>Output:</dt>
+<dd><ul class="first last simple">
+<li>gamma: array of psychrometric constant values [PaK]</li>
+</ul>
+</dd>
+<dt>Examples:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">gamma_calc</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">101300</span><span class="p">)</span>
+<span class="go">66.263433186572274</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span>
+<span class="go">[10, 20, 30]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rh</span>
+<span class="go">[10, 20, 30]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">airpress</span>
+<span class="go">[100000, 101000, 102000]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gamma_calc</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="n">rh</span><span class="p">,</span><span class="n">airpress</span><span class="p">)</span>
+<span class="go">array([ 65.255188,  66.656958,  68.242393])</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="hydrology.checkdam.meteolib.pottemp">
+<code class="descclassname">hydrology.checkdam.meteolib.</code><code class="descname">pottemp</code><span class="sig-paren">(</span><em>airtemp=array([]</em>, <em>dtype=float64)</em>, <em>rh=array([]</em>, <em>dtype=float64)</em>, <em>airpress=array([]</em>, <em>dtype=float64)</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/meteolib.html#pottemp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.meteolib.pottemp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to calculate the potential temperature air, theta, from air
+temperatures, relative humidity and air pressure. Reference pressure
+1000 hPa.</p>
+<dl class="docutils">
+<dt>Input:</dt>
+<dd><ul class="first last simple">
+<li>airtemp: (array of) air temperature data [Celsius]</li>
+<li>rh: (array of) relative humidity data [%]</li>
+<li>airpress: (array of) air pressure data [Pa]</li>
+</ul>
+</dd>
+<dt>Output:</dt>
+<dd><ul class="first last simple">
+<li>theta: (array of) potential air temperature data [Celsius]</li>
+</ul>
+</dd>
+<dt>Examples:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">t</span>
+<span class="go">[5, 10, 20]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rh</span>
+<span class="go">[45, 65, 89]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">airpress</span>
+<span class="go">[101300, 102000, 99800]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pottemp</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="n">rh</span><span class="p">,</span><span class="n">airpress</span><span class="p">)</span>
+<span class="go">array([  3.97741582,   8.40874555,  20.16596828])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pottemp</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">45</span><span class="p">,</span><span class="mi">101300</span><span class="p">)</span>
+<span class="go">3.977415823848844</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="hydrology.checkdam.meteolib.rho_calc">
+<code class="descclassname">hydrology.checkdam.meteolib.</code><code class="descname">rho_calc</code><span class="sig-paren">(</span><em>airtemp=array([]</em>, <em>dtype=float64)</em>, <em>rh=array([]</em>, <em>dtype=float64)</em>, <em>airpress=array([]</em>, <em>dtype=float64)</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/meteolib.html#rho_calc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.meteolib.rho_calc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to calculate the density of air, rho, from air
+temperatures, relative humidity and air pressure.</p>
+<dl class="docutils">
+<dt>Input:</dt>
+<dd><ul class="first last simple">
+<li>airtemp: (array of) air temperature data [Celsius]</li>
+<li>rh: (array of) relative humidity data [%]</li>
+<li>airpress: (array of) air pressure data [Pa]</li>
+</ul>
+</dd>
+<dt>Output:</dt>
+<dd><ul class="first last simple">
+<li>rho: (array of) air density data [kg m-3]</li>
+</ul>
+</dd>
+<dt>Examples:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">t</span>
+<span class="go">[10, 20, 30]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rh</span>
+<span class="go">[10, 20, 30]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">airpress</span>
+<span class="go">[100000, 101000, 102000]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rho_calc</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="n">rh</span><span class="p">,</span><span class="n">airpress</span><span class="p">)</span>
+<span class="go">array([ 1.22948419,  1.19787662,  1.16635358])</span>
+<span class="go">&gt;&gt; rho_calc(10,50,101300)</span>
+<span class="go">1.2431927125520903</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="hydrology.checkdam.meteolib.sun_NR">
+<code class="descclassname">hydrology.checkdam.meteolib.</code><code class="descname">sun_NR</code><span class="sig-paren">(</span><em>doy=array([]</em>, <em>dtype=float64)</em>, <em>lat=&lt;type 'float'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/meteolib.html#sun_NR"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.meteolib.sun_NR" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to calculate the maximum sunshine duration N and incoming radiation
+at the top of the atmosphere from day of year and latitude.</p>
+<p>NOTE: Only valid for latitudes between 0 and 67 degrees (tropics and
+temperate zone)</p>
+<dl class="docutils">
+<dt>Input:</dt>
+<dd><ul class="first last simple">
+<li>doy: (array of) day of year</li>
+<li>lat: latitude in degrees, negative for southern hemisphere</li>
+</ul>
+</dd>
+<dt>Output:</dt>
+<dd><ul class="first last simple">
+<li>N: (array of) maximum sunshine hours [h]</li>
+<li>Rext: (array of) extraterrestrial radiation [J/day]</li>
+</ul>
+</dd>
+<dt>Examples:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">sun_NR</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span><span class="mi">60</span><span class="p">)</span>
+<span class="go">308</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">jd_calc</span><span class="p">(</span><span class="mo">04</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">2008</span><span class="p">)</span>
+<span class="go">309</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">day</span><span class="o">=</span><span class="p">[</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">month</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">year</span><span class="o">=</span><span class="p">[</span><span class="mi">2007</span><span class="p">,</span><span class="mi">2008</span><span class="p">,</span><span class="mi">2009</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">jd_calc</span><span class="p">(</span><span class="n">day</span><span class="p">,</span><span class="n">month</span><span class="p">,</span><span class="n">year</span><span class="p">)</span>
+<span class="go">array([ 10.,  41.,  69.])</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="hydrology.checkdam.meteolib.vpd_calc">
+<code class="descclassname">hydrology.checkdam.meteolib.</code><code class="descname">vpd_calc</code><span class="sig-paren">(</span><em>airtemp=array([]</em>, <em>dtype=float64)</em>, <em>rh=array([]</em>, <em>dtype=float64)</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/meteolib.html#vpd_calc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.meteolib.vpd_calc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to calculate vapour pressure deficit.</p>
+<dl class="docutils">
+<dt>Input:</dt>
+<dd><ul class="first last simple">
+<li>airtemp: measured air temperatures [Celsius]</li>
+<li>rh: (array of) rRelative humidity [%]</li>
+</ul>
+</dd>
+<dt>Output:</dt>
+<dd><ul class="first last simple">
+<li>vpd: (array of) vapour pressure deficits [Pa]</li>
+</ul>
+</dd>
+<dt>Examples:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">vpd_calc</span><span class="p">(</span><span class="mi">30</span><span class="p">,</span><span class="mi">60</span><span class="p">)</span>
+<span class="go">1697.0903978626527</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">T</span><span class="o">=</span><span class="p">[</span><span class="mi">20</span><span class="p">,</span><span class="mi">25</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">RH</span><span class="o">=</span><span class="p">[</span><span class="mi">50</span><span class="p">,</span><span class="mi">100</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vpd_calc</span><span class="p">(</span><span class="n">T</span><span class="p">,</span><span class="n">RH</span><span class="p">)</span>
+<span class="go">array([ 1168.540099,   0.        ])</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="hydrology.checkdam.meteolib.windvec">
+<code class="descclassname">hydrology.checkdam.meteolib.</code><code class="descname">windvec</code><span class="sig-paren">(</span><em>u=array([]</em>, <em>dtype=float64)</em>, <em>D=array([]</em>, <em>dtype=float64)</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/meteolib.html#windvec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.meteolib.windvec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to calculate the wind vector from time series of wind
+speed and direction</p>
+<dl class="docutils">
+<dt>Input:</dt>
+<dd><ul class="first last simple">
+<li>u: array of wind speeds [m/s]</li>
+<li>D: array of wind directions [degrees from North]</li>
+</ul>
+</dd>
+<dt>Output:</dt>
+<dd><ul class="first last simple">
+<li>uv: Vector wind speed [m/s]</li>
+<li>Dv: Vector wind direction [degrees from North]</li>
+</ul>
+</dd>
+<dt>Examples:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">u</span>
+<span class="go">array([[ 3. ],</span>
+<span class="go">       [ 7.5],</span>
+<span class="go">       [ 2.1]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">D</span>
+<span class="go">array([[340],</span>
+<span class="go">       [356],</span>
+<span class="go">       [  2]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">windvec</span><span class="p">(</span><span class="n">u</span><span class="p">,</span><span class="n">D</span><span class="p">)</span>
+<span class="go">(4.1623542028369052, 353.21188820369366)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">uv</span><span class="p">,</span><span class="n">Dv</span><span class="o">=</span><span class="n">windvec</span><span class="p">(</span><span class="n">u</span><span class="p">,</span><span class="n">D</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">uv</span>
+<span class="go">4.1623542028369052</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Dv</span>
+<span class="go">353.21188820369366</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-hydrology.checkdam.mynormalize">
+<span id="hydrology-checkdam-mynormalize-module"></span><h2>hydrology.checkdam.mynormalize module<a class="headerlink" href="#module-hydrology.checkdam.mynormalize" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="hydrology.checkdam.mynormalize.MyNormalize">
+<em class="property">class </em><code class="descclassname">hydrology.checkdam.mynormalize.</code><code class="descname">MyNormalize</code><span class="sig-paren">(</span><em>stretch='linear'</em>, <em>exponent=5</em>, <em>vmid=None</em>, <em>vmin=None</em>, <em>vmax=None</em>, <em>clip=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/mynormalize.html#MyNormalize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.mynormalize.MyNormalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">matplotlib.colors.Normalize</span></code></p>
+<p>A Normalize class for imshow that allows different stretching functions
+for astronomical images.</p>
+<dl class="method">
+<dt id="hydrology.checkdam.mynormalize.MyNormalize.inverse">
+<code class="descname">inverse</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydrology/checkdam/mynormalize.html#MyNormalize.inverse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydrology.checkdam.mynormalize.MyNormalize.inverse" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-hydrology.checkdam">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-hydrology.checkdam" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">hydrology.checkdam package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-hydrology.checkdam.checkdam">hydrology.checkdam.checkdam module</a></li>
+<li><a class="reference internal" href="#module-hydrology.checkdam.evaplib">hydrology.checkdam.evaplib module</a></li>
+<li><a class="reference internal" href="#module-hydrology.checkdam.meteolib">hydrology.checkdam.meteolib module</a></li>
+<li><a class="reference internal" href="#module-hydrology.checkdam.mynormalize">hydrology.checkdam.mynormalize module</a></li>
+<li><a class="reference internal" href="#module-hydrology.checkdam">Module contents</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="hydrology.html">hydrology package</a><ul>
+      <li>Previous: <a href="hydrology.html" title="previous chapter">hydrology package</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/hydrology.checkdam.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Kirubaharan Jeremiah.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="_sources/hydrology.checkdam.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

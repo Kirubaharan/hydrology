@@ -1,0 +1,151 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>hydrology.profile_creator &mdash; Hydrology 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="Hydrology 1.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydrology.profile_creator</h1><div class="highlight"><pre>
+<span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;kiruba&#39;</span>
+
+<span class="c"># import statements</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="c"># import  numpy as np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">rc</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">from</span> <span class="nn">mpl_toolkits.mplot3d</span> <span class="kn">import</span> <span class="n">axes3d</span><span class="p">,</span> <span class="n">Axes3D</span>
+<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">cm</span>
+
+<span class="n">slope_profile_csv</span> <span class="o">=</span> <span class="s">&#39;/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/slope_profile_607.csv&#39;</span>
+<span class="n">df_profile</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">slope_profile_csv</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">base_profile_csv</span> <span class="o">=</span> <span class="s">&#39;/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/base_profile_607.csv&#39;</span>
+<span class="n">df_base</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">base_profile_csv</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="c">##plot</span>
+<span class="c">## function to create pairs of iterable elevations</span>
+
+
+<div class="viewcode-block" id="pairwise"><a class="viewcode-back" href="../../hydrology.html#hydrology.profile_creator.pairwise">[docs]</a><span class="k">def</span> <span class="nf">pairwise</span><span class="p">(</span><span class="n">iterable</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;s -&gt; (s0,s1), (s1,s2), (s2,s3), ...&quot;&quot;&quot;</span>
+    <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">tee</span><span class="p">(</span><span class="n">iterable</span><span class="p">)</span>
+    <span class="nb">next</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">itertools</span><span class="o">.</span><span class="n">izip</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+</div>
+<span class="n">template</span> <span class="o">=</span> <span class="n">df_base</span><span class="o">.</span><span class="n">Y_11</span>
+<span class="n">z1</span> <span class="o">=</span> <span class="mf">0.27</span>
+
+<span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">df_base</span><span class="o">.</span><span class="n">X</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">y</span><span class="p">,</span> <span class="n">z2</span> <span class="ow">in</span> <span class="n">df_profile</span><span class="o">.</span><span class="n">itertuples</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="n">diff</span> <span class="o">=</span> <span class="n">z2</span> <span class="o">-</span> <span class="n">z1</span>
+        <span class="n">new_profile</span> <span class="o">=</span> <span class="n">template</span> <span class="o">+</span> <span class="n">diff</span>
+        <span class="n">df_base</span><span class="p">[(</span><span class="s">&#39;Y_</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">y</span><span class="p">)]</span> <span class="o">=</span> <span class="n">new_profile</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">new_profile</span><span class="p">:</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+    <span class="n">df_base</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s">&#39;/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/created_profile_607.csv&#39;</span><span class="p">)</span>
+<span class="n">data_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;x&#39;</span><span class="p">,</span> <span class="s">&#39;y&#39;</span><span class="p">,</span> <span class="s">&#39;z&#39;</span><span class="p">])</span>
+<span class="n">data_df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s">&#39;/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/test_data.csv&#39;</span><span class="p">)</span>
+
+<span class="c"># print data_df</span>
+<span class="n">X</span> <span class="o">=</span> <span class="n">data_df</span><span class="o">.</span><span class="n">x</span>
+<span class="n">Y</span> <span class="o">=</span> <span class="n">data_df</span><span class="o">.</span><span class="n">y</span>
+<span class="n">Z</span> <span class="o">=</span> <span class="n">data_df</span><span class="o">.</span><span class="n">z</span>
+
+<span class="c"># fig = plt.figure()</span>
+<span class="c"># ax = fig.add_subplot(111, projection=&#39;3d&#39;)</span>
+<span class="c"># ax.plot_wireframe(X,Y,Z, rstride=100, cstride=50)</span>
+<span class="c"># ax = fig.gca(projection=&#39;3d&#39;)</span>
+<span class="c"># ax.plot_trisurf(X,Y,Z,cmap =cm.jet,linewidth =0.2)</span>
+<span class="c"># ax.plot_surface(X, Y, Z, rstride=8, cstride=8, alpha=0.3)</span>
+<span class="c"># cset = ax.contour(X,Y,Z, zdir=&#39;z&#39;, offset=-100, cmap=cm.coolwarm)</span>
+<span class="c"># cset = ax.contour(X,Y,Z, zdir=&#39;x&#39;, offset=-40, cmap=cm.coolwarm)</span>
+<span class="c"># cset = ax.contour(X,Y,Z, zdir=&#39;y&#39;, offset=40, cmap=cm.coolwarm)</span>
+
+<span class="c"># rc(&#39;font&#39;, **{&#39;family&#39;: &#39;sans-serif&#39;, &#39;sans-serif&#39;: [&#39;Helvetica&#39;]})</span>
+<span class="c"># rc(&#39;text&#39;, usetex=True)</span>
+<span class="c"># plt.rc(&#39;text&#39;, usetex=True)</span>
+<span class="c"># plt.rc(&#39;font&#39;, family=&#39;serif&#39;)</span>
+<span class="c"># plt.xlabel(r&#39;\textbf{X} (m)&#39;)</span>
+<span class="c"># plt.ylabel(r&#39;\textbf{Y} (m)&#39;)</span>
+<span class="c"># plt.title(r&quot;Profile for 607&quot;, fontsize=16)</span>
+<span class="c"># plt.show()</span>
+<span class="c"># plt.savefig(&#39;/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/607_created_profile&#39;)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Kirubaharan Jeremiah.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

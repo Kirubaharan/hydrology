@@ -23,7 +23,7 @@ full_stage = 0.61  # check dam height, above this it is assumed check dam will o
 date_format = '%Y-%m-%d %H:%M:%S'
 daily_format = '%Y-%m-%d'
 resolution_ody = 0.0008
-stage_cutoff = 0.1
+stage_cutoff = 0
 
 # ------------------------------------------------------------------#
 # Weather file
@@ -47,6 +47,8 @@ rain_df.set_index(rain_df['Date_Time'], inplace=True)
 rain_df.sort_index(inplace=True)
 # drop date time column
 rain_df = rain_df.drop('Date_Time', 1)
+
+# raise SystemExit(0)
 """
 Check dam calibration
 """
@@ -61,23 +63,23 @@ intercept = coeff_cal[1]
 Read Check dam data
 """
 block_1 = '/media/kiruba/New Volume/ACCUWA_Data/check_dam_water_level/2510/2510_006_001.CSV'
-water_level_1 = cd.read_correct_ch_dam_data(block_1, slope, intercept)
+water_level_1 = cd.read_correct_ch_dam_data(block_1, slope, intercept, stage_cutoff=stage_cutoff)
 block_2 = '/media/kiruba/New Volume/ACCUWA_Data/check_dam_water_level/2510/2510_006_002_25_8_14.CSV'
-water_level_2 = cd.read_correct_ch_dam_data(block_2, slope, intercept)
+water_level_2 = cd.read_correct_ch_dam_data(block_2, slope, intercept, stage_cutoff=stage_cutoff)
 block_3 = '/media/kiruba/New Volume/ACCUWA_Data/check_dam_water_level/2510/2510_006_003.CSV'
-water_level_3 = cd.read_correct_ch_dam_data(block_3, slope, intercept)
+water_level_3 = cd.read_correct_ch_dam_data(block_3, slope, intercept, stage_cutoff=stage_cutoff)
 block_4 = '/media/kiruba/New Volume/ACCUWA_Data/check_dam_water_level/2510/2510_006_004.CSV'
-water_level_4 = cd.read_correct_ch_dam_data(block_4, slope, intercept)
+water_level_4 = cd.read_correct_ch_dam_data(block_4, slope, intercept, stage_cutoff=stage_cutoff)
 block_5 = '/media/kiruba/New Volume/ACCUWA_Data/check_dam_water_level/2510/2510_002_001.CSV'
-water_level_5 = cd.read_correct_ch_dam_data(block_5, slope, intercept)
+water_level_5 = cd.read_correct_ch_dam_data(block_5, slope, intercept, stage_cutoff=stage_cutoff)
 block_6 = '/media/kiruba/New Volume/ACCUWA_Data/check_dam_water_level/2510/2510_002_002_03_12_2014.CSV'
-water_level_6 = cd.read_correct_ch_dam_data(block_6, slope, intercept)
+water_level_6 = cd.read_correct_ch_dam_data(block_6, slope, intercept, stage_cutoff=stage_cutoff)
 block_7 = '/media/kiruba/New Volume/ACCUWA_Data/check_dam_water_level/2510/2510_002_003_11_12_2014.CSV'
-water_level_7 = cd.read_correct_ch_dam_data(block_7, slope, intercept)
+water_level_7 = cd.read_correct_ch_dam_data(block_7, slope, intercept, stage_cutoff=stage_cutoff)
 block_8 = '/media/kiruba/New Volume/ACCUWA_Data/check_dam_water_level/2510/2510_002_004_23_12_2014.CSV'
-water_level_8 = cd.read_correct_ch_dam_data(block_8, slope, intercept)
+water_level_8 = cd.read_correct_ch_dam_data(block_8, slope, intercept, stage_cutoff=stage_cutoff)
 block_9 = '/media/kiruba/New Volume/ACCUWA_Data/check_dam_water_level/2510/2510_002_005_3_1_2015.CSV'
-water_level_9 = cd.read_correct_ch_dam_data(block_9, slope, intercept)
+water_level_9 = cd.read_correct_ch_dam_data(block_9, slope, intercept, stage_cutoff=stage_cutoff)
 for i in range(1, 10, 1):
     eval("water_level_{0}.drop(water_level_{0}.tail(1).index, inplace=True, axis=0)".format(i))
     eval("water_level_{0}.drop(water_level_{0}.head(1).index, inplace=True, axis=0)".format(i))
@@ -136,12 +138,12 @@ water_level = water_level.resample('30min', how=np.mean, label='right', closed='
 # water_level['stage(m)'] = cd.myround(a=water_level['stage(m)'], decimals=2)
 # print water_level.head()
 water_level.loc[water_level['stage(m)'] < stage_cutoff, 'stage(m)'] = 0.0
-water_level = water_level[:"2014-12-08"]
+# water_level = water_level[:"2014-12-08"]
 # water_level[water_level['stage(m)'] < stage_cutoff] = 0
 fig = plt.figure()
 plt.plot(water_level.index, water_level['stage(m)'], 'r-')
 plt.show()
-
+raise SystemExit(0)
 """
 Join weather and rain data
 """
@@ -327,7 +329,7 @@ average_area = (slope*average_stage) + y_intercept
 print average_area
 surface_area_to_vol_ratio = average_area/average_volume
 print "surface area to vol ratio is %0.2f" %surface_area_to_vol_ratio
-raise SystemExit(0)
+# raise SystemExit(0)
 """
 Evaporation Volume estimation
 """

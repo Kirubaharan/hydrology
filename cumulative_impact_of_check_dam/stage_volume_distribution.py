@@ -126,10 +126,30 @@ stage_vol_df = pd.concat((stage_vol_599_df, stage_vol_634_df, stage_vol_463_df, 
 
 hist, xedges, yedges = np.histogram2d(stage_vol_df['stage_m'], stage_vol_df['total_vol_cu_m'], bins=10)
 hist_masked = np.ma.masked_where(hist==0, hist)
+print hist_masked
+print xedges
+print yedges
+# print len(yedges)
+# print(np.diff(yedges))
+print 11.34599/2.0
+volume_fit = [0.0, 34.03797+5.6723, 45.38396+5.672995, 56.72995+5.672995, 68.07594, 68.07594+5.672995, 79.42193+5.672995, 90.76792, 102.11391, 113.4599]
+stage_fit = [0.0, 0.0705, 0.2115, 0.3525, 0.4935, 0.6345, 0.6345+0.141, 0.987, 1.128, 1.41]
+print volume_fit
+print xedges/2
+# fig = plt.figure()
+# plt.plot(stage_vol_616_df['stage_m'], stage_vol_616_df['total_vol_cu_m'], 'go-')
+# plt.show()
+
 fig = plt.figure()
-plt.pcolormesh(xedges, yedges, hist_masked)
+X, Y = np.meshgrid(xedges, yedges)
+plt.pcolormesh(X, Y, hist_masked)
+# plt.pcolormesh(xedges, yedges, hist_masked)
 plt.xlabel('stage')
 plt.ylabel('volume_cu_m')
+# plt.plot(xedges, yedges, 'go-')
+plt.plot(stage_fit, volume_fit, 'ro-')
 plt.colorbar()
 plt.show()
+
+
 

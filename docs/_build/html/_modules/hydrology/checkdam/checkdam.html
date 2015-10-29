@@ -1,0 +1,697 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>hydrology.checkdam.checkdam &mdash; Hydrology 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="Hydrology 1.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydrology.checkdam.checkdam</h1><div class="highlight"><pre>
+<span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;kiruba&#39;</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">from</span> <span class="nn">fractions</span> <span class="kn">import</span> <span class="n">Fraction</span>
+<span class="kn">from</span> <span class="nn">bisect</span> <span class="kn">import</span> <span class="n">bisect_left</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">timedelta</span>
+<span class="kn">import</span> <span class="nn">meteolib</span> <span class="kn">as</span> <span class="nn">met</span>
+<span class="c"># import evaplib</span>
+<span class="kn">import</span> <span class="nn">scipy</span> <span class="kn">as</span> <span class="nn">sp</span>
+<span class="kn">import</span> <span class="nn">mynormalize</span>
+
+<span class="n">date_format</span> <span class="o">=</span> <span class="s">&#39;%Y-%m-</span><span class="si">%d</span><span class="s"> %H:%M:%S&#39;</span>
+<span class="n">daily_format</span> <span class="o">=</span> <span class="s">&#39;%Y-%m-</span><span class="si">%d</span><span class="s">&#39;</span>
+<span class="n">stage_cutoff</span> <span class="o">=</span> <span class="mf">0.1</span>
+<span class="c"># check dam module</span>
+
+
+<div class="viewcode-block" id="spread"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.checkdam.spread">[docs]</a><span class="k">def</span> <span class="nf">spread</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">count</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    Yield a sequence of evenly-spaced numbers between start and end.</span>
+
+<span class="sd">    spread(start, end, count [, mode]) -&gt; generator</span>
+
+<span class="sd">    The range start...end is divided into count evenly-spaced (or as close to</span>
+<span class="sd">    evenly-spaced as possible) intervals. The end-points of each interval are</span>
+<span class="sd">    then yielded, optionally including or excluding start and end themselves.</span>
+<span class="sd">    By default, start is included and end is excluded.</span>
+
+<span class="sd">    Optional argument mode controls whether spread() includes the start and</span>
+<span class="sd">    end values. mode must be an int. Bit zero of mode controls whether start</span>
+<span class="sd">    is included (on) or excluded (off); bit one does the same for end. Hence:</span>
+
+<span class="sd">    0 -&gt; open interval (start and end both excluded)</span>
+<span class="sd">    1 -&gt; half-open (start included, end excluded)</span>
+<span class="sd">    2 -&gt; half open (start excluded, end included)</span>
+<span class="sd">    3 -&gt; closed (start and end both included)</span>
+
+<span class="sd">    By default, mode=1 and only start is included in the output.</span>
+
+<span class="sd">    (Note: depending on mode, the number of values returned can be count, count-1 or count+1.)</span>
+
+<span class="sd">    :param start: starting number</span>
+<span class="sd">    :param end: ending number</span>
+<span class="sd">    :param count: number of values returned</span>
+<span class="sd">    :param mode: controls the output, default is 1</span>
+<span class="sd">    :return: generator</span>
+
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; list(spread(0.0, 2.1, 3))</span>
+<span class="sd">        [0.0, 0.7, 1.4]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&#39;mode must be an int&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">count</span> <span class="o">!=</span> <span class="nb">int</span><span class="p">(</span><span class="n">count</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;count must be an integer&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">count</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;count must be positive&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">&amp;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="n">start</span>
+    <span class="n">width</span> <span class="o">=</span> <span class="n">Fraction</span><span class="p">(</span><span class="n">end</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">Fraction</span><span class="p">(</span><span class="n">start</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">count</span><span class="p">):</span>
+        <span class="k">yield</span> <span class="nb">float</span><span class="p">(</span><span class="n">start</span> <span class="o">+</span> <span class="n">i</span> <span class="o">*</span> <span class="n">width</span> <span class="o">/</span> <span class="n">count</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">&amp;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="n">end</span>
+
+</div>
+<div class="viewcode-block" id="pairwise"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.checkdam.pairwise">[docs]</a><span class="k">def</span> <span class="nf">pairwise</span><span class="p">(</span><span class="n">iterable</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    s -&gt; (s0,s1), (s1,s2), (s2,s3)</span>
+
+<span class="sd">    :param iterable:</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">tee</span><span class="p">(</span><span class="n">iterable</span><span class="p">)</span>
+    <span class="nb">next</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">itertools</span><span class="o">.</span><span class="n">izip</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="calcvolume"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.checkdam.calcvolume">[docs]</a><span class="k">def</span> <span class="nf">calcvolume</span><span class="p">(</span><span class="n">y_value_list</span><span class="p">,</span> <span class="n">elevation_data</span><span class="p">,</span> <span class="n">dam_height</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Modified function to calculate stage vs volume relationship from elevation data</span>
+
+<span class="sd">    :param y_value_list: List of Y values, y1, y2,...</span>
+<span class="sd">    :param elevation_data: Elevation data with headers df.Yy1, df.Yy2</span>
+<span class="sd">    :param dam_height: check dam height in metre</span>
+<span class="sd">    :return: pandas dataframe with stage and corresponding volume</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">no_of_stage_interval</span> <span class="o">=</span> <span class="n">dam_height</span> <span class="o">/</span> <span class="mf">0.05</span>
+    <span class="n">dz</span> <span class="o">=</span> <span class="nb">list</span><span class="p">((</span><span class="n">spread</span><span class="p">(</span><span class="mf">0.00</span><span class="p">,</span> <span class="n">dam_height</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">no_of_stage_interval</span><span class="p">),</span> <span class="n">mode</span><span class="o">=</span><span class="mi">3</span><span class="p">)))</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="p">[</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dz</span><span class="p">))]</span>  <span class="c"># no of stage intervals</span>
+    <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;stage_m&#39;</span><span class="p">]</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dz</span><span class="p">)</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">l1</span><span class="p">,</span> <span class="n">l2</span> <span class="ow">in</span> <span class="n">pairwise</span><span class="p">(</span><span class="n">y_value_list</span><span class="p">):</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">profile</span> <span class="o">=</span> <span class="n">elevation_data</span><span class="p">[</span><span class="s">&quot;Y_</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="nb">float</span><span class="p">(</span><span class="n">l1</span><span class="p">)]</span>
+        <span class="n">order</span> <span class="o">=</span> <span class="n">l1</span>
+        <span class="n">dy</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">l2</span> <span class="o">-</span> <span class="n">l1</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">stage</span> <span class="ow">in</span> <span class="n">dz</span><span class="p">:</span>
+            <span class="n">water_area</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">z1</span><span class="p">,</span> <span class="n">z2</span> <span class="ow">in</span> <span class="n">pairwise</span><span class="p">(</span><span class="n">profile</span><span class="p">):</span>
+                <span class="n">delev</span> <span class="o">=</span> <span class="p">(</span><span class="n">z2</span> <span class="o">-</span> <span class="n">z1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">10</span>
+                <span class="n">elev</span> <span class="o">=</span> <span class="n">z1</span>
+                <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+                    <span class="n">elev</span> <span class="o">+=</span> <span class="n">delev</span>
+                    <span class="k">if</span> <span class="n">stage</span> <span class="o">&gt;</span> <span class="n">elev</span><span class="p">:</span>
+                        <span class="n">water_area</span> <span class="o">+=</span> <span class="p">(</span><span class="mf">0.1</span> <span class="o">*</span> <span class="p">(</span><span class="n">stage</span> <span class="o">-</span> <span class="n">elev</span><span class="p">))</span>
+                <span class="n">calc_vol</span> <span class="o">=</span> <span class="n">water_area</span> <span class="o">*</span> <span class="n">dy</span>
+            <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">calc_vol</span><span class="p">)</span>
+
+        <span class="n">output</span><span class="p">[(</span><span class="s">&#39;Volume_</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">order</span><span class="p">)]</span> <span class="o">=</span> <span class="n">results</span>
+
+    <span class="n">output_series</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">regex</span><span class="o">=</span><span class="s">&quot;Volume_&quot;</span><span class="p">)</span>
+    <span class="n">output</span><span class="p">[</span><span class="s">&quot;total_vol_cu_m&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">output_series</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">final_results</span> <span class="o">=</span> <span class="n">output</span><span class="p">[[</span><span class="s">&#39;stage_m&#39;</span><span class="p">,</span> <span class="s">&quot;total_vol_cu_m&quot;</span><span class="p">]]</span>
+    <span class="k">return</span> <span class="n">final_results</span>
+
+</div>
+<div class="viewcode-block" id="find_range"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.checkdam.find_range">[docs]</a><span class="k">def</span> <span class="nf">find_range</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function to calculate bounding intervals from array to do piecewise linear interpolation.</span>
+
+<span class="sd">    :param array: list of values</span>
+<span class="sd">    :param x: interpolation value</span>
+<span class="sd">    :return: boundary interval</span>
+
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; array = [0, 1, 2, 3, 4]</span>
+<span class="sd">        &gt;&gt;&gt;find_range(array, 1.5)</span>
+<span class="sd">        1, 2</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="nb">max</span><span class="p">(</span><span class="n">array</span><span class="p">):</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">bisect_left</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">array</span><span class="p">[</span><span class="n">start</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">array</span><span class="p">[</span><span class="n">start</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="n">array</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">array</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="fill_profile"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.checkdam.fill_profile">[docs]</a><span class="k">def</span> <span class="nf">fill_profile</span><span class="p">(</span><span class="n">base_df</span><span class="p">,</span> <span class="n">slope_df</span><span class="p">,</span> <span class="n">midpoint_index</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function to fill profile data where only slope data is collected.</span>
+<span class="sd">    The difference between two slope is added to previous slope to get the current</span>
+<span class="sd">    cross section.</span>
+
+<span class="sd">    :param base_df:  base profile</span>
+<span class="sd">    :param slope_df: slope profile</span>
+<span class="sd">    :param midpoint_index: index of midpoint(x=0)</span>
+<span class="sd">    :return: filled base profile</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">base_z</span> <span class="o">=</span> <span class="n">base_df</span><span class="o">.</span><span class="n">ix</span><span class="p">[</span><span class="n">midpoint_index</span><span class="p">,</span> <span class="mi">0</span><span class="p">:]</span>
+    <span class="n">slope_z</span> <span class="o">=</span> <span class="n">slope_df</span><span class="o">.</span><span class="n">ix</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">base_y</span> <span class="o">=</span> <span class="n">base_z</span><span class="o">.</span><span class="n">index</span>
+    <span class="n">slope_y</span> <span class="o">=</span> <span class="n">slope_df</span><span class="o">.</span><span class="n">ix</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">slope_z</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">slope_y</span>
+    <span class="n">new_base_df</span> <span class="o">=</span> <span class="n">base_df</span>
+    <span class="k">for</span> <span class="n">y_s</span> <span class="ow">in</span> <span class="n">slope_z</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">y_s</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">base_z</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tolist</span><span class="p">():</span>
+            <span class="n">y_t</span> <span class="o">=</span> <span class="n">find_range</span><span class="p">(</span><span class="n">base_y</span><span class="p">,</span> <span class="n">y_s</span><span class="p">)</span>
+            <span class="n">template</span> <span class="o">=</span> <span class="n">base_df</span><span class="p">[</span><span class="n">y_t</span><span class="p">]</span>
+            <span class="n">z1</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">ix</span><span class="p">[</span><span class="n">midpoint_index</span><span class="p">,</span> <span class="p">]</span>
+            <span class="n">z2</span> <span class="o">=</span> <span class="n">slope_z</span><span class="p">[</span><span class="n">y_s</span><span class="p">]</span>
+            <span class="n">diff</span> <span class="o">=</span> <span class="n">z2</span> <span class="o">-</span> <span class="n">z1</span>
+            <span class="n">profile</span> <span class="o">=</span> <span class="n">template</span> <span class="o">+</span> <span class="n">diff</span>
+            <span class="n">profile</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">y_s</span>
+            <span class="n">new_base_df</span> <span class="o">=</span> <span class="n">new_base_df</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">profile</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s">&#39;right&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">new_base_df</span>
+
+</div>
+<div class="viewcode-block" id="set_column_sequence"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.checkdam.set_column_sequence">[docs]</a><span class="k">def</span> <span class="nf">set_column_sequence</span><span class="p">(</span><span class="n">dataframe</span><span class="p">,</span> <span class="n">seq</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Takes a dataframe and a sequence of its columns, returns dataframe with seq as first column&quot;&quot;&quot;</span>
+    <span class="n">cols</span> <span class="o">=</span> <span class="n">seq</span><span class="p">[:]</span>  <span class="c"># copy so we don&#39;t mutate seq</span>
+    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">dataframe</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">x</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">:</span>
+            <span class="n">cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">dataframe</span><span class="p">[</span><span class="n">cols</span><span class="p">]</span>
+
+</div>
+<div class="viewcode-block" id="contour_area"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.checkdam.contour_area">[docs]</a><span class="k">def</span> <span class="nf">contour_area</span><span class="p">(</span><span class="n">mpl_obj</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a array of contour levels and</span>
+<span class="sd">    corresponding cumulative area of contours</span>
+<span class="sd">    # Refer: Nikolai Shokhirev http://www.numericalexpert.com/blog/area_calculation/</span>
+
+<span class="sd">    :param mpl_obj: Matplotlib contour object</span>
+<span class="sd">    :return: [(level1, area1), (level1, area1+area2)]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">poly_area</span>
+    <span class="n">n_c</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">mpl_obj</span><span class="o">.</span><span class="n">collections</span><span class="p">)</span>  <span class="c"># n_c = no of contours</span>
+    <span class="k">print</span> <span class="s">&#39;No. of contours = {0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n_c</span><span class="p">)</span>
+    <span class="n">area</span> <span class="o">=</span> <span class="mf">0.0000</span>
+    <span class="n">cont_area_array</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">contour</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_c</span><span class="p">):</span>
+        <span class="n">n_p</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">mpl_obj</span><span class="o">.</span><span class="n">collections</span><span class="p">[</span><span class="n">contour</span><span class="p">]</span><span class="o">.</span><span class="n">get_paths</span><span class="p">())</span>
+        <span class="n">zc</span> <span class="o">=</span> <span class="n">mpl_obj</span><span class="o">.</span><span class="n">levels</span><span class="p">[</span><span class="n">contour</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_p</span><span class="p">):</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">mpl_obj</span><span class="o">.</span><span class="n">collections</span><span class="p">[</span><span class="n">contour</span><span class="p">]</span><span class="o">.</span><span class="n">get_paths</span><span class="p">()[</span><span class="n">path</span><span class="p">]</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">vertices</span>
+            <span class="n">l</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="mf">0.0000</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">l</span><span class="p">):</span>
+                <span class="n">j</span> <span class="o">=</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="n">l</span>
+                <span class="n">s</span> <span class="o">+=</span> <span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">v</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">v</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+                <span class="n">poly_area</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="nb">abs</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+            <span class="n">area</span> <span class="o">+=</span> <span class="n">poly_area</span>
+        <span class="n">cont_area_array</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">zc</span><span class="p">,</span> <span class="n">area</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">cont_area_array</span>
+
+</div>
+<div class="viewcode-block" id="polyfit"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.checkdam.polyfit">[docs]</a><span class="k">def</span> <span class="nf">polyfit</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">degree</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Wrapper around np.polyfit</span>
+
+<span class="sd">    :param x: x values</span>
+<span class="sd">    :param y: y values</span>
+<span class="sd">    :param degree: polynomial degree</span>
+<span class="sd">    :return: results, polynomial has coefficients, determination has r-squared</span>
+<span class="sd">    :rtype: dict</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">coeffs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">polyfit</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">degree</span><span class="p">)</span>
+    <span class="n">results</span><span class="p">[</span><span class="s">&#39;polynomial&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">coeffs</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="c"># r squared</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">poly1d</span><span class="p">(</span><span class="n">coeffs</span><span class="p">)</span>
+    <span class="n">yhat</span> <span class="o">=</span> <span class="n">p</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">ybar</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+    <span class="n">ssreg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">yhat</span> <span class="o">-</span> <span class="n">ybar</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">sstot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">y</span> <span class="o">-</span> <span class="n">ybar</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">results</span><span class="p">[</span><span class="s">&#39;determination&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ssreg</span> <span class="o">/</span> <span class="n">sstot</span>
+    <span class="k">return</span> <span class="n">results</span>
+
+</div>
+<div class="viewcode-block" id="myround"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.checkdam.myround">[docs]</a><span class="k">def</span> <span class="nf">myround</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">decimals</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function to round, better than numpy around</span>
+
+<span class="sd">    :param a: float to be rounded</span>
+<span class="sd">    :param decimals: no of decimal places, default = 1</span>
+<span class="sd">    :return:rounded float</span>
+
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; myround(0.7568,decimals=2)</span>
+<span class="sd">        0.76</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="n">a</span> <span class="o">-</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">decimals</span> <span class="o">+</span> <span class="mi">5</span><span class="p">)),</span> <span class="n">decimals</span><span class="o">=</span><span class="n">decimals</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="read_correct_ch_dam_data"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.checkdam.read_correct_ch_dam_data">[docs]</a><span class="k">def</span> <span class="nf">read_correct_ch_dam_data</span><span class="p">(</span><span class="n">csv_file</span><span class="p">,</span> <span class="n">calibration_slope</span><span class="p">,</span> <span class="n">calibration_intercept</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function to read and calibrate odyssey capacitance sensor data</span>
+
+<span class="sd">    :param csv_file: csv file created from sensor</span>
+<span class="sd">    :param calibration_slope: slope</span>
+<span class="sd">    :param calibration_intercept: intercept</span>
+<span class="sd">    :return: calibrated and time corrected data</span>
+
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; read_correct_ch_dam_data(csv_file=file.csv, calibration_slope=0.111, calibration_intercept=0.222)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">water_level</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">csv_file</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s">&#39;,&#39;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                              <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;scan no&#39;</span><span class="p">,</span> <span class="s">&#39;date&#39;</span><span class="p">,</span> <span class="s">&#39;time&#39;</span><span class="p">,</span> <span class="s">&#39;raw value&#39;</span><span class="p">,</span> <span class="s">&#39;calibrated value&#39;</span><span class="p">])</span>
+    <span class="n">water_level</span><span class="p">[</span><span class="s">&#39;calibrated value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">water_level</span><span class="p">[</span><span class="s">&#39;raw value&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">calibration_slope</span><span class="p">)</span> <span class="o">+</span> <span class="n">calibration_intercept</span>  <span class="c"># in cm</span>
+    <span class="c"># water_level[&#39;calibrated value&#39;] = np.round(water_level[&#39;calibrated value&#39;]/resolution_ody)*resolution_ody</span>
+    <span class="n">water_level</span><span class="p">[</span><span class="s">&#39;calibrated value&#39;</span><span class="p">]</span> <span class="o">/=</span> <span class="mf">1000.0</span>
+    <span class="n">water_level</span><span class="p">[</span><span class="s">&#39;calibrated value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">myround</span><span class="p">(</span><span class="n">a</span><span class="o">=</span><span class="n">water_level</span><span class="p">[</span><span class="s">&#39;calibrated value&#39;</span><span class="p">],</span> <span class="n">decimals</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+    <span class="c"># #change the column name</span>
+    <span class="n">water_level</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;stage(m)&#39;</span>
+    <span class="c"># print water_level.head()</span>
+
+    <span class="c"># create date time index</span>
+    <span class="n">format</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%d</span><span class="s">/%m/%Y  %H:%M:%S&#39;</span>
+    <span class="n">c_str</span> <span class="o">=</span> <span class="s">&#39; 24:00:00&#39;</span>
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">water_level</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+        <span class="n">x_str</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;time&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">x_str</span> <span class="o">==</span> <span class="n">c_str</span><span class="p">:</span>
+            <span class="c"># convert string to datetime object</span>
+            <span class="n">r_date</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s">&#39;date&#39;</span><span class="p">],</span> <span class="n">format</span><span class="o">=</span><span class="s">&#39;</span><span class="si">%d</span><span class="s">/%m/%Y &#39;</span><span class="p">)</span>
+            <span class="c"># add 1 day</span>
+            <span class="n">c_date</span> <span class="o">=</span> <span class="n">r_date</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="c"># convert datetime to string</span>
+            <span class="n">c_date</span> <span class="o">=</span> <span class="n">c_date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%d</span><span class="s">/%m/%Y &#39;</span><span class="p">)</span>
+            <span class="n">c_time</span> <span class="o">=</span> <span class="s">&#39; 00:00:00&#39;</span>
+            <span class="c"># water_level.loc[:, (&#39;date&#39;, index)] = c_date</span>
+            <span class="c"># water_level.loc[:, (&#39;time&#39;, index)] = c_time</span>
+            <span class="n">water_level</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">index</span><span class="p">,</span><span class="s">&#39;date&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">c_date</span>
+            <span class="n">water_level</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">index</span><span class="p">,</span><span class="s">&#39;time&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">c_time</span>
+
+    <span class="n">water_level</span><span class="p">[</span><span class="s">&#39;date_time&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">water_level</span><span class="p">[</span><span class="s">&#39;date&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">water_level</span><span class="p">[</span><span class="s">&#39;time&#39;</span><span class="p">],</span> <span class="n">format</span><span class="o">=</span><span class="n">format</span><span class="p">)</span>
+    <span class="n">water_level</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="n">water_level</span><span class="p">[</span><span class="s">&#39;date_time&#39;</span><span class="p">],</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="c"># # drop unneccessary columns before datetime aggregation</span>
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">water_level</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+        <span class="c"># print row</span>
+        <span class="n">obs_stage</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;stage(m)&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">obs_stage</span> <span class="o">&lt;</span> <span class="n">stage_cutoff</span><span class="p">:</span>
+            <span class="c"># water_level.loc[:, (&#39;stage(m)&#39;, index.strftime(date_format))] = 0.0</span>
+            <span class="n">water_level</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">index</span><span class="p">,</span><span class="s">&#39;stage(m)&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+    <span class="n">water_level</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="s">&#39;scan no&#39;</span><span class="p">,</span> <span class="s">&#39;date&#39;</span><span class="p">,</span> <span class="s">&#39;time&#39;</span><span class="p">,</span> <span class="s">&#39;date_time&#39;</span><span class="p">],</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">water_level</span>
+
+</div>
+<div class="viewcode-block" id="extraterrestrial_irrad"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.checkdam.extraterrestrial_irrad">[docs]</a><span class="k">def</span> <span class="nf">extraterrestrial_irrad</span><span class="p">(</span><span class="n">local_datetime</span><span class="p">,</span> <span class="n">latitude_deg</span><span class="p">,</span> <span class="n">longitude_deg</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates extraterrestrial radiation in MJ/m2/30min</span>
+
+<span class="sd">    :param local_datetime: datetime object</span>
+<span class="sd">    :param latitude_deg: in decimal degree</span>
+<span class="sd">    :param longitude_deg: in decimal degree</span>
+<span class="sd">    :return: Extra terrestrial radiation in MJ/m2/30min</span>
+<span class="sd">    :rtype: float</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">s</span> <span class="o">=</span> <span class="mf">0.0820</span>  <span class="c"># MJ m-2 min-1</span>
+    <span class="n">lat_rad</span> <span class="o">=</span> <span class="n">latitude_deg</span> <span class="o">*</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">180</span><span class="p">)</span>
+    <span class="n">day</span> <span class="o">=</span> <span class="p">(</span><span class="n">local_datetime</span> <span class="o">-</span> <span class="n">datetime</span><span class="p">(</span><span class="n">local_datetime</span><span class="o">.</span><span class="n">year</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">days</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="n">hour</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">local_datetime</span><span class="o">.</span><span class="n">hour</span><span class="p">)</span>
+    <span class="n">minute</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">local_datetime</span><span class="o">.</span><span class="n">minute</span><span class="p">)</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="p">((</span><span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">day</span> <span class="o">-</span> <span class="mi">81</span><span class="p">))</span> <span class="o">/</span> <span class="mi">364</span>
+    <span class="n">sc</span> <span class="o">=</span> <span class="mf">0.1645</span> <span class="o">*</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">b</span><span class="p">))</span> <span class="o">-</span> <span class="mf">0.1255</span> <span class="o">*</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">b</span><span class="p">))</span> <span class="o">-</span> <span class="mf">0.025</span> <span class="o">*</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">b</span><span class="p">))</span>  <span class="c"># seasonal correction in hour</span>
+    <span class="n">lz</span> <span class="o">=</span> <span class="mi">270</span>  <span class="c"># for India longitude of local time zone in degrees west of greenwich</span>
+    <span class="n">lm</span> <span class="o">=</span> <span class="p">(</span><span class="mi">180</span> <span class="o">+</span> <span class="p">(</span><span class="mi">180</span> <span class="o">-</span> <span class="n">longitude_deg</span><span class="p">))</span>  <span class="c"># longitude of measurement site</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="p">(</span><span class="n">hour</span> <span class="o">+</span> <span class="p">(</span><span class="n">minute</span> <span class="o">/</span> <span class="mi">60</span><span class="p">))</span> <span class="o">-</span> <span class="mf">0.25</span>
+    <span class="n">t1</span> <span class="o">=</span> <span class="mf">0.5</span>  <span class="c"># 0.5 for 30 minute 1 for hourly period</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">12</span><span class="p">)</span> <span class="o">*</span> <span class="p">((</span><span class="n">t</span> <span class="o">+</span> <span class="p">(</span><span class="mf">0.0667</span> <span class="o">*</span> <span class="p">(</span><span class="n">lz</span> <span class="o">-</span> <span class="n">lm</span><span class="p">))</span> <span class="o">+</span> <span class="n">sc</span><span class="p">)</span> <span class="o">-</span> <span class="mi">12</span><span class="p">)</span>
+    <span class="n">w1</span> <span class="o">=</span> <span class="n">w</span> <span class="o">-</span> <span class="p">((</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">t1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">24</span><span class="p">)</span>  <span class="c"># solar time angle at beginning of period [rad]</span>
+    <span class="n">w2</span> <span class="o">=</span> <span class="n">w</span> <span class="o">+</span> <span class="p">((</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">t1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">24</span><span class="p">)</span>  <span class="c"># solar time angle at end of period [rad]</span>
+    <span class="n">dr</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="mf">0.033</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">((</span><span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">day</span><span class="p">)</span> <span class="o">/</span> <span class="mi">365</span><span class="p">))</span>  <span class="c"># inverse relative distance Earth-Sun</span>
+    <span class="n">dt</span> <span class="o">=</span> <span class="mf">0.409</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(((</span><span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">day</span><span class="p">)</span> <span class="o">/</span> <span class="mi">365</span><span class="p">)</span> <span class="o">-</span> <span class="mf">1.39</span><span class="p">)</span>  <span class="c"># solar declination in radian</span>
+    <span class="n">ws</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">acos</span><span class="p">(</span><span class="o">-</span><span class="n">math</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="n">lat_rad</span><span class="p">)</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="n">dt</span><span class="p">))</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">w</span> <span class="o">&gt;</span> <span class="n">ws</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">w</span> <span class="o">&lt;</span> <span class="o">-</span><span class="n">ws</span><span class="p">):</span>
+        <span class="n">rext</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">rext</span> <span class="o">=</span> <span class="p">((</span><span class="mi">12</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">*</span> <span class="n">s</span> <span class="o">*</span> <span class="n">dr</span> <span class="o">*</span> <span class="p">(((</span><span class="n">w2</span> <span class="o">-</span> <span class="n">w1</span><span class="p">)</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">lat_rad</span><span class="p">)</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">dt</span><span class="p">))</span> <span class="o">+</span> <span class="p">(</span>
+            <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">lat_rad</span><span class="p">)</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">w2</span><span class="p">)</span> <span class="o">-</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">w1</span><span class="p">))))</span>  <span class="c"># MJm-2(30min)-1</span>
+    <span class="k">return</span> <span class="n">rext</span>
+
+</div>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Open water evaporation function for half hour</span>
+<span class="sd">Modified from evaplib.py</span>
+<span class="sd">http://python.hydrology-amsterdam.nl/moduledoc/index.html#module-evaplib</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="delta_calc"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.checkdam.delta_calc">[docs]</a><span class="k">def</span> <span class="nf">delta_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates slope of saturation vapour pressure curve at air temperature [kPa/Celsius]</span>
+<span class="sd">    http://www.fao.org/docrep/x0490e/x0490e07.htm</span>
+
+<span class="sd">    :param airtemp: Temperature in Celsius</span>
+<span class="sd">    :return: slope of saturation vapour pressure curve [kPa/Celsius]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">l</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">airtemp</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">l</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="n">airtemp</span> <span class="o">+</span> <span class="mf">237.3</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="mf">0.6108</span> <span class="o">*</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">((</span><span class="mf">17.27</span> <span class="o">*</span> <span class="n">airtemp</span><span class="p">)</span> <span class="o">/</span> <span class="n">temp</span><span class="p">))</span>
+        <span class="n">delta</span> <span class="o">=</span> <span class="p">(</span><span class="mi">4098</span> <span class="o">*</span> <span class="n">b</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">temp</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">delta</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">l</span><span class="p">):</span>
+            <span class="n">temp</span> <span class="o">=</span> <span class="n">airtemp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="mf">237.3</span>
+            <span class="n">b</span> <span class="o">=</span> <span class="mf">0.6108</span> <span class="o">*</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mf">17.27</span> <span class="o">*</span> <span class="n">airtemp</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">/</span> <span class="n">temp</span><span class="p">)</span>
+            <span class="n">delta</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">4098</span> <span class="o">*</span> <span class="n">b</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">temp</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">delta</span>
+
+</div>
+<div class="viewcode-block" id="half_hour_evaporation"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.checkdam.half_hour_evaporation">[docs]</a><span class="k">def</span> <span class="nf">half_hour_evaporation</span><span class="p">(</span><span class="n">airtemp</span><span class="o">=</span><span class="n">sp</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>
+                          <span class="n">rh</span><span class="o">=</span><span class="n">sp</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>
+                          <span class="n">airpress</span><span class="o">=</span><span class="n">sp</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>
+                          <span class="n">rs</span><span class="o">=</span><span class="n">sp</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>
+                          <span class="n">rext</span><span class="o">=</span><span class="n">sp</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>
+                          <span class="n">u</span><span class="o">=</span><span class="n">sp</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>
+                          <span class="n">z</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function to calculate daily Penman open water evaporation (in mm/30min).</span>
+<span class="sd">    Equation according to</span>
+<span class="sd">    Shuttleworth, W. J. 2007. &quot;Putting the &#39;Vap&#39; into Evaporation.&quot;</span>
+<span class="sd">    Hydrology and Earth System Sciences 11 (1): 210-44. doi:10.5194/hess-11-210-2007.</span>
+
+<span class="sd">    :param airtemp: average air temperature [Celsius]</span>
+<span class="sd">    :param rh: relative humidity[%]</span>
+<span class="sd">    :param airpress: average air pressure[Pa]</span>
+<span class="sd">    :param rs: Incoming solar radiation [MJ/m2/30min]</span>
+<span class="sd">    :param rext: Extraterrestrial radiation [MJ/m2/30min]</span>
+<span class="sd">    :param u: average wind speed at 2 m from ground [m/s]</span>
+<span class="sd">    :param z: site elevation, default is zero [metre]</span>
+<span class="sd">    :return: Penman open water evaporation values [mm/30min]</span>
+
+<span class="sd">    Examples:</span>
+<span class="sd">          &gt;&gt;&gt; half_hour_evaporation = E0(T,RH,press,Rs,N,Rext,u,1000.0) # at 1000 m a.s.l</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Set constants</span>
+    <span class="n">albedo</span> <span class="o">=</span> <span class="mf">0.06</span>  <span class="c"># open water albedo</span>
+    <span class="c"># Stefan boltzmann constant = 5.670373*10-8 J/m2/k4/s</span>
+    <span class="c"># http://en.wikipedia.org/wiki/Stefan-Boltzmann_constant</span>
+    <span class="c"># sigma = 5.670373*(10**-8)  # J/m2/K4/s</span>
+    <span class="n">sigma</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.02066714</span> <span class="o">*</span> <span class="p">(</span><span class="mi">10</span> <span class="o">**</span> <span class="o">-</span><span class="mi">10</span><span class="p">))</span>  <span class="c"># Stefan Boltzmann constant MJ/m2/K4/30min</span>
+    <span class="c"># Calculate Delta, gamma and lambda</span>
+    <span class="n">delta</span> <span class="o">=</span> <span class="n">delta_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">)</span>  <span class="c"># [Kpa/C]</span>
+    <span class="c"># Lambda = met.L_calc(airtemp)/(10**6) # [MJ/Kg]</span>
+    <span class="c"># gamma = met.gamma_calc(airtemp, rh, airpress)/1000</span>
+    <span class="c"># Lambda = 2.501 -(0.002361*airtemp)     # [MJ/kg]</span>
+    <span class="c"># gamma = (0.0016286 *(airpress/1000))/Lambda</span>
+    <span class="c"># Calculate saturated and actual water vapour pressure</span>
+    <span class="n">es</span> <span class="o">=</span> <span class="n">met</span><span class="o">.</span><span class="n">es_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">)</span>  <span class="c"># [Pa]</span>
+    <span class="n">ea</span> <span class="o">=</span> <span class="n">met</span><span class="o">.</span><span class="n">ea_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">,</span> <span class="n">rh</span><span class="p">)</span>  <span class="c"># [Pa]</span>
+    <span class="c"># Determine length of array</span>
+    <span class="n">l</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">airtemp</span><span class="p">)</span>
+    <span class="c"># Check if we have a single value or an array</span>
+    <span class="k">if</span> <span class="n">l</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">lambda_mj_kg</span> <span class="o">=</span> <span class="mf">2.501</span> <span class="o">-</span> <span class="p">(</span><span class="mf">0.002361</span> <span class="o">*</span> <span class="n">airtemp</span><span class="p">)</span>  <span class="c"># [MJ/kg]</span>
+        <span class="n">gamma</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0016286</span> <span class="o">*</span> <span class="p">(</span><span class="n">airpress</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">))</span> <span class="o">/</span> <span class="n">lambda_mj_kg</span>
+        <span class="n">rns</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">albedo</span><span class="p">)</span> <span class="o">*</span> <span class="n">rs</span>  <span class="c"># shortwave component [MJ/m2/30min]</span>
+        <span class="c"># calculate clear sky radiation Rs0</span>
+        <span class="n">rs0</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.75</span> <span class="o">+</span> <span class="p">(</span><span class="mf">2E-5</span> <span class="o">*</span> <span class="n">z</span><span class="p">))</span> <span class="o">*</span> <span class="n">rext</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.35</span> <span class="o">*</span> <span class="p">(</span><span class="n">rs</span> <span class="o">/</span> <span class="n">rs0</span><span class="p">))</span> <span class="o">-</span> <span class="mf">0.35</span>
+        <span class="n">epsilom</span> <span class="o">=</span> <span class="mf">0.34</span> <span class="o">-</span> <span class="p">(</span><span class="o">-</span><span class="mf">0.14</span> <span class="o">*</span> <span class="n">sp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">ea</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">))</span>
+        <span class="n">rnl</span> <span class="o">=</span> <span class="n">f</span> <span class="o">*</span> <span class="n">epsilom</span> <span class="o">*</span> <span class="n">sigma</span> <span class="o">*</span> <span class="p">(</span><span class="n">airtemp</span> <span class="o">+</span> <span class="mf">273.16</span><span class="p">)</span> <span class="o">**</span> <span class="mi">4</span>  <span class="c"># Longwave component [MJ/m2/30min]</span>
+        <span class="n">rnet</span> <span class="o">=</span> <span class="n">rns</span> <span class="o">-</span> <span class="n">rnl</span>
+        <span class="n">Ea</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="mf">0.536</span> <span class="o">*</span> <span class="n">u</span><span class="p">))</span> <span class="o">*</span> <span class="p">((</span><span class="n">es</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="n">ea</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">))</span>
+        <span class="n">E0</span> <span class="o">=</span> <span class="p">((</span><span class="n">delta</span> <span class="o">*</span> <span class="n">rnet</span><span class="p">)</span> <span class="o">+</span> <span class="n">gamma</span> <span class="o">*</span> <span class="p">(</span><span class="mf">6.43</span> <span class="o">*</span> <span class="n">Ea</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="n">lambda_mj_kg</span> <span class="o">*</span> <span class="p">(</span><span class="n">delta</span> <span class="o">+</span> <span class="n">gamma</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c"># Inititate output array</span>
+        <span class="n">E0</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="n">rns</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="n">rs0</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="n">epsilom</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="n">rnl</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="n">rnet</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="n">Ea</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="n">lambda_mj_kg</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="n">gamma</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">l</span><span class="p">):</span>
+            <span class="n">lambda_mj_kg</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mf">2.501</span> <span class="o">-</span> <span class="p">(</span><span class="mf">0.002361</span> <span class="o">*</span> <span class="n">airtemp</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">gamma</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0016286</span> <span class="o">*</span> <span class="p">(</span><span class="n">airpress</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">))</span> <span class="o">/</span> <span class="n">lambda_mj_kg</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="c"># calculate longwave radiation (MJ/m2/30min)</span>
+            <span class="n">rns</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">albedo</span><span class="p">)</span> <span class="o">*</span> <span class="n">rs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="c"># calculate clear sky radiation Rs0</span>
+            <span class="n">rs0</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.75</span> <span class="o">+</span> <span class="p">(</span><span class="mf">2E-5</span> <span class="o">*</span> <span class="n">z</span><span class="p">))</span>
+            <span class="n">f</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.35</span> <span class="o">*</span> <span class="p">(</span><span class="n">rs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="n">rs0</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span> <span class="o">-</span> <span class="mf">0.35</span>
+            <span class="n">epsilom</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.34</span> <span class="o">-</span> <span class="p">(</span><span class="o">-</span><span class="mf">0.14</span> <span class="o">*</span> <span class="n">sp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">ea</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">))</span>
+            <span class="n">rnl</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">epsilom</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">sigma</span> <span class="o">*</span> <span class="p">(</span><span class="n">airtemp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="mf">273.16</span><span class="p">)</span> <span class="o">**</span> <span class="mi">4</span>  <span class="c"># Longwave component [MJ/m2/30min]</span>
+            <span class="n">rnet</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">rns</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">rnl</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">Ea</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="mf">0.536</span> <span class="o">*</span> <span class="n">u</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span> <span class="o">*</span> <span class="p">((</span><span class="n">es</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="n">ea</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">))</span>
+            <span class="n">E0</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="n">delta</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">rnet</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">+</span> <span class="n">gamma</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="mf">6.43</span> <span class="o">*</span> <span class="n">Ea</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span> <span class="o">/</span> <span class="p">(</span><span class="n">lambda_mj_kg</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">delta</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">gamma</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+    <span class="k">return</span> <span class="n">E0</span>
+
+</div>
+<div class="viewcode-block" id="pick_incorrect_value"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.checkdam.pick_incorrect_value">[docs]</a><span class="k">def</span> <span class="nf">pick_incorrect_value</span><span class="p">(</span><span class="n">dataframe</span><span class="p">,</span> <span class="o">**</span><span class="n">param</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Selects a unique list of timestamp that satisfies the condition given in the param dictionary</span>
+
+<span class="sd">    :param dataframe: Pandas dataframe</span>
+<span class="sd">    :param param: Conditonal Dictionary, Eg.{column name: [cutoff, &#39;&gt;&#39;]}</span>
+<span class="sd">    :type param: dict</span>
+<span class="sd">    :return: unique list of timestamp</span>
+<span class="sd">    :rtype: list</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">wrong_date_time</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">unique_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c"># first_time = pd.to_datetime(&#39;2014-05-15 18:00:00&#39;, format=&#39;%Y-%m-%d %H:%M:%S&#39;)</span>
+    <span class="c"># final_time = pd.to_datetime(&#39;2014-09-09 23:00:00&#39;, format=&#39;%Y-%m-%d %H:%M:%S&#39;)</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">param</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="c"># print key</span>
+        <span class="c"># print len(wrong_date_time)</span>
+        <span class="k">if</span> <span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;&gt;&#39;</span><span class="p">:</span>
+            <span class="n">wrong_df</span> <span class="o">=</span> <span class="n">dataframe</span><span class="p">[</span><span class="n">dataframe</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="k">if</span> <span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;&lt;&#39;</span><span class="p">:</span>
+            <span class="n">wrong_df</span> <span class="o">=</span> <span class="n">dataframe</span><span class="p">[</span><span class="n">dataframe</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="k">if</span> <span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span>  <span class="s">&#39;=&#39;</span><span class="p">:</span>
+            <span class="n">wrong_df</span> <span class="o">=</span> <span class="n">dataframe</span><span class="p">[</span><span class="n">dataframe</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">==</span> <span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="k">for</span> <span class="n">wrong_time</span> <span class="ow">in</span> <span class="n">wrong_df</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">max</span><span class="p">(</span><span class="n">dataframe</span><span class="o">.</span><span class="n">index</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">wrong_time</span> <span class="o">&gt;</span> <span class="nb">min</span><span class="p">(</span><span class="n">dataframe</span><span class="o">.</span><span class="n">index</span><span class="p">):</span>
+                <span class="n">wrong_date_time</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">wrong_time</span><span class="p">)</span>
+            <span class="c"># if final_time &gt; wrong_time &gt; first_time:</span>
+
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">wrong_date_time</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">unique_list</span><span class="p">:</span>
+            <span class="n">unique_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">unique_list</span>
+
+</div>
+<div class="viewcode-block" id="day_interpolate"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.checkdam.day_interpolate">[docs]</a><span class="k">def</span> <span class="nf">day_interpolate</span><span class="p">(</span><span class="n">dataframe</span><span class="p">,</span> <span class="n">column_name</span><span class="p">,</span> <span class="n">wrong_date_time</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function to do linear interpolate on daily timescale</span>
+
+<span class="sd">    :param dataframe: Pandas dataframe</span>
+<span class="sd">    :param column_name: Interpolation target column name of dataframe</span>
+<span class="sd">    :type column_name: str</span>
+<span class="sd">    :param wrong_date_time: List of error timestamp</span>
+<span class="sd">    :type wrong_date_time: list</span>
+<span class="sd">    :return: Corrected dataframe</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">initial_cutoff</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">dataframe</span><span class="o">.</span><span class="n">index</span><span class="p">)</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">final_cutoff</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">dataframe</span><span class="o">.</span><span class="n">index</span><span class="p">)</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">date_time</span> <span class="ow">in</span> <span class="n">wrong_date_time</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">date_time</span> <span class="o">&gt;</span> <span class="n">initial_cutoff</span> <span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">date_time</span> <span class="o">&lt;</span> <span class="n">final_cutoff</span><span class="p">):</span>
+            <span class="n">prev_date_time</span> <span class="o">=</span> <span class="n">date_time</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">next_date_time</span> <span class="o">=</span> <span class="n">date_time</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">prev_value</span> <span class="o">=</span> <span class="n">dataframe</span><span class="p">[</span><span class="n">column_name</span><span class="p">][</span><span class="n">prev_date_time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%Y-%m-</span><span class="si">%d</span><span class="s"> %H:%M&#39;</span><span class="p">)]</span>
+            <span class="n">next_value</span> <span class="o">=</span> <span class="n">dataframe</span><span class="p">[</span><span class="n">column_name</span><span class="p">][</span><span class="n">next_date_time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%Y-%m-</span><span class="si">%d</span><span class="s"> %H:%M&#39;</span><span class="p">)]</span>
+            <span class="n">average_value</span> <span class="o">=</span> <span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">prev_value</span> <span class="o">+</span> <span class="n">next_value</span><span class="p">)</span>
+            <span class="n">dataframe</span><span class="p">[</span><span class="n">column_name</span><span class="p">][</span><span class="n">date_time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%Y-%m-</span><span class="si">%d</span><span class="s"> %H:%M&#39;</span><span class="p">)]</span> <span class="o">=</span> <span class="n">average_value</span>
+
+    <span class="k">return</span> <span class="n">dataframe</span>
+</div>
+<div class="viewcode-block" id="previous_interpolate"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.checkdam.previous_interpolate">[docs]</a><span class="k">def</span> <span class="nf">previous_interpolate</span><span class="p">(</span><span class="n">dataframe</span><span class="p">,</span> <span class="n">column_name</span><span class="p">,</span> <span class="n">wrong_date_time</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    Function to fill the missing values from corresponding previous day&#39;s time period</span>
+
+<span class="sd">    :param dataframe: Pandas dataframe</span>
+<span class="sd">    :param column_name: Interpolation target column name of dataframe</span>
+<span class="sd">    :type column_name: str</span>
+<span class="sd">    :param wrong_date_time: List of error timestamp</span>
+<span class="sd">    :type wrong_date_time: list</span>
+<span class="sd">    :return: Corrected dataframe</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">initial_cutoff</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">dataframe</span><span class="o">.</span><span class="n">index</span><span class="p">)</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">final_cutoff</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">dataframe</span><span class="o">.</span><span class="n">index</span><span class="p">)</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">date_time</span> <span class="ow">in</span> <span class="n">wrong_date_time</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">date_time</span> <span class="o">&gt;</span> <span class="n">initial_cutoff</span> <span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">date_time</span> <span class="o">&lt;</span> <span class="n">final_cutoff</span><span class="p">):</span>
+            <span class="n">prev_date_time</span> <span class="o">=</span> <span class="n">date_time</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">prev_value</span> <span class="o">=</span> <span class="n">dataframe</span><span class="p">[</span><span class="n">column_name</span><span class="p">][</span><span class="n">prev_date_time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%Y-%m-</span><span class="si">%d</span><span class="s"> %H:%M&#39;</span><span class="p">)]</span>
+            <span class="n">dataframe</span><span class="p">[</span><span class="n">column_name</span><span class="p">][</span><span class="n">date_time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%Y-%m-</span><span class="si">%d</span><span class="s"> %H:%M&#39;</span><span class="p">)]</span> <span class="o">=</span> <span class="n">prev_value</span>
+
+    <span class="k">return</span> <span class="n">dataframe</span>
+
+</div>
+<div class="viewcode-block" id="DraggableColorbar"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.checkdam.DraggableColorbar">[docs]</a><span class="k">class</span> <span class="nc">DraggableColorbar</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cbar</span><span class="p">,</span> <span class="n">mappable</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cbar</span> <span class="o">=</span> <span class="n">cbar</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mappable</span> <span class="o">=</span> <span class="n">mappable</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">press</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cycle</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">plt</span><span class="o">.</span><span class="n">cm</span><span class="p">)</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">plt</span><span class="o">.</span><span class="n">cm</span><span class="p">,</span><span class="n">i</span><span class="p">),</span><span class="s">&#39;N&#39;</span><span class="p">)])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cycle</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">cbar</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">()</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+<div class="viewcode-block" id="DraggableColorbar.connect"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.checkdam.DraggableColorbar.connect">[docs]</a>    <span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;connect to all the events we need&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cidpress</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cbar</span><span class="o">.</span><span class="n">patch</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">mpl_connect</span><span class="p">(</span>
+            <span class="s">&#39;button_press_event&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_press</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cidrelease</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cbar</span><span class="o">.</span><span class="n">patch</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">mpl_connect</span><span class="p">(</span>
+            <span class="s">&#39;button_release_event&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_release</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cidmotion</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cbar</span><span class="o">.</span><span class="n">patch</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">mpl_connect</span><span class="p">(</span>
+            <span class="s">&#39;motion_notify_event&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_motion</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">keypress</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cbar</span><span class="o">.</span><span class="n">patch</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">mpl_connect</span><span class="p">(</span>
+            <span class="s">&#39;key_press_event&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">key_press</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="DraggableColorbar.on_press"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.checkdam.DraggableColorbar.on_press">[docs]</a>    <span class="k">def</span> <span class="nf">on_press</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;on button press we will see if the mouse is over us and store some data&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">inaxes</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cbar</span><span class="o">.</span><span class="n">ax</span><span class="p">:</span> <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">press</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">y</span>
+</div>
+<div class="viewcode-block" id="DraggableColorbar.key_press"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.checkdam.DraggableColorbar.key_press">[docs]</a>    <span class="k">def</span> <span class="nf">key_press</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span><span class="o">==</span><span class="s">&#39;down&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span><span class="o">==</span><span class="s">&#39;up&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cycle</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="o">&gt;=</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cycle</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">cmap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cycle</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cbar</span><span class="o">.</span><span class="n">set_cmap</span><span class="p">(</span><span class="n">cmap</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cbar</span><span class="o">.</span><span class="n">draw_all</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mappable</span><span class="o">.</span><span class="n">set_cmap</span><span class="p">(</span><span class="n">cmap</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mappable</span><span class="o">.</span><span class="n">get_axes</span><span class="p">()</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">cmap</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cbar</span><span class="o">.</span><span class="n">patch</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="DraggableColorbar.on_motion"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.checkdam.DraggableColorbar.on_motion">[docs]</a>    <span class="k">def</span> <span class="nf">on_motion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="s">&#39;on motion we will move the rect if the mouse is over us&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">press</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="k">return</span>
+        <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">inaxes</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cbar</span><span class="o">.</span><span class="n">ax</span><span class="p">:</span> <span class="k">return</span>
+        <span class="n">xprev</span><span class="p">,</span> <span class="n">yprev</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">press</span>
+        <span class="n">dx</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">x</span> <span class="o">-</span> <span class="n">xprev</span>
+        <span class="n">dy</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">y</span> <span class="o">-</span> <span class="n">yprev</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">press</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">x</span><span class="p">,</span><span class="n">event</span><span class="o">.</span><span class="n">y</span>
+        <span class="c">#print &#39;x0=%f, xpress=%f, event.xdata=%f, dx=%f, x0+dx=%f&#39;%(x0, xpress, event.xdata, dx, x0+dx)</span>
+        <span class="n">scale</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cbar</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">vmax</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">cbar</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">vmin</span>
+        <span class="n">perc</span> <span class="o">=</span> <span class="mf">0.03</span>
+        <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">button</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cbar</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">vmin</span> <span class="o">-=</span> <span class="p">(</span><span class="n">perc</span><span class="o">*</span><span class="n">scale</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">dy</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cbar</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">vmax</span> <span class="o">-=</span> <span class="p">(</span><span class="n">perc</span><span class="o">*</span><span class="n">scale</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">dy</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">event</span><span class="o">.</span><span class="n">button</span><span class="o">==</span><span class="mi">3</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cbar</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">vmin</span> <span class="o">-=</span> <span class="p">(</span><span class="n">perc</span><span class="o">*</span><span class="n">scale</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">dy</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cbar</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">vmax</span> <span class="o">+=</span> <span class="p">(</span><span class="n">perc</span><span class="o">*</span><span class="n">scale</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">dy</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cbar</span><span class="o">.</span><span class="n">draw_all</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mappable</span><span class="o">.</span><span class="n">set_norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cbar</span><span class="o">.</span><span class="n">norm</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cbar</span><span class="o">.</span><span class="n">patch</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="DraggableColorbar.on_release"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.checkdam.DraggableColorbar.on_release">[docs]</a>    <span class="k">def</span> <span class="nf">on_release</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;on release we reset the press data&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">press</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mappable</span><span class="o">.</span><span class="n">set_norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cbar</span><span class="o">.</span><span class="n">norm</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cbar</span><span class="o">.</span><span class="n">patch</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="DraggableColorbar.disconnect"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.checkdam.DraggableColorbar.disconnect">[docs]</a>    <span class="k">def</span> <span class="nf">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;disconnect all the stored connection ids&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cbar</span><span class="o">.</span><span class="n">patch</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">mpl_disconnect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cidpress</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cbar</span><span class="o">.</span><span class="n">patch</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">mpl_disconnect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cidrelease</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cbar</span><span class="o">.</span><span class="n">patch</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">mpl_disconnect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cidmotion</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Kirubaharan Jeremiah.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

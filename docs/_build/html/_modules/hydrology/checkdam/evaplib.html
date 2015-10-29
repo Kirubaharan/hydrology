@@ -1,0 +1,663 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>hydrology.checkdam.evaplib &mdash; Hydrology 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="Hydrology 1.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydrology.checkdam.evaplib</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot; Evaplib: A libray with Python functions for calculation of </span>
+<span class="sd">    evaporation from meteorological data.</span>
+
+<span class="sd">    Functions:</span>
+<span class="sd">    </span>
+<span class="sd">        - penman: Calculate Penman (1948, 1956) open water evaporation</span>
+<span class="sd">        - makkink: Calculate evaporation according to Makkink (1965)</span>
+<span class="sd">        - Ept: Calculate evaporation according to Priestley and Taylor (1972)</span>
+<span class="sd">        - ET0pm: Calculate Penman Monteith reference evaporation short grass</span>
+<span class="sd">        - Epm: Calculate Penman-Monteith evaporation (actual)</span>
+<span class="sd">        - ra: Calculate aerodynamic resistance from windspeed and</span>
+<span class="sd">          roughnes parameters</span>
+<span class="sd">        - tvardry: calculate sensible heat flux from temperature variations</span>
+<span class="sd">          (Vugts et al., 1993)</span>
+<span class="sd">        - gash79: Gash (1979) analytical rainfall interception model</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="n">__author__</span> <span class="o">=</span> <span class="s">&quot;Maarten J. Waterloo &lt;maarten.waterloo@falw.vu.nl&gt;&quot;</span>
+<span class="n">__version__</span> <span class="o">=</span> <span class="s">&quot;1.0&quot;</span>
+<span class="n">__date__</span> <span class="o">=</span> <span class="s">&quot;Sep 2012&quot;</span>
+
+<span class="c"># Make a help entry for this library</span>
+<div class="viewcode-block" id="evaplib"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.evaplib.evaplib">[docs]</a><span class="k">def</span> <span class="nf">evaplib</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot; A libray with Python functions for calculation of </span>
+<span class="sd">    evaporation from meteorological data.</span>
+
+<span class="sd">    Functions:</span>
+<span class="sd">    </span>
+<span class="sd">        - E0: Calculate Penman (1948, 1956) open water evaporation </span>
+<span class="sd">        - Em: Calculate evaporation according to Makkink (1965)</span>
+<span class="sd">        - Ept: Calculate evaporation according to Priestley and Taylor (1972)</span>
+<span class="sd">        - ET0pm: Calculate Penman Monteith reference evaporation short grass (FAO)</span>
+<span class="sd">        - Epm: Calculate Penman Monteith reference evaporation (Monteith, 1965)</span>
+<span class="sd">        - ra: Calculate  from windspeed and roughnes parameters</span>
+<span class="sd">        - tvardry: calculate sensible heat flux from temperature variations</span>
+<span class="sd">          (Vugts et al., 1993)</span>
+<span class="sd">        - gash79: calculate rainfall interception (Gash, 1979)</span>
+<span class="sd">          </span>
+<span class="sd">    Author: Maarten J. Waterloo &lt;m.j.waterloo@vu.nl&gt;</span>
+<span class="sd">    Version 1.0</span>
+<span class="sd">    Date: Sep 2012</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">print</span> <span class="s">&#39;A libray with Python functions for calculation of&#39;</span>
+    <span class="k">print</span> <span class="s">&#39;evaporation from meteorological and vegetation data.</span><span class="se">\n\n</span><span class="s">&#39;</span>
+    <span class="k">print</span> <span class="s">&#39;Functions:</span><span class="se">\n</span><span class="s">&#39;</span>
+    <span class="k">print</span> <span class="s">&#39;- E0: Calculate Penman (1948, 1956) open water evaporation&#39;</span>
+    <span class="k">print</span> <span class="s">&#39;- Em: Calculate evaporation according to Makkink (1965)&#39;</span>
+    <span class="k">print</span> <span class="s">&#39;- Ept: Calculate evaporation according to Priestley and Taylor (1972).&#39;</span>
+    <span class="k">print</span> <span class="s">&#39;- ET0pm: Calculate Penman Monteith reference evaporation short grass.&#39;</span>
+    <span class="k">print</span> <span class="s">&#39;- Epm: Calculate Penman Monteith evaporation (Monteith, 1965).&#39;</span>
+    <span class="k">print</span> <span class="s">&#39;- ra: Calculate aerodynamic resistance.&#39;</span>
+    <span class="k">print</span> <span class="s">&#39;- tvardry: calculate sensible heat flux from temperature variations </span><span class="se">\</span>
+<span class="s">          (Vugts et al., 1993).&#39;</span>
+    <span class="k">print</span> <span class="s">&#39;- gash79: calculate rainfall interception (Gash, 1979).</span><span class="se">\n\n</span><span class="s">&#39;</span>
+    <span class="k">print</span> <span class="s">&#39;Author: &#39;</span><span class="p">,</span><span class="n">__author__</span>
+    <span class="k">print</span> <span class="s">&#39;Version: &#39;</span><span class="p">,</span><span class="n">__version__</span> 
+    <span class="k">print</span> <span class="s">&#39;Date: &#39;</span><span class="p">,</span><span class="n">__date__</span>
+    <span class="k">return</span>
+
+<span class="c"># First load python micrometeorological functions</span></div>
+<span class="kn">import</span> <span class="nn">meteolib</span>
+<span class="kn">import</span> <span class="nn">scipy</span>
+
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    ================================================================</span>
+<span class="sd">    Potential evaporation functions</span>
+<span class="sd">    ================================================================  </span>
+<span class="sd">&#39;&#39;&#39;</span>
+
+<div class="viewcode-block" id="E0"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.evaplib.E0">[docs]</a><span class="k">def</span> <span class="nf">E0</span><span class="p">(</span><span class="n">airtemp</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>\
+       <span class="n">rh</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>\
+       <span class="n">airpress</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>\
+       <span class="n">Rs</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>\
+       <span class="c"># N = scipy.array([]),\</span>
+       <span class="n">Rext</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>\
+       <span class="n">u</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>\
+       <span class="n">Z</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Function to calculate daily Penman open water evaporation (in mm/day).</span>
+<span class="sd">    Equation according to J.D. Valiantzas (2006). Simplified versions</span>
+<span class="sd">    for the Penman evaporation equation using routine weather data.</span>
+<span class="sd">    J. Hydrology 331: 690-702. Following Penman (1948,1956). Albedo set</span>
+<span class="sd">    at 0.06 for open water.</span>
+<span class="sd">    </span>
+<span class="sd">    Input (measured at 2 m height):</span>
+<span class="sd">        - airtemp: (array of) daily average air temperatures [Celsius]</span>
+<span class="sd">        - rh: (array of) daily average relative humidity [%]</span>
+<span class="sd">        - airpress: (array of) daily average air pressure data [Pa]</span>
+<span class="sd">        - Rs: (array of) daily incoming solar radiation [J/m2/day]</span>
+<span class="sd">        - N: (array of) maximum daily sunshine hours [h]</span>
+<span class="sd">        - Rext: (array of) daily extraterrestrial radiation [J/m2/day]</span>
+<span class="sd">        - u: (array of) daily average wind speed at 2 m [m/s]</span>
+<span class="sd">        - Z: (array of) site elevation [m a.s.l.], default is zero...</span>
+<span class="sd">   </span>
+<span class="sd">    Output:</span>
+<span class="sd">        - E0: (array of) Penman open water evaporation values [mm/day]</span>
+
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; # T, RH, etc. are arrays of data...</span>
+<span class="sd">        &gt;&gt;&gt; E0_data = E0(T,RH,press,Rs,N,Rext,u) # for zero elevation</span>
+<span class="sd">        &gt;&gt;&gt; E0_data = E0(T,RH,press,Rs,N,Rext,u,1000.0) # at 1000 m a.s.l</span>
+<span class="sd">        &gt;&gt;&gt; # With single values and default elevation...</span>
+<span class="sd">        &gt;&gt;&gt; E0(20.67,67.0,101300.0,22600000,14.4,42000000,2.0)</span>
+<span class="sd">        6.3102099052283389</span>
+<span class="sd">        &gt;&gt;&gt; # for elevation of 1.0 m a.s.l.</span>
+<span class="sd">        &gt;&gt;&gt; E0(21.65,67.0,101300.0,24200000,14.66,42200000,1.51,1.0)</span>
+<span class="sd">        6.5991748573832343</span>
+<span class="sd">        &gt;&gt;&gt; </span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="c"># Set constants</span>
+    <span class="n">albedo</span> <span class="o">=</span> <span class="mf">0.06</span> <span class="c"># Open water albedo</span>
+    <span class="n">sigma</span> <span class="o">=</span> <span class="mf">4.903E-3</span> <span class="c"># Stefan Boltzmann constant J/m2/K4/d</span>
+    <span class="c"># Calculate Delta, gamma and lambda</span>
+    <span class="n">DELTA</span> <span class="o">=</span> <span class="n">meteolib</span><span class="o">.</span><span class="n">Delta_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">)</span> <span class="c"># [Pa/K]</span>
+    <span class="n">gamma</span> <span class="o">=</span> <span class="n">meteolib</span><span class="o">.</span><span class="n">gamma_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">,</span><span class="n">rh</span><span class="p">,</span><span class="n">airpress</span><span class="p">)</span> <span class="c"># [Pa/K]</span>
+    <span class="n">Lambda</span> <span class="o">=</span> <span class="n">meteolib</span><span class="o">.</span><span class="n">L_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">)</span> <span class="c"># [J/kg]</span>
+    <span class="c"># Calculate saturated and actual water vapour pressures</span>
+    <span class="n">es</span> <span class="o">=</span> <span class="n">meteolib</span><span class="o">.</span><span class="n">es_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">)</span> <span class="c"># [Pa]</span>
+    <span class="n">ea</span> <span class="o">=</span> <span class="n">meteolib</span><span class="o">.</span><span class="n">ea_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">,</span><span class="n">rh</span><span class="p">)</span> <span class="c"># [Pa]</span>
+    <span class="c"># Determine length of array</span>
+    <span class="n">l</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">airtemp</span><span class="p">)</span>
+    <span class="c"># Check if we have a single value or an array</span>
+    <span class="k">if</span> <span class="n">l</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>   <span class="c"># Dealing with single value...</span>
+        <span class="n">Rns</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span><span class="o">-</span><span class="n">albedo</span><span class="p">)</span><span class="o">*</span><span class="n">Rs</span> <span class="c"># Shortwave component [J/m2/d]</span>
+        <span class="c"># Calculate clear sky radiation Rs0 </span>
+        <span class="n">Rs0</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.75</span><span class="o">+</span><span class="mf">2E-5</span><span class="o">*</span><span class="n">Z</span><span class="p">)</span><span class="o">*</span><span class="n">Rext</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="mf">1.35</span><span class="o">*</span><span class="n">Rs</span><span class="o">/</span><span class="n">Rs0</span><span class="o">-</span><span class="mf">0.35</span>
+        <span class="n">epsilom</span> <span class="o">=</span> <span class="mf">0.34</span><span class="o">-</span><span class="mf">0.14</span><span class="o">*</span><span class="n">scipy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">ea</span><span class="o">/</span><span class="mi">1000</span><span class="p">)</span>
+        <span class="n">Rnl</span> <span class="o">=</span> <span class="n">f</span><span class="o">*</span><span class="n">epsilom</span><span class="o">*</span><span class="n">sigma</span><span class="o">*</span><span class="p">(</span><span class="n">airtemp</span><span class="o">+</span><span class="mf">273.15</span><span class="p">)</span><span class="o">**</span><span class="mi">4</span> <span class="c"># Longwave component [J/m2/d]</span>
+        <span class="n">Rnet</span> <span class="o">=</span> <span class="n">Rns</span><span class="o">-</span><span class="n">Rnl</span> <span class="c"># Net radiation [J/m2/d]</span>
+        <span class="n">Ea</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="mf">0.536</span><span class="o">*</span><span class="n">u</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">es</span><span class="o">/</span><span class="mf">1000.</span><span class="o">-</span><span class="n">ea</span><span class="o">/</span><span class="mf">1000.</span><span class="p">)</span>
+        <span class="n">E0</span> <span class="o">=</span> <span class="n">DELTA</span><span class="o">/</span><span class="p">(</span><span class="n">DELTA</span><span class="o">+</span><span class="n">gamma</span><span class="p">)</span><span class="o">*</span><span class="n">Rnet</span><span class="o">/</span><span class="n">Lambda</span><span class="o">+</span><span class="n">gamma</span><span class="o">/</span><span class="p">(</span><span class="n">DELTA</span><span class="o">+</span><span class="n">gamma</span><span class="p">)</span><span class="o">*</span><span class="mi">6430000</span><span class="o">*</span><span class="n">Ea</span><span class="o">/</span><span class="n">Lambda</span>
+    <span class="k">else</span><span class="p">:</span>   <span class="c"># Dealing with an array  </span>
+        <span class="c"># Initiate output arrays</span>
+        <span class="n">E0</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="n">Rns</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="n">Rs0</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="n">epsilom</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="n">Rnl</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="n">Rnet</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="n">Ea</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">l</span><span class="p">):</span>
+            <span class="c"># calculate longwave radiation component Rln (J/m2/day)</span>
+            <span class="n">Rns</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span><span class="o">-</span><span class="n">albedo</span><span class="p">)</span><span class="o">*</span><span class="n">Rs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="c"># Shortwave component [J/m2/d]</span>
+            <span class="c"># Calculate clear sky radiation Rs0 </span>
+            <span class="n">Rs0</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.75</span><span class="o">+</span><span class="mf">2E-5</span><span class="o">*</span><span class="n">Z</span><span class="p">)</span><span class="o">*</span><span class="n">Rext</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">f</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.35</span><span class="o">*</span><span class="n">Rs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="n">Rs0</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="mf">0.35</span>
+            <span class="n">epsilom</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.34</span><span class="o">-</span><span class="mf">0.14</span><span class="o">*</span><span class="n">scipy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">ea</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="mi">1000</span><span class="p">)</span>
+            <span class="n">Rnl</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">epsilom</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">sigma</span><span class="o">*</span><span class="p">(</span><span class="n">airtemp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="mf">273.15</span><span class="p">)</span><span class="o">**</span><span class="mi">4</span> <span class="c"># Longwave component [J/m2/d]</span>
+            <span class="n">Rnet</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">Rns</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="n">Rnl</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="c"># Net radiation [J/m2/d]</span>
+            <span class="n">Ea</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="mf">0.536</span><span class="o">*</span><span class="n">u</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">*</span><span class="p">(</span><span class="n">es</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="mi">1000</span><span class="o">-</span><span class="n">ea</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="mi">1000</span><span class="p">)</span>
+            <span class="n">E0</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">DELTA</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="p">(</span><span class="n">DELTA</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="n">gamma</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">*</span><span class="n">Rnet</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="n">Lambda</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="n">gamma</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="p">(</span><span class="n">DELTA</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="n">gamma</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">*</span> \
+                <span class="mi">6430000</span><span class="o">*</span><span class="n">Ea</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="n">Lambda</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">E0</span>
+</div>
+<div class="viewcode-block" id="ET0pm"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.evaplib.ET0pm">[docs]</a><span class="k">def</span> <span class="nf">ET0pm</span><span class="p">(</span><span class="n">airtemp</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>\
+          <span class="n">rh</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>\
+          <span class="n">airpress</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span> \
+          <span class="n">Rs</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>\
+          <span class="n">N</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>\
+          <span class="n">Rext</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>\
+          <span class="n">u</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span> \
+          <span class="n">Z</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Function to calculate daily Penman Monteith reference evaporation</span>
+<span class="sd">    (in mm/day). Source: R.G. Allen, L.S. Pereira, D. Raes and M. Smith</span>
+<span class="sd">    (1998). Crop evapotranspiration - Guidelines for computing crop</span>
+<span class="sd">    water requirements - FAO Irrigation and drainage paper 56. FAO -</span>
+<span class="sd">    Food and Agriculture Organization of the United Nations, Rome, 1998 </span>
+<span class="sd">    </span>
+<span class="sd">    Input (measured at 2 m height):</span>
+<span class="sd">        - airtemp: (array of) daily average air temperatures [Celsius]</span>
+<span class="sd">        - rh: (array of) daily average relative humidity values[%]</span>
+<span class="sd">        - airpress: (array of) daily average air pressure data [hPa]</span>
+<span class="sd">        - Rs: (array of) total incoming shortwave radiation [J/m2/day]</span>
+<span class="sd">        - N: daylength [h]</span>
+<span class="sd">        - Rext: Incoming shortwave radiation at the top of the atmosphere [J/m2/day]</span>
+<span class="sd">        - u: windspeed [m/s]</span>
+<span class="sd">        - Z: elevation [m], default is 0.0 m</span>
+<span class="sd">   </span>
+<span class="sd">    Output:</span>
+<span class="sd">        - ET0pm: (array of) Penman Monteith reference evaporation (short grass with optimum water supply) values [mm] </span>
+
+<span class="sd">    Examples:--</span>
+<span class="sd">        &gt;&gt;&gt; Eref_data = ET0pm(T,RH,press,Rs,N,Rext,u)    </span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="c"># Set constants</span>
+    <span class="n">albedo</span> <span class="o">=</span> <span class="mf">0.23</span> <span class="c"># short grass albedo</span>
+    <span class="n">sigma</span> <span class="o">=</span> <span class="mf">4.903E-3</span> <span class="c"># Stefan Boltzmann constant J/m2/K4/d</span>
+    <span class="c"># Calculate Delta, gamma and lambda</span>
+    <span class="n">DELTA</span> <span class="o">=</span> <span class="n">meteolib</span><span class="o">.</span><span class="n">Delta_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">)</span> <span class="c"># [Pa/K]</span>
+    <span class="n">gamma</span> <span class="o">=</span> <span class="n">meteolib</span><span class="o">.</span><span class="n">gamma_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">,</span><span class="n">rh</span><span class="p">,</span><span class="n">airpress</span><span class="p">)</span> <span class="c"># [Pa/K]</span>
+    <span class="n">Lambda</span> <span class="o">=</span> <span class="n">meteolib</span><span class="o">.</span><span class="n">L_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">)</span> <span class="c"># [J/kg]</span>
+    <span class="c"># Calculate saturated and actual water vapour pressures</span>
+    <span class="n">es</span> <span class="o">=</span> <span class="n">meteolib</span><span class="o">.</span><span class="n">es_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">)</span> <span class="c"># [Pa]</span>
+    <span class="n">ea</span> <span class="o">=</span> <span class="n">meteolib</span><span class="o">.</span><span class="n">ea_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">,</span><span class="n">rh</span><span class="p">)</span> <span class="c"># [Pa]</span>
+    <span class="c"># Determine length of array</span>
+    <span class="n">l</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">airtemp</span><span class="p">)</span>
+    <span class="c"># Check if we have a single value or an array</span>
+    <span class="k">if</span> <span class="n">l</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>   <span class="c"># Dealing with single value...</span>
+        <span class="n">Rns</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span><span class="o">-</span><span class="n">albedo</span><span class="p">)</span><span class="o">*</span><span class="n">Rs</span> <span class="c"># Shortwave component [J/m2/d]</span>
+        <span class="c"># Calculate clear sky radiation Rs0 </span>
+        <span class="n">Rs0</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.75</span><span class="o">+</span><span class="mf">2E-5</span><span class="o">*</span><span class="n">Z</span><span class="p">)</span><span class="o">*</span><span class="n">Rext</span> <span class="c"># Clear sky radiation [J/m2/d]</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="mf">1.35</span><span class="o">*</span><span class="n">Rs</span><span class="o">/</span><span class="n">Rs0</span><span class="o">-</span><span class="mf">0.35</span>
+        <span class="n">epsilom</span> <span class="o">=</span> <span class="mf">0.34</span><span class="o">-</span><span class="mf">0.14</span><span class="o">*</span><span class="n">scipy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">ea</span><span class="o">/</span><span class="mi">1000</span><span class="p">)</span>
+        <span class="n">Rnl</span> <span class="o">=</span> <span class="n">f</span><span class="o">*</span><span class="n">epsilom</span><span class="o">*</span><span class="n">sigma</span><span class="o">*</span><span class="p">(</span><span class="n">airtemp</span><span class="o">+</span><span class="mf">273.15</span><span class="p">)</span><span class="o">**</span><span class="mi">4</span> <span class="c"># Longwave component [J/m2/d]</span>
+        <span class="n">Rnet</span> <span class="o">=</span> <span class="n">Rns</span><span class="o">-</span><span class="n">Rnl</span> <span class="c"># Net radiation [J/m2/d]</span>
+        <span class="n">ET0pm</span> <span class="o">=</span> <span class="p">(</span><span class="n">DELTA</span><span class="o">/</span><span class="mf">1000.</span><span class="o">*</span><span class="n">Rnet</span><span class="o">/</span><span class="n">Lambda</span><span class="o">+</span><span class="mf">900.</span><span class="o">/</span><span class="p">(</span><span class="n">airtemp</span><span class="o">+</span><span class="mf">273.16</span><span class="p">)</span><span class="o">*</span><span class="n">u</span><span class="o">*</span><span class="p">(</span><span class="n">es</span><span class="o">-</span><span class="n">ea</span><span class="p">)</span><span class="o">/</span><span class="mi">1000</span>\
+                 <span class="o">*</span><span class="n">gamma</span><span class="o">/</span><span class="mi">1000</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">DELTA</span><span class="o">/</span><span class="mf">1000.</span><span class="o">+</span><span class="n">gamma</span><span class="o">/</span><span class="mi">1000</span><span class="o">*</span><span class="p">(</span><span class="mf">1.</span><span class="o">+</span><span class="mf">0.34</span><span class="o">*</span><span class="n">u</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>   <span class="c"># Dealing with an array  </span>
+        <span class="c"># Initiate output arrays</span>
+        <span class="n">ET0pm</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="n">Rns</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="n">Rs0</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="n">epsilom</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="n">Rnl</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="n">Rnet</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">l</span><span class="p">):</span>
+            <span class="c"># calculate longwave radiation component Rln (J/m2/day)</span>
+            <span class="n">Rns</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span><span class="o">-</span><span class="n">albedo</span><span class="p">)</span><span class="o">*</span><span class="n">Rs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="c"># Shortwave component [J/m2/d]</span>
+            <span class="c"># Calculate clear sky radiation Rs0 </span>
+            <span class="n">Rs0</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.75</span><span class="o">+</span><span class="mf">2E-5</span><span class="o">*</span><span class="n">Z</span><span class="p">)</span><span class="o">*</span><span class="n">Rext</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">f</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.35</span><span class="o">*</span><span class="n">Rs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="n">Rs0</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="mf">0.35</span>
+            <span class="n">epsilom</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.34</span><span class="o">-</span><span class="mf">0.14</span><span class="o">*</span><span class="n">scipy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">ea</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="mi">1000</span><span class="p">)</span>
+            <span class="n">Rnl</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">epsilom</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">sigma</span><span class="o">*</span><span class="p">(</span><span class="n">airtemp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="mf">273.15</span><span class="p">)</span><span class="o">**</span><span class="mi">4</span> <span class="c"># Longwave component [J/m2/d]</span>
+            <span class="n">Rnet</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">Rns</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="n">Rnl</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="c"># Net radiation [J/m2/d]</span>
+            <span class="n">ET0pm</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">DELTA</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="mf">1000.</span><span class="o">*</span><span class="n">Rnet</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="n">Lambda</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="mf">900.</span><span class="o">/</span><span class="p">(</span><span class="n">airtemp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="mf">273.16</span><span class="p">)</span><span class="o">*</span> \
+                       <span class="n">u</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">es</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="n">ea</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">/</span><span class="mi">1000</span><span class="o">*</span><span class="n">gamma</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="mi">1000</span><span class="p">)</span><span class="o">/</span> \
+                      <span class="p">(</span><span class="n">DELTA</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="mf">1000.</span><span class="o">+</span><span class="n">gamma</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="mi">1000</span><span class="o">*</span><span class="p">(</span><span class="mf">1.</span><span class="o">+</span><span class="mf">0.34</span><span class="o">*</span><span class="n">u</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+    <span class="k">return</span> <span class="n">ET0pm</span> <span class="c"># FAO reference evaporation [mm/day]</span>
+
+</div>
+<div class="viewcode-block" id="Em"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.evaplib.Em">[docs]</a><span class="k">def</span> <span class="nf">Em</span><span class="p">(</span><span class="n">airtemp</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>\
+       <span class="n">rh</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>\
+       <span class="n">airpress</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>\
+       <span class="n">Rs</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([])):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Function to calculate Makkink evaporation (in mm/day). The Makkink</span>
+<span class="sd">    evaporation is a reference crop evaporation used in the Netherlands,</span>
+<span class="sd">    which is combined with a crop factor to provide an estimate of actual</span>
+<span class="sd">    crop evaporation. Source: De Bruin, H.A.R.,1987. From Penman to</span>
+<span class="sd">    Makkink&#39;, in Hooghart, C. (Ed.), Evaporation and Weather, Proceedings</span>
+<span class="sd">    and Information. Comm. Hydrological Research TNO, The Hague. pp. 5-30.</span>
+
+<span class="sd">    </span>
+<span class="sd">    Input (measured at 2 m height):</span>
+<span class="sd">        - airtemp: (array of) daily average air temperatures [Celsius]</span>
+<span class="sd">        - rh: (array of) daily average relative humidity values[%]</span>
+<span class="sd">        - airpress: (array of) daily average air pressure data [Pa]</span>
+<span class="sd">        - Rs: (array of) average daily incoming solar radiation [J/m2/day]</span>
+<span class="sd">   </span>
+<span class="sd">    Output:</span>
+<span class="sd">        - Em: (array of) Makkink evaporation values [mm]</span>
+
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; Em_data = Em(T,RH,press,Rs)</span>
+<span class="sd">        &gt;&gt;&gt; Em(21.65,67.0,101300,24200000)</span>
+<span class="sd">        4.5038304791979913</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="c"># Calculate Delta and gamma constants</span>
+    <span class="n">DELTA</span> <span class="o">=</span> <span class="n">meteolib</span><span class="o">.</span><span class="n">Delta_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">)</span>
+    <span class="n">gamma</span> <span class="o">=</span> <span class="n">meteolib</span><span class="o">.</span><span class="n">gamma_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">,</span><span class="n">rh</span><span class="p">,</span><span class="n">airpress</span><span class="p">)</span>
+    <span class="n">Lambda</span> <span class="o">=</span> <span class="n">meteolib</span><span class="o">.</span><span class="n">L_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">)</span>
+    <span class="c"># Determine length of array</span>
+    <span class="n">l</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">airtemp</span><span class="p">)</span>
+    <span class="c"># Check if we have a single value or an array</span>
+    <span class="k">if</span> <span class="n">l</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>   <span class="c"># Dealing with single value...</span>
+        <span class="c"># calculate Em [mm/day]</span>
+        <span class="n">Em</span> <span class="o">=</span> <span class="mf">0.65</span> <span class="o">*</span> <span class="n">DELTA</span><span class="o">/</span><span class="p">(</span><span class="n">DELTA</span> <span class="o">+</span> <span class="n">gamma</span><span class="p">)</span> <span class="o">*</span> <span class="n">Rs</span> <span class="o">/</span> <span class="n">Lambda</span>
+    <span class="k">else</span><span class="p">:</span>   <span class="c"># Dealing with an array         </span>
+        <span class="c"># Initiate output array</span>
+        <span class="n">Em</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">l</span><span class="p">):</span>   
+            <span class="c"># calculate Em [mm/day]</span>
+            <span class="n">Em</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span> <span class="mf">0.65</span><span class="o">*</span><span class="n">DELTA</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="p">(</span><span class="n">DELTA</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="n">gamma</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">*</span><span class="n">Rs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="n">Lambda</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">Em</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Em</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Em</span>
+
+</div>
+<div class="viewcode-block" id="Ept"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.evaplib.Ept">[docs]</a><span class="k">def</span> <span class="nf">Ept</span><span class="p">(</span><span class="n">airtemp</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>\
+        <span class="n">rh</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>\
+        <span class="n">airpress</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>\
+        <span class="n">Rn</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>\
+        <span class="n">G</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([])):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Function to calculate daily Priestley - Taylor evaporation (in mm).</span>
+<span class="sd">    Source: Priestley, C.H.B. and R.J. Taylor, 1972. On the assessment</span>
+<span class="sd">    of surface heat flux and evaporation using large-scale parameters.</span>
+<span class="sd">    Mon. Weather Rev. 100:81-82.</span>
+<span class="sd">    </span>
+<span class="sd">    Input (measured at 2 m height):</span>
+<span class="sd">        - airtemp: (array of) daily average air temperatures [Celsius]</span>
+<span class="sd">        - rh: (array of) daily average relative humidity values[%]</span>
+<span class="sd">        - airpress: (array of) daily average air pressure data [Pa]</span>
+<span class="sd">        - Rn: (array of) average daily net radiation [J/m2/day]</span>
+<span class="sd">        - G: (array of) average daily soil heat flux [J/m2/day]</span>
+<span class="sd">   </span>
+<span class="sd">    Output:</span>
+<span class="sd">        - Ept: (array of) Priestley Taylor evaporation values [mm]</span>
+
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; Ept_data = Ept(T,RH,press,Rn,G)</span>
+<span class="sd">        &gt;&gt;&gt; Ept(21.65,67.0,101300,18200000,600000)</span>
+<span class="sd">        6.3494561161280778</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="c"># Calculate Delta and gamma constants</span>
+    <span class="n">DELTA</span> <span class="o">=</span> <span class="n">meteolib</span><span class="o">.</span><span class="n">Delta_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">)</span>
+    <span class="n">gamma</span> <span class="o">=</span> <span class="n">meteolib</span><span class="o">.</span><span class="n">gamma_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">,</span><span class="n">rh</span><span class="p">,</span><span class="n">airpress</span><span class="p">)</span>
+    <span class="n">Lambda</span> <span class="o">=</span> <span class="n">meteolib</span><span class="o">.</span><span class="n">L_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">)</span>
+    <span class="c"># Determine length of array</span>
+    <span class="n">l</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">airtemp</span><span class="p">)</span>
+    <span class="c"># Check if we have a single value or an array</span>
+    <span class="k">if</span> <span class="n">l</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>   <span class="c"># Dealing with single value...</span>
+        <span class="c"># calculate Em [mm/day]</span>
+        <span class="n">Ept</span><span class="o">=</span> <span class="mf">1.26</span><span class="o">*</span><span class="n">DELTA</span><span class="o">/</span><span class="p">(</span><span class="n">DELTA</span><span class="o">+</span><span class="n">gamma</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">Rn</span><span class="o">-</span><span class="n">G</span><span class="p">)</span><span class="o">/</span><span class="n">Lambda</span>
+    <span class="k">else</span><span class="p">:</span>   <span class="c"># Dealing with an array         </span>
+        <span class="c"># Initiate output array</span>
+        <span class="n">Ept</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">l</span><span class="p">):</span>   
+            <span class="c"># calculate Ept [mm/day]</span>
+            <span class="n">Ept</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span> <span class="mf">1.26</span><span class="o">*</span><span class="n">DELTA</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="p">(</span><span class="n">DELTA</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="n">gamma</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">*</span><span class="p">(</span><span class="n">Rn</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="n">G</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">/</span><span class="n">Lambda</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">Ept</span><span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Ept</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Ept</span>
+</div>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    ================================================================</span>
+<span class="sd">    Actual evaporation functions and utilities</span>
+<span class="sd">    ================================================================  </span>
+<span class="sd">&#39;&#39;&#39;</span>
+
+<div class="viewcode-block" id="ra"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.evaplib.ra">[docs]</a><span class="k">def</span> <span class="nf">ra</span><span class="p">(</span><span class="n">z</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>\
+       <span class="n">z0</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>\
+       <span class="n">d</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>\
+       <span class="n">u</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([])):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Function to calculate the aerodynamic resistance </span>
+<span class="sd">    (in s/m) from windspeed and height/roughness values</span>
+<span class="sd">    </span>
+<span class="sd">    Input (measured at 2 m height):</span>
+<span class="sd">        - z: measurement height [m]</span>
+<span class="sd">        - z0: roughness length [m]</span>
+<span class="sd">        - d: displacement length [m]</span>
+<span class="sd">        - u: (array of) windspeed [m/s]</span>
+
+
+<span class="sd">    Output:</span>
+<span class="sd">        - ra: (array of) aerodynamic resistances [s/m]</span>
+
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; ra(3,0.12,2.4,5.0)</span>
+<span class="sd">        3.2378629924752942</span>
+<span class="sd">        &gt;&gt;&gt; u=([2,4,6])</span>
+<span class="sd">        &gt;&gt;&gt; ra(3,0.12,2.4,u)</span>
+<span class="sd">        array([ 8.09465748,  4.04732874,  2.69821916])</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="c"># Determine length of array</span>
+    <span class="n">l</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
+    <span class="c"># Check if we have a single value or an array</span>
+    <span class="k">if</span> <span class="n">l</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>   <span class="c"># Dealing with single value...</span>
+        <span class="n">ra</span><span class="o">=</span> <span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">log</span><span class="p">((</span><span class="n">z</span><span class="o">-</span><span class="n">d</span><span class="p">)</span><span class="o">/</span><span class="n">z0</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span><span class="o">/</span><span class="p">(</span><span class="mf">0.16</span><span class="o">*</span><span class="n">u</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>   <span class="c"># Dealing with an array  </span>
+        <span class="c"># Initiate output arrays</span>
+        <span class="n">ra</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">l</span><span class="p">):</span>
+            <span class="n">ra</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span> <span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">log</span><span class="p">((</span><span class="n">z</span><span class="o">-</span><span class="n">d</span><span class="p">)</span><span class="o">/</span><span class="n">z0</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span><span class="o">/</span><span class="p">(</span><span class="mf">0.16</span><span class="o">*</span><span class="n">u</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">ra</span> <span class="c"># aerodynamic resistanc in s/m</span>
+</div>
+<div class="viewcode-block" id="Epm"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.evaplib.Epm">[docs]</a><span class="k">def</span> <span class="nf">Epm</span><span class="p">(</span><span class="n">airtemp</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>\
+        <span class="n">rh</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>\
+        <span class="n">airpress</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>\
+        <span class="n">Rn</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>\
+        <span class="n">G</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>\
+        <span class="n">ra</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>\
+        <span class="n">rs</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([])):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Function to calculate the Penman Monteith evaporation</span>
+<span class="sd">    (in mm) Monteith, J.L. (1965) Evaporation and environment.</span>
+<span class="sd">    Symp. Soc. Exp. Biol. 19, 205-224</span>
+<span class="sd">    </span>
+<span class="sd">    Input (measured at 2 m height):</span>
+<span class="sd">        - airtemp: (array of) daily average air temperatures [C]</span>
+<span class="sd">        - rh: (array of) daily average relative humidity values[%]</span>
+<span class="sd">        - airpress: (array of) daily average air pressure data [hPa]</span>
+<span class="sd">        - Rn: (array of) average daily net radiation [J]</span>
+<span class="sd">        - G: (array of) average daily soil heat flux [J]</span>
+<span class="sd">        - ra: aerodynamic resistance [s/m]</span>
+<span class="sd">        - rs: surface resistance [s/m]</span>
+
+<span class="sd">    Output:</span>
+<span class="sd">        - Epm: (array of) Penman Monteith evaporation values [mm]</span>
+<span class="sd">    </span>
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; Epm_data = Epm(T,RH,press,Rn,G,ra,rs)    </span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="c"># Calculate Delta, gamma and lambda</span>
+    <span class="n">DELTA</span> <span class="o">=</span> <span class="n">meteolib</span><span class="o">.</span><span class="n">Delta_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">)</span><span class="o">/</span><span class="mf">100.</span> <span class="c"># [hPa/K]</span>
+    <span class="n">airpress</span><span class="o">=</span><span class="n">airpress</span><span class="o">*</span><span class="mf">100.</span> <span class="c"># [Pa]</span>
+    <span class="n">gamma</span> <span class="o">=</span> <span class="n">meteolib</span><span class="o">.</span><span class="n">gamma_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">,</span><span class="n">rh</span><span class="p">,</span><span class="n">airpress</span><span class="p">)</span><span class="o">/</span><span class="mf">100.</span> <span class="c"># [hPa/K]</span>
+    <span class="n">Lambda</span> <span class="o">=</span> <span class="n">meteolib</span><span class="o">.</span><span class="n">L_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">)</span> <span class="c"># [J/kg]</span>
+    <span class="n">rho</span> <span class="o">=</span> <span class="n">meteolib</span><span class="o">.</span><span class="n">rho_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">,</span><span class="n">rh</span><span class="p">,</span><span class="n">airpress</span><span class="p">)</span>
+    <span class="n">cp</span> <span class="o">=</span> <span class="n">meteolib</span><span class="o">.</span><span class="n">cp_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">,</span><span class="n">rh</span><span class="p">,</span><span class="n">airpress</span><span class="p">)</span>
+    <span class="c"># Calculate saturated and actual water vapour pressures</span>
+    <span class="n">es</span> <span class="o">=</span> <span class="n">meteolib</span><span class="o">.</span><span class="n">es_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">)</span><span class="o">/</span><span class="mf">100.</span> <span class="c"># [hPa]</span>
+    <span class="n">ea</span> <span class="o">=</span> <span class="n">meteolib</span><span class="o">.</span><span class="n">ea_calc</span><span class="p">(</span><span class="n">airtemp</span><span class="p">,</span><span class="n">rh</span><span class="p">)</span><span class="o">/</span><span class="mf">100.</span> <span class="c"># [hPa]</span>
+    <span class="c"># Determine length of array</span>
+    <span class="n">l</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">airtemp</span><span class="p">)</span>
+    <span class="c"># Check if we have a single value or an array</span>
+    <span class="k">if</span> <span class="n">l</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>   <span class="c"># Dealing with single value...</span>
+        <span class="n">Epm</span> <span class="o">=</span> <span class="p">(</span><span class="n">DELTA</span><span class="o">*</span><span class="n">Rn</span><span class="o">+</span><span class="n">rho</span><span class="o">*</span><span class="n">cp</span><span class="o">*</span><span class="p">(</span><span class="n">es</span><span class="o">-</span><span class="n">ea</span><span class="p">)</span><span class="o">*</span><span class="n">ra</span><span class="o">/</span><span class="p">(</span><span class="n">DELTA</span><span class="o">+</span><span class="n">gamma</span><span class="o">*</span><span class="p">(</span><span class="mf">1.</span><span class="o">+</span><span class="n">rs</span><span class="o">/</span><span class="n">ra</span><span class="p">)))</span><span class="o">/</span><span class="n">Lambda</span>
+    <span class="k">else</span><span class="p">:</span>   <span class="c"># Dealing with an array  </span>
+        <span class="c"># Initiate output arrays</span>
+        <span class="n">Epm</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">l</span><span class="p">):</span>
+            <span class="n">Epm</span> <span class="o">=</span> <span class="p">(</span><span class="n">DELTA</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">Rn</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="n">rho</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">cp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">es</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="n">ea</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">*</span><span class="n">ra</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="p">(</span><span class="n">DELTA</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> \
+                <span class="o">+</span> <span class="n">gamma</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="mf">1.</span><span class="o">+</span><span class="n">rs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="n">ra</span><span class="p">[</span><span class="n">i</span><span class="p">])))</span><span class="o">/</span><span class="n">Lambda</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">Epm</span> <span class="c"># actual ET in mm</span>
+    
+    </div>
+<div class="viewcode-block" id="tvardry"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.evaplib.tvardry">[docs]</a><span class="k">def</span> <span class="nf">tvardry</span><span class="p">(</span><span class="n">rho</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>\
+    <span class="n">cp</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>\
+    <span class="n">T</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>\
+    <span class="n">sigma_t</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>\
+    <span class="n">z</span><span class="o">=</span> <span class="nb">float</span><span class="p">(),</span>\
+    <span class="n">d</span><span class="o">=</span> <span class="mf">0.0</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Function to calculate the sensible heat flux (H, in W/m2) from high</span>
+<span class="sd">    frequency temperature measurements and its standard deviation. </span>
+<span class="sd">    Source: H.F. Vugts, M.J. Waterloo, F.J. Beekman, K.F.A. Frumau and L.A.</span>
+<span class="sd">    Bruijnzeel. The temperature variance method: a powerful tool in the</span>
+<span class="sd">    estimation of actual evaporation rates. In J. S. Gladwell, editor, </span>
+<span class="sd">    Hydrology of Warm Humid Regions, Proc. of the Yokohama Symp., IAHS</span>
+<span class="sd">    Publication No. 216, pages 251-260, July 1993.</span>
+<span class="sd">    </span>
+<span class="sd">    NOTE: This function holds only for free convective conditions when C2*z/L</span>
+<span class="sd">    &gt;&gt;1, where L is the Obhukov length.</span>
+<span class="sd">    </span>
+<span class="sd">    Input:</span>
+<span class="sd">        - rho: (array of) air density values [kg m-3]</span>
+<span class="sd">        - cp: (array of) specific heat at constant temperature values [J kg-1 K-1]</span>
+<span class="sd">        - T: (array of) temperature data [Celsius]</span>
+<span class="sd">        - sigma_t: (array of) standard deviation of temperature data [Celsius]</span>
+<span class="sd">        - z: temperature measurement height above the surface [m]</span>
+<span class="sd">        - d: displacement height due to vegetation, default is zero [m]</span>
+<span class="sd">        </span>
+<span class="sd">    Output:</span>
+<span class="sd">        - H: (array of) sensible heat flux [W/m2]</span>
+<span class="sd">        </span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; H=tvardry(rho,cp,T,sigma_t,z,d)</span>
+<span class="sd">        &gt;&gt;&gt; H</span>
+<span class="sd">        35.139511191461651</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">k</span> <span class="o">=</span> <span class="mf">0.40</span> <span class="c"># von Karman constant</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="mf">9.81</span> <span class="c"># acceleration due to gravity [m/s^2]</span>
+    <span class="n">C1</span> <span class="o">=</span>  <span class="mf">2.9</span> <span class="c"># De Bruin et al., 1992</span>
+    <span class="n">C2</span> <span class="o">=</span> <span class="mf">28.4</span> <span class="c"># De Bruin et al., 1992</span>
+    <span class="c"># L= Obhukov-length [m]</span>
+     
+    <span class="c">#Free Convection Limit</span>
+    <span class="n">H</span> <span class="o">=</span> <span class="n">rho</span> <span class="o">*</span> <span class="n">cp</span> <span class="o">*</span> <span class="n">scipy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">sigma_t</span><span class="o">/</span><span class="n">C1</span><span class="p">)</span><span class="o">**</span><span class="mi">3</span> <span class="o">*</span> <span class="n">k</span> <span class="o">*</span> <span class="n">g</span> <span class="o">*</span> <span class="p">(</span><span class="n">z</span><span class="o">-</span><span class="n">d</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">T</span><span class="o">+</span><span class="mf">273.15</span><span class="p">)</span> <span class="o">*</span> <span class="n">C2</span><span class="p">)</span>
+    <span class="c">#else:</span>
+    <span class="c"># including stability correction</span>
+    <span class="c">#zoverL = z/L</span>
+    <span class="c">#tvardry = rho * cp * scipy.sqrt((sigma_t/C1)**3 * k*g*(z-d) / (T+273.15) *\</span>
+    <span class="c">#          (1-C2*z/L)/(-1*z/L))</span>
+    
+    <span class="c">#Check if we get complex numbers (square root of negative value) and remove </span>
+    <span class="c">#I = find(zoL &gt;= 0 | H.imag != 0);</span>
+    <span class="c">#H(I) = scipy.ones(size(I))*NaN;</span>
+        
+    <span class="k">return</span> <span class="n">H</span> <span class="c"># sensible heat flux</span>
+</div>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    ================================================================</span>
+<span class="sd">    Rainfall interception functions and utilities</span>
+<span class="sd">    ================================================================  </span>
+<span class="sd">&#39;&#39;&#39;</span>
+
+<div class="viewcode-block" id="gash79"><a class="viewcode-back" href="../../../hydrology.checkdam.html#hydrology.checkdam.evaplib.gash79">[docs]</a><span class="k">def</span> <span class="nf">gash79</span><span class="p">(</span><span class="n">Pg</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>
+            <span class="n">ER</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+            <span class="n">S</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+            <span class="n">St</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+            <span class="n">p</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>       
+            <span class="n">pt</span><span class="o">=</span><span class="nb">float</span><span class="p">):</span>
+    
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    This is the help text: Function to calculate precipitation interception loss</span>
+<span class="sd">    according to J.H.C. Gash, An analytical model of rainfall interception by</span>
+<span class="sd">    forests, Quarterly Journal of the Royal Meteorological Society, 1979, 105,</span>
+<span class="sd">    pp. 43--55,</span>
+<span class="sd">    </span>
+<span class="sd">    Input:</span>
+<span class="sd">        - Pg: daily rainfall data [mm]</span>
+<span class="sd">        - ER: evaporation percentage of total rainfall [mm/h]</span>
+<span class="sd">        - S: storage capacity canopy [mm]</span>
+<span class="sd">        - St: stem storage capacity [mm]</span>
+<span class="sd">        - p: direct throughfall [mm]</span>
+<span class="sd">        - pt: stem precipitation [mm]</span>
+<span class="sd">    </span>
+<span class="sd">    Output:</span>
+<span class="sd">        - date: </span>
+<span class="sd">        - Pg: Daily rainfall [mm]</span>
+<span class="sd">        - Ei: Interception [mm]</span>
+<span class="sd">        - TF: through fall [mm]</span>
+<span class="sd">        - SF: stemflow [mm]</span>
+<span class="sd">        </span>
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; gash79(Pg, ER, S, St, p, pt)</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    
+    <span class="c"># Determine length of array Pg</span>
+    <span class="n">l</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">Pg</span><span class="p">)</span>
+    <span class="c"># Check if we have a single precipitation value or an array</span>
+    <span class="k">if</span> <span class="n">l</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>   <span class="c"># Dealing with single value...</span>
+        
+        <span class="c">#PGsat calculation (for the saturation of the canopy)</span>
+        <span class="n">PGsat</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">ER</span><span class="o">*</span><span class="n">S</span><span class="p">)</span><span class="o">*</span> <span class="n">scipy</span><span class="o">.</span><span class="n">log</span><span class="p">((</span><span class="mi">1</span><span class="o">-</span><span class="p">(</span><span class="n">ER</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">p</span><span class="o">-</span><span class="n">pt</span><span class="p">))))</span>
+
+        <span class="c">#Set initial values to zero</span>
+        <span class="n">Ecan</span><span class="o">=</span> <span class="mf">0.</span>
+        <span class="n">Etrunk</span><span class="o">=</span> <span class="mf">0.</span>
+
+        <span class="c"># Calculate interception for different storm sizes</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">Pg</span><span class="o">&lt;</span><span class="n">PGsat</span> <span class="ow">and</span> <span class="n">Pg</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">):</span> 
+            <span class="n">Ecan</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">p</span><span class="o">-</span><span class="n">pt</span><span class="p">)</span><span class="o">*</span><span class="n">Pg</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">Pg</span><span class="o">&gt;</span><span class="n">St</span><span class="o">/</span><span class="n">pt</span><span class="p">):</span>
+                <span class="n">Etrunk</span><span class="o">=</span><span class="n">St</span><span class="o">+</span><span class="n">pt</span><span class="o">*</span><span class="n">Pg</span>
+            <span class="n">Ei</span> <span class="o">=</span> <span class="n">Ecan</span><span class="o">+</span><span class="n">Etrunk</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">Pg</span><span class="o">&gt;</span><span class="n">PGsat</span> <span class="ow">and</span> <span class="n">Pg</span><span class="o">&lt;</span><span class="n">St</span><span class="o">/</span><span class="n">pt</span><span class="p">):</span>
+            <span class="n">Ecan</span><span class="o">=</span><span class="p">((((</span><span class="mi">1</span><span class="o">-</span><span class="n">p</span><span class="o">-</span><span class="n">Pt</span><span class="p">)</span><span class="o">*</span><span class="n">PGsat</span><span class="p">)</span><span class="o">-</span><span class="n">S</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">ER</span><span class="o">*</span><span class="p">(</span><span class="n">Pg</span><span class="o">-</span><span class="n">PGsat</span><span class="p">))</span> <span class="o">+</span> <span class="n">S</span><span class="p">)</span>
+            <span class="n">Etrunk</span><span class="o">=</span><span class="mf">0.</span>
+            <span class="n">Ei</span> <span class="o">=</span> <span class="n">Ecan</span><span class="o">+</span><span class="n">Etrunk</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">Pg</span><span class="o">&gt;</span><span class="n">PGsat</span> <span class="ow">and</span> <span class="n">Pg</span><span class="o">&gt;</span><span class="p">(</span><span class="n">St</span><span class="o">/</span><span class="n">pt</span><span class="p">)):</span>
+            <span class="n">Ecan</span><span class="o">=</span><span class="p">((((</span><span class="mi">1</span><span class="o">-</span><span class="n">p</span><span class="o">-</span><span class="n">pt</span><span class="p">)</span><span class="o">*</span><span class="n">PGsat</span><span class="p">)</span><span class="o">-</span><span class="n">S</span><span class="p">)</span><span class="o">+</span> <span class="p">(</span><span class="n">ER</span><span class="o">*</span><span class="p">(</span><span class="n">Pg</span><span class="o">-</span><span class="n">PGsat</span><span class="p">))</span> <span class="o">+</span> <span class="n">S</span><span class="o">+</span><span class="p">(</span><span class="n">St</span><span class="o">+</span><span class="n">pt</span><span class="o">*</span><span class="n">Pg</span><span class="p">))</span>
+            <span class="n">Etrunk</span><span class="o">=</span><span class="n">St</span><span class="o">+</span><span class="n">pt</span><span class="o">*</span><span class="n">Pg</span>
+        <span class="n">Ei</span> <span class="o">=</span> <span class="n">Ecan</span> <span class="o">+</span> <span class="n">Etrunk</span>
+        <span class="n">TF</span> <span class="o">=</span> <span class="n">Pg</span><span class="o">-</span><span class="n">Ei</span>
+        <span class="n">SF</span><span class="o">=</span><span class="mi">0</span>
+        
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c">#Define variables and constants</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">Pg</span><span class="p">)</span>
+        <span class="n">TF</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="n">SF</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="n">Ei</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="n">Etrunk</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+
+        <span class="c">#Set results to zero if rainfall Pg is zero</span>
+        <span class="n">TF</span><span class="p">[</span><span class="n">Pg</span><span class="o">==</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="mf">0.</span>
+        <span class="n">SF</span><span class="p">[</span><span class="n">Pg</span><span class="o">==</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="mf">0.</span>
+        <span class="n">Ei</span><span class="p">[</span><span class="n">Pg</span><span class="o">==</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="mf">0.</span>
+        <span class="n">Etrunk</span><span class="p">[</span><span class="n">Pg</span><span class="o">==</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="mf">0.</span>
+
+        <span class="c">#PGsat calc (for the saturation of the canopy)</span>
+        <span class="n">PGsat</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">ER</span><span class="o">*</span><span class="n">S</span><span class="p">)</span><span class="o">*</span> <span class="n">scipy</span><span class="o">.</span><span class="n">log</span><span class="p">((</span><span class="mi">1</span><span class="o">-</span><span class="p">(</span><span class="n">ER</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">p</span><span class="o">-</span><span class="n">pt</span><span class="p">))))</span>
+
+        <span class="c">#Process rainfall series</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">n</span><span class="p">):</span>
+            <span class="n">Ecan</span><span class="o">=</span> <span class="mf">0.</span>
+            <span class="n">Etrunk</span><span class="o">=</span> <span class="mf">0.</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">Pg</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">&lt;</span><span class="n">PGsat</span> <span class="ow">and</span> <span class="n">Pg</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">):</span> 
+                <span class="n">Ecan</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">p</span><span class="o">-</span><span class="n">pt</span><span class="p">)</span><span class="o">*</span><span class="n">Pg</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">Pg</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">&gt;</span><span class="n">St</span><span class="o">/</span><span class="n">pt</span><span class="p">):</span>
+                    <span class="n">Etrunk</span><span class="o">=</span><span class="n">St</span><span class="o">+</span><span class="n">pt</span><span class="o">*</span><span class="n">Pg</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">Ei</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">Ecan</span><span class="o">+</span><span class="n">Etrunk</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">Pg</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">&gt;</span><span class="n">PGsat</span> <span class="ow">and</span> <span class="n">Pg</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">&lt;</span><span class="n">St</span><span class="o">/</span><span class="n">pt</span><span class="p">):</span>
+                <span class="n">Ecan</span><span class="o">=</span><span class="p">((((</span><span class="mi">1</span><span class="o">-</span><span class="n">p</span><span class="o">-</span><span class="n">Pt</span><span class="p">)</span><span class="o">*</span><span class="n">PGsat</span><span class="p">)</span><span class="o">-</span><span class="n">S</span><span class="p">)</span><span class="o">+</span> <span class="p">(</span><span class="n">ER</span><span class="o">*</span><span class="p">(</span><span class="n">Pg</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="n">PGsat</span><span class="p">))</span> <span class="o">+</span> <span class="n">S</span><span class="p">)</span>
+                <span class="n">Etrunk</span><span class="o">=</span><span class="mf">0.</span>
+                <span class="n">Ei</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">Pg</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">&gt;</span><span class="n">PGsat</span> <span class="ow">and</span> <span class="n">Pg</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">&gt;</span><span class="p">(</span><span class="n">St</span><span class="o">/</span><span class="n">Pt</span><span class="p">)):</span>
+                <span class="n">Ecan</span><span class="o">=</span><span class="p">((((</span><span class="mi">1</span><span class="o">-</span><span class="n">p</span><span class="o">-</span><span class="n">Pt</span><span class="p">)</span><span class="o">*</span><span class="n">PGsat</span><span class="p">)</span><span class="o">-</span><span class="n">S</span><span class="p">)</span><span class="o">+</span> <span class="p">(</span><span class="n">ER</span><span class="o">*</span><span class="p">(</span><span class="n">Pg</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="n">PGsat</span><span class="p">))</span> <span class="o">+</span> <span class="n">S</span><span class="o">+</span><span class="p">(</span><span class="n">St</span><span class="o">+</span><span class="n">Pt</span><span class="o">*</span><span class="n">Pg</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+                <span class="n">Etrunk</span><span class="o">=</span><span class="n">St</span><span class="o">+</span><span class="n">pt</span><span class="o">*</span><span class="n">Pg</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">Ei</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">Ecan</span><span class="o">+</span><span class="n">Etrunk</span>
+            <span class="n">TF</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">Pg</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="n">Ei</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">Pg</span><span class="p">,</span> <span class="n">TF</span><span class="p">,</span> <span class="n">SF</span><span class="p">,</span> <span class="n">Ei</span> </div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Kirubaharan Jeremiah.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
