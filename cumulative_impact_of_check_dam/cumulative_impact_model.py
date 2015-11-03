@@ -303,9 +303,9 @@ class CheckdamChain(object):
                 self.output_df.loc[dt, ('inflow_{0:d}'.format(checkdam.check_dam_name))] = inflow
                 # calculate surface area
                 surface_area = checkdam.convert_volume_to_area(self.output_df.loc[dt, ('volume_{0:d}'.format(checkdam.check_dam_name))])
-                print (surface_area, self.output_df.loc[dt, ('volume_{0:d}'.format(checkdam.check_dam_name))])
                 # calculate evaporation
                 evaporation = surface_area * checkdam.evaporation.loc[dt]
+                print evaporation
                 # assign evaporation
                 self.output_df.loc[dt, ('evap_{0:d}'.format(checkdam.check_dam_name))] = evaporation
                 # calculate infiltration
@@ -316,29 +316,18 @@ class CheckdamChain(object):
                 # do routing
                 checkdam_routing = CheckdamRouting(inflow=inflow, evaporation=evaporation, infiltration=infiltration, current_volume=current_volume, max_volume=checkdam.max_volume )
                 if checkdam_routing.overflow > 0.0:
-                    self.output_df.loc[dt, ('volume_{0:d}'.format(checkdam.check_dam_name))] = checkdam_routing.current_volume
+                    self.output_df.loc[[dt, dt + timedelta(days=1)], ('volume_{0:d}'.format(checkdam.check_dam_name))] = checkdam_routing.current_volume
                     self.output_df.loc[dt, ('overflow_{0:d}'.format(checkdam.check_dam_name))] = checkdam_routing.overflow
                     # add overflow from dt to dt + 1 day's inflow
                     if checkdam.next_check_dam is not None:
                         self.output_df.loc[dt+timedelta(days=1), ('inflow_{0:d}'.format(checkdam.next_check_dam))] = checkdam_routing.overflow
+                else:
+                    self.output_df.loc[[dt,dt+timedelta(days=1)], ('volume_{0:d}'.format(checkdam.check_dam_name))] = checkdam_routing.current_volume
 
         return self.output_df
 
 
-
-
-        # create pandas df, index , data with inflow catchment, create columns for each check dam attribute and assign
-
-
-
-
-
-
-
-
-
-
-
+# create pandas df, index , data with inflow catchment, create columns for each check dam attribute and assign
 
 # check dam chain
 # http://stackoverflow.com/a/2482610/2632856
@@ -427,3 +416,14 @@ had_chain_1 = CheckdamChain(inflow_catchment_area_df=inflow_catchment_area_had_d
 had_chain_1.create_output_df()
 had_output_df = had_chain_1.simulate()
 print had_output_df.head()
+#test plots
+fig = plt.figure()
+for checkdam in had_chain_1.check_dam_chain:
+    plt.plot(had_chain_1.output_df.index, had_chain_1.output_df[('inflow_{0:d}'.format(checkdam.check_dam_name))], '-', label=('inflow_{0:d}'.format(checkdam.check_dam_name)))
+    plt.plot(had_chain_1.output_df.index, had_chain_1.output_df[('evap_{0:d}'.format(checkdam.check_dam_name))], '-', label=('evap_{0:d}'.format(checkdam.check_dam_name)))
+    plt.plot(had_chain_1.output_df.index, had_chain_1.output_df[('volume_{0:d}'.format(checkdam.check_dam_name))], '-', label=('volume_{0:d}'.format(checkdam.check_dam_name)))
+    plt.plot(had_chain_1.output_df.index, had_chain_1.output_df[('infilt_{0:d}').format(checkdam.check_dam_name)], '-', label=('infilt_{0:d}'.format(checkdam.check_dam_name)))
+    plt.plot(had_chain_1.output_df.index, had_chain_1.output_df[('overflow_{0:d}'.format(checkdam.check_dam_name))], '-', label=('overflow_{0:d}'.format(checkdam.check_dam_name)))
+    plt.legend()
+plt.show()
+had_output_df.to_csv('/media/kiruba/New Volume/milli_watershed/cumulative impacts/had_chain_1.csv')
