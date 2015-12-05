@@ -141,16 +141,16 @@ water_level.loc[water_level['stage(m)'] < stage_cutoff, 'stage(m)'] = 0.0
 # water_level = water_level[:"2014-12-08"]
 # water_level[water_level['stage(m)'] < stage_cutoff] = 0
 fig = plt.figure()
-plt.plot(water_level.index, water_level['stage(m)'], 'r-')
-plt.show()
-raise SystemExit(0)
+plt.plot(water_level.index, water_level['stage(m)'], 'r-o')
+# plt.show()
+# print water_level['2014-05-20':'2014-05-21']
+# raise SystemExit(0)
 """
 Join weather and rain data
 """
 weather_df = weather_df.join(rain_df, how='right')
 weather_df = weather_df[min(water_level.index).strftime(daily_format): max(water_level.index).strftime(daily_format)]
 weather_df = weather_df.join(water_level, how='inner')
-
 """
 Remove Duplicates
 """
@@ -159,6 +159,9 @@ weather_df.drop_duplicates(subset='index', take_last=True, inplace=True)
 del weather_df['index']
 weather_df = weather_df.sort()
 # print weather_df.head()
+# print weather_df['2014-05-20':'2014-05-21']
+# raise SystemExit(0)
+
 """
 Open water evaporation
 """
@@ -210,6 +213,9 @@ weather_df['Evaporation (mm/30min)'] = cd.half_hour_evaporation(airtemp=airtemp,
 Select data where stage is available
 """
 weather_stage_avl_df = weather_df[min(water_level.index):max(water_level.index)]
+# print weather_stage_avl_df['2014-05-20':'2014-05-21']
+# raise SystemExit(0)
+
 """
 Convert observed stage to volume by linear interpolation
 """
@@ -232,7 +238,7 @@ for index, row in water_balance_df.iterrows():
         y_diff = y2 - y1
         slope = y_diff / x_diff
         y_intercept = y2 - (slope * x2)
-        water_balance_df.loc[index.strftime('%Y-%m-%d %H:%M:%S'), 'volume (cu.m)'] = (slope * obs_stage) + y_intercept
+        water_balance_df.loc[index.strftime(date_format), 'volume (cu.m)'] = (slope * obs_stage) + y_intercept
 
 """
 full volume calculation
@@ -347,6 +353,8 @@ stage_df = water_balance_df[['stage(m)']]
 stage_df = stage_df.resample('D', how=np.mean)
 # print stage_df.head()
 water_balance_daily_df = sum_df.join(stage_df, how='left')
+
+
 # water_balance_daily_df[water_balance_daily_df['stage(m)'] < stage_cutoff] = 0
 water_balance_daily_df['ws_area(sq.m)'] = 0.000
 for index, row in water_balance_daily_df.iterrows():
@@ -404,6 +412,8 @@ for index in water_balance_daily_df.index:
 
 dry_water_balance_df = water_balance_daily_df[water_balance_daily_df['status'] == "N"]
 rain_water_balance_df = water_balance_daily_df[water_balance_daily_df['status'] == "Y"]
+# print rain_water_balance_df['2014-05-20':'2014-05-21']
+# raise SystemExit(0)
 print "dry day sep"
 """
 Calculate infiltration
@@ -419,10 +429,13 @@ for index, row in dry_water_balance_df.iterrows():
             dry_water_balance_df.loc[index.strftime(date_format), 'infiltration(cu.m)'] = -1.0 * (
                 delta_s[index.strftime(daily_format)] + evap[index.strftime(daily_format)])
 
+
 dry_water_balance_df.loc[:, 'infiltration(cu.m)'] = cd.myround(dry_water_balance_df['infiltration(cu.m)'], decimals=2)
-dry_water_balance_df = dry_water_balance_df.loc[dry_water_balance_df['stage(m)'] > 0.1]
-dry_water_balance_df = dry_water_balance_df.loc[dry_water_balance_df['infiltration(cu.m)'] > 1]
+dry_water_balance_df.loc[dry_water_balance_df['stage(m)'] < 0.1, 'infiltration(cu.m)'] = 0
+# dry_water_balance_df = dry_water_balance_df.loc[dry_water_balance_df['infiltration(cu.m)'] > 1]
 # dry_water_balance_df = dry_water_balance_df.loc[dry_water_balance_df['infiltration(cu.m)'] < 60]
+# print dry_water_balance_df['2014-05-20':'2014-05-21']
+# raise SystemExit(0)
 dry_water_balance_df['infiltration_rate(m)'] = dry_water_balance_df['infiltration(cu.m)']/dry_water_balance_df['ws_area(sq.m)']
 print dry_water_balance_df.head()
 print dry_water_balance_df['infiltration_rate(m)'].mean()
@@ -463,10 +476,13 @@ for i in rain_water_balance_df.index:
         surface_area = rain_water_balance_df.loc[i.strftime(daily_format), 'ws_area(sq.m)']
         rain_water_balance_df.loc[i.strftime(daily_format), 'infiltration(cu.m)'] = average_infiltration_rate*surface_area
 print "rainy day"
+print rain_water_balance_df['2014-05-20':'2014-05-21']
 """
 Inflow calculation
 """
 merged_water_balance = pd.concat([dry_water_balance_df, rain_water_balance_df])
+print merged_water_balance['2014-05-20':'2014-05-21']
+merged_water_balance.sort_index(inplace=True)
 merged_water_balance['Inflow (cu.m)'] = 0.000
 delta_s_rain = water_balance_daily_df['change_storage(cu.m)']
 inf_rain = merged_water_balance['infiltration(cu.m)']

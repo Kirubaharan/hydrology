@@ -95,16 +95,37 @@ check_dam_list = [591, 599, 634, 463, 616, 623]
 # plt.show()
 
 # with 591
-stage_area_df = pd.concat((cont_area_591_df, cont_area_599_df, cont_area_634_df, cont_area_463_df, cont_area_616_df, cont_area_623_df), axis=0)
+# stage_area_df = pd.concat((cont_area_591_df, cont_area_599_df, cont_area_634_df, cont_area_463_df, cont_area_616_df, cont_area_623_df), axis=0)
 # print cont_area_df.head()
 # without 591
-# stage_area_df = pd.concat((cont_area_599_df, cont_area_634_df, cont_area_463_df, cont_area_616_df, cont_area_623_df), axis=0)
-
+stage_area_df = pd.concat((cont_area_599_df, cont_area_634_df, cont_area_463_df, cont_area_616_df, cont_area_623_df), axis=0)
+area_fit = [25.40, 150.66, 204.46, 273.26, 327.95, 386.16, 446.14, 507.01, 581.10] #  274.14,
+stage_fit = [0.07, 0.22, 0.39, 0.67, 0.83, 1.00, 1.13, 1.26, 1.43] # 0.53,
 hist, xedges, yedges = np.histogram2d(stage_area_df['stage_m'], stage_area_df['total_area_sq_m'], bins=10)
+# print hist
+print xedges
+print yedges
+"""
+collect points on click
+http://stackoverflow.com/a/25525143/2632856
+"""
+
+coords = []
+
+def onclick(event):
+    global ix, iy
+    ix, iy = event.xdata, event.ydata
+    print 'x = {0:0.2f}, y = {1:0.2f}'.format(ix, iy)
+    global coords
+    coords.append((ix, iy))
+    return coords
+
 hist_masked = np.ma.masked_where(hist==0, hist)
 fig = plt.figure()
 plt.pcolormesh(xedges, yedges, hist_masked)
 plt.xlabel('stage')
 plt.ylabel('area_sq_m')
+plt.plot(stage_fit, area_fit, 'ro-')
 plt.colorbar()
+cid = fig.canvas.mpl_connect('button_press_event', onclick)
 plt.show()

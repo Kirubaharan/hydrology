@@ -8,7 +8,7 @@ import sys
 
 
 
-gisbase = os.environ['GISBASE'] = "/usr/lib/grass64"
+gisbase = os.environ['GISBASE'] = "/usr/lib/grass70"
 gisdbase = os.path.join(os.environ['HOME'], "grass")
 location = "aralu_utm"
 mapset = "aralu_delin"
