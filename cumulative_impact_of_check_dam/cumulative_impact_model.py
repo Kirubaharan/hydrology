@@ -76,38 +76,6 @@ def columns_in(dataframe):
 # t = state.filter(['current_volume_463', 'current_volume_640', 'inflow_463', 'inflow_640', 'overflow_463', 'overflow_640'])
 # t.plot(linewidth=2, alpha=0.9)
 # plt.show()
-date_format = '%Y-%m-%d %H:%M:%S'
-daily_format = '%Y-%m-%d'
-# Weather file
-weather_file = '/media/kiruba/New Volume/ACCUWA_Data/weather_station/hadonahalli/corrected_weather_ws.csv'
-# Rain file
-rain_file = '/media/kiruba/New Volume/ACCUWA_Data/weather_station/hadonahalli/ksndmc_rain.csv'
-# convert to pandas dataframe
-weather_df = pd.read_csv(weather_file, sep=',', header=0)
-weather_df['Date_Time'] = pd.to_datetime(weather_df['Date_Time'], format=date_format)
-weather_df.set_index(weather_df['Date_Time'], inplace=True)
-weather_df.sort_index(inplace=True)
-weather_df = weather_df.drop('Date_Time', 1)
-# print weather_df.head()
-# raise SystemExit(0)
-# Rain data frame
-rain_df = pd.read_csv(rain_file, sep=',', header=0)
-# set index
-rain_df['Date_Time'] = pd.to_datetime(rain_df['Date_Time'], format=date_format)
-rain_df.set_index(rain_df['Date_Time'], inplace=True)
-# sort based on index
-rain_df.sort_index(inplace=True)
-# drop date time column
-rain_df = rain_df.drop('Date_Time', 1)
-# print rain_df.head()
-# raise SystemExit(0)
-"""
-Remove Duplicates
-"""
-weather_df['index'] = weather_df.index
-weather_df.drop_duplicates(subset='index', take_last=True, inplace=True)
-del weather_df['index']
-weather_df = weather_df.sort()
 # print weather_df.head()
 
 class Open_Water_Evaporation(object):
@@ -246,6 +214,10 @@ class CheckdamParameters(object):
             area = 0.0
         return area
 
+    # def convert_stage_to_volume(self, stage):
+
+
+
 
     def __repr__(self):
         return "Check dam no %s" % self.check_dam_name
@@ -271,9 +243,11 @@ class CheckdamRouting(object):
 
 
 class CheckdamChain(object):
-    def __init__(self, inflow_catchment_area_df, check_dam_chain):
+    def __init__(self, inflow_catchment_area_df, check_dam_chain, slope, intercept):
         self.inflow_catchment_area_df = inflow_catchment_area_df
         self.check_dam_chain = check_dam_chain # list of check dams in order, must be instance of CheckdamParameters class
+        self.slope = slope
+        self.intercept = intercept
         self.duration = len(self.inflow_catchment_area_df.index)
         self.no_of_check_dams = len(self.check_dam_chain)
         self.output_df = self.create_output_df()
@@ -315,7 +289,8 @@ class CheckdamChain(object):
                             convergence_ratio = 5
                             break
                         else:
-                            inflow_from_catchment = (checkdam.catchment_area*self.output_df.loc[dt, 'inflow_catchment_area_ratio'] * assumed_own_catchment_inflow_ratio)
+                            inflow_from_catchment_area_ratio = (self.output_df.loc[dt,'diff'] * self.slope) + self.intercept
+                            inflow_from_catchment = (checkdam.catchment_area* inflow_from_catchment_area_ratio * assumed_own_catchment_inflow_ratio)
                             inflow_from_overflow =  self.output_df.loc[dt, ('inflow_{0:d}'.format(checkdam.check_dam_name))]
                             # print 'inflow = ', inflow_from_catchment
                             if inflow_from_catchment > 0.0:
@@ -374,6 +349,41 @@ class CheckdamChain(object):
 # http://stackoverflow.com/a/2482610/2632856
 
 
+date_format = '%Y-%m-%d %H:%M:%S'
+daily_format = '%Y-%m-%d'
+# Weather file
+weather_file = '/media/kiruba/New Volume/ACCUWA_Data/weather_station/hadonahalli/corrected_weather_ws.csv'
+# Rain file
+rain_file = '/media/kiruba/New Volume/milli_watershed/cumulative impacts/had_rainfall_daily.csv'
+# convert to pandas dataframe
+weather_df = pd.read_csv(weather_file, sep=',', header=0)
+weather_df['Date_Time'] = pd.to_datetime(weather_df['Date_Time'], format=date_format)
+weather_df.set_index(weather_df['Date_Time'], inplace=True)
+weather_df.sort_index(inplace=True)
+weather_df = weather_df.drop('Date_Time', 1)
+# print weather_df.head()
+# raise SystemExit(0)
+# Rain data frame
+rain_df = pd.read_csv(rain_file, sep=',', header=0)
+print rain_df.head()
+# set index
+rain_df['Date_Time'] = pd.to_datetime(rain_df['date_time'], format=daily_format)
+rain_df.set_index(rain_df['Date_Time'], inplace=True)
+# sort based on index
+rain_df.sort_index(inplace=True)
+# drop date time column
+rain_df = rain_df.drop('Date_Time', 1)
+# print rain_df.head()
+# raise SystemExit(0)
+"""
+Remove Duplicates
+"""
+weather_df['index'] = weather_df.index
+weather_df.drop_duplicates(subset='index', take_last=True, inplace=True)
+del weather_df['index']
+weather_df = weather_df.sort()
+
+
 """
 stage vs volume / stage vs area
 """
@@ -393,7 +403,7 @@ default_stage_volume_df = pd.read_csv(default_stage_volume_file, sep=',', header
 """
 inflow per catchment area ratio
 """
-catchment_area_634 = 5.0   # sq.km
+catchment_area_634 = 0.145   # sq.km
 inflow_catchment_area_had_file = '/media/kiruba/New Volume/ACCUWA_Data/Checkdam_water_balance/ch_634/et_infilt_634_w_of.csv'
 inflow_catchment_area_had_df = pd.read_csv(inflow_catchment_area_had_file, sep=',', header=0)
 inflow_catchment_area_had_df['Date'] = pd.to_datetime(inflow_catchment_area_had_df['Date'], format=daily_format)
@@ -403,11 +413,48 @@ inflow_catchment_area_had_df.drop('Date', 1, inplace=True)
 
 # divide inflow by catchment
 inflow_catchment_area_had_df['inflow_catchment_area_ratio'] = inflow_catchment_area_had_df['Inflow (cu.m)'] / catchment_area_634
-inflow_catchment_area_had_df = inflow_catchment_area_had_df.loc[:, ['inflow_catchment_area_ratio']]
-print inflow_catchment_area_had_df.tail()
-
+# inflow_catchment_area_had_df = inflow_catchment_area_had_df.loc[:, ['inflow_catchment_area_ratio']]
+# join rainfall
+inflow_catchment_area_had_df = inflow_catchment_area_had_df.join(rain_df['diff'], how='left')
+# print rain_df['rain(mm)']['2014-05-17']
+print inflow_catchment_area_had_df.head()
+# print inflow_catchment_area_had_df.tail()
 ch_463_lat = 13.360354
 ch_463_long = 77.527267
+# relationship between rainfall and inflow per catchment area
+x_cal = inflow_catchment_area_had_df['diff']
+y_cal = inflow_catchment_area_had_df['inflow_catchment_area_ratio']
+inflow_catchment_area_rain = cd.polyfit(x_cal, y_cal, 1)
+coeff_cal = inflow_catchment_area_rain['polynomial']
+slope = coeff_cal[0]
+intercept = coeff_cal[1]
+r_squared = inflow_catchment_area_rain['determination']
+x_cal_new = np.linspace(min(x_cal), max(x_cal), 50)
+polynomial = np.poly1d(coeff_cal)
+y_cal_new = polynomial(x_cal_new)
+print r_squared
+fig = plt.figure()
+# plt.plot(inflow_catchment_area_had_df.index, inflow_catchment_area_had_df['diff'], 'o')
+plt.plot( inflow_catchment_area_had_df['diff'], inflow_catchment_area_had_df['inflow_catchment_area_ratio'], 'ro')
+plt.plot(x_cal_new, y_cal_new, 'g-')
+plt.xlim(-10, 100)
+plt.ylim(-10, 100)
+plt.show()
+
+# log_x_cal = np.log(x_cal)
+# log_y_cal = np.log(y_cal)
+#
+# OK = log_y_cal == log_y_cal
+# masked_log_y_cal = log_y_cal[OK]
+# masked_log_x_cal = log_x_cal[OK]
+# fig = plt.figure()
+# plt.plot(inflow_catchment_area_had_df.index, inflow_catchment_area_had_df['Inflow (cu.m)'], 'o')
+# plt.plot(inflow_catchment_area_had_df.index, inflow_catchment_area_had_df['diff'], 'ro')
+# plt.plot(masked_log_x_cal, masked_log_y_cal, 'ro')
+# plt.show()
+# print rain_df.head()
+raise SystemExit(0)
+
 
 
 """
@@ -423,8 +470,9 @@ wind_speed = weather_df['Wind Speed (mps)']
 weather_463 = Open_Water_Evaporation(check_dam_name="463",air_temperature=airtemp, relative_humidity=hum, incoming_solar_radiation=rs, wind_speed_mps=wind_speed,elevation=799, date_time_index=weather_df.index, latitdude=ch_463_lat, longitude=ch_463_long)
 weather_463 = weather_463.calculate_half_hour_eo()
 weather_463_df = pd.DataFrame(weather_463, index=weather_df.index, columns=['Evaporation (mm)'])
-weather_463_df = weather_463_df.join(rain_df, how='right')
+# weather_463_df = weather_463_df.join(rain_df, how='right')
 weather_463_df_daily = weather_463_df.resample('D', how=np.sum)
+weather_463_df_daily = weather_463_df_daily.join(rain_df, how='left')
 # print(weather_463_df_daily.head())
 
 """
@@ -435,7 +483,7 @@ rainfall_had = rain_df['rain (mm)']
 time_duration_had = inflow_catchment_area_had_df.index
 infiltration_rate = 0.002 # m/day
 # 463
-catchment_area_463 = 5.0  # dummy value as of now
+catchment_area_463 = 0.182  # dummy value as of now
 evaporation_463 = weather_463_df_daily['Evaporation (mm)']
 # print evaporation_463
 max_volume_463 = 5.0
@@ -447,7 +495,7 @@ checkdam_463.initial_volume = 0.0
 
 
 # 640
-catchment_area_640 = 5.0  # dummy value as of now
+catchment_area_640 = 0.07  # dummy value as of now
 evaporation_640 = weather_463_df_daily['Evaporation (mm)']
 max_volume_640 = 5.0
 stage_volume_640 = ch_463_stage_volume_file
@@ -459,7 +507,7 @@ checkdam_640 = CheckdamParameters(check_dam_name=640, catchment_area=catchment_a
 checkdam_640.initial_volume = 0.0  # check for assigning correct initial volume
 checkdam_463.next_check_dam = checkdam_640.check_dam_name
 # print type(checkdam_640.check_dam_name)
-had_chain_1 = CheckdamChain(inflow_catchment_area_df=inflow_catchment_area_had_df, check_dam_chain=[checkdam_463, checkdam_640])
+had_chain_1 = CheckdamChain(inflow_catchment_area_df=inflow_catchment_area_had_df, check_dam_chain=[checkdam_463, checkdam_640], slope=slope, intercept=intercept)
 had_chain_1.create_output_df()
 had_output_1_df = had_chain_1.simulate
 # print had_output_df.head()

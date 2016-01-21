@@ -150,6 +150,7 @@ rc('text', usetex=True)
 # plt.xlabel(r'\textbf{X} (m)')
 # plt.ylabel(r'\textbf{Y} (m)')
 # plt.title(r"Profile for 591", fontsize=16)
+
 plt.gca().invert_xaxis()  # reverses x axis
 # # ax = fig
 # plt.savefig('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/linear_interpolation')

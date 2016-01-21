@@ -211,7 +211,7 @@ ax1.zaxis._axinfo['tick']['outward_factor'] = 0.4
 ax1.zaxis._axinfo['tick']['inward_factor'] = 0
 ax = fig.add_axes(MyAxes3D(ax1, 'lr'))
 plt.show()
-raise SystemExit(0)
+# raise SystemExit(0)
 ## contour and 3d surface plotting
 fig = plt.figure(figsize=(16, 8))
 ax = fig.gca(projection='3d')
@@ -273,7 +273,7 @@ plt.gca().invert_xaxis()
 # m.save_html(fig, '/media/kiruba/New Volume/ACCUWA_Data/python_plots/check_dam_591/contour_html')
 # plt.savefig('/media/kiruba/New Volume/r/r_dir/stream_profile/new_code/591/cont_2d')
 plt.show()
-raise SystemExit(0)
+# raise SystemExit(0)
 def contour_area(mpl_obj):
     """
     Returns a array of contour levels and
@@ -295,6 +295,7 @@ def contour_area(mpl_obj):
         for path in range(n_p):
             p = mpl_obj.collections[contour].get_paths()[path]
             v = p.vertices
+            print v
             l = len(v)
             s = 0.0000
             for i in range(l):
@@ -309,7 +310,7 @@ def contour_area(mpl_obj):
 
 # contour_area(C)
 contour_a = contour_area(CS)
-
+raise SystemExit(0)
 
 def poly_plot(xy, titlestr = "", margin = 0.25):
     """

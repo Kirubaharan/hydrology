@@ -206,7 +206,7 @@ def contour_area(mpl_obj):
             for i in range(l):
                 j = (i + 1) % l
                 s += (v[j, 0] - v[i, 0]) * (v[j, 1] + v[i, 1])
-                poly_area = 0.5 * abs(s)
+            poly_area = 0.5 * abs(s)
             area += poly_area
         cont_area_array.append((zc, area))
     return cont_area_array
