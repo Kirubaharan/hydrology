@@ -2,10 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="dc293af8-ff48-430a-ad15-38e8d386d107" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/tank_water_level/had_2972_calib.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/cumulative_impact_of_check_dam/cumulative_impact_model.py" afterPath="$PROJECT_DIR$/cumulative_impact_of_check_dam/cumulative_impact_model.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/scrap.py" afterPath="$PROJECT_DIR$/scrap.py" />
     </list>
     <ignored path="hydrology.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -77,8 +75,8 @@
           <file leaf-file-name="cumulative_impact_model.py" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/cumulative_impact_of_check_dam/cumulative_impact_model.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="1.7766991">
-                  <caret line="983" column="131" selection-start-line="983" selection-start-column="131" selection-end-line="983" selection-end-column="131" />
+                <state vertical-scroll-proportion="17.5">
+                  <caret line="978" column="31" selection-start-line="978" selection-start-column="31" selection-end-line="978" selection-end-column="31" />
                   <folding />
                 </state>
               </provider>
@@ -182,23 +180,23 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="cumulative_impact_model.py" pinned="false" current-in-tab="false">
+          <file leaf-file-name="cumulative_impact_model.py" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/cumulative_impact_of_check_dam/cumulative_impact_model.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="413" column="29" selection-start-line="413" selection-start-column="29" selection-end-line="413" selection-end-column="29" />
+                <state vertical-scroll-proportion="0.49029127">
+                  <caret line="1079" column="0" selection-start-line="1079" selection-start-column="0" selection-end-line="1079" selection-end-column="0" />
                   <folding />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="cheat_sheet.md" pinned="false" current-in-tab="true">
+          <file leaf-file-name="cheat_sheet.md" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/cheat_sheet.md">
               <provider editor-type-id="MarkdownPreviewEditor">
                 <state />
               </provider>
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="3.2542372">
+                <state vertical-scroll-proportion="-68.57143">
                   <caret line="197" column="10" selection-start-line="197" selection-start-column="10" selection-end-line="197" selection-end-column="10" />
                   <folding />
                 </state>
@@ -668,7 +666,13 @@
       <option name="project" value="LOCAL" />
       <updated>1453358804930</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="cum_impact_debugging checkdam chain merge">
+      <created>1453965329913</created>
+      <option name="number" value="00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1453965329913</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TestHistory">
@@ -689,6 +693,7 @@
     <frame x="1366" y="4" width="1920" height="1076" extended-state="0" />
     <editor active="false" />
     <layout>
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32916668" sideWeight="0.4970976" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32952183" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
@@ -703,7 +708,6 @@
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.2497332" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
@@ -723,7 +727,8 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="cum_impact_model" />
     <MESSAGE value="bathymetry, before paramtrisation of cum impact" />
-    <option name="LAST_COMMIT_MESSAGE" value="bathymetry, before paramtrisation of cum impact" />
+    <MESSAGE value="cum_impact_debugging checkdam chain merge" />
+    <option name="LAST_COMMIT_MESSAGE" value="cum_impact_debugging checkdam chain merge" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1077,14 +1082,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Lake_bathymetry/tmg_bathymetry/tmg_data_merge.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="13" column="21" selection-start-line="13" selection-start-column="21" selection-end-line="13" selection-end-column="21" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/GIS/value_at_lat_long.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1119,10 +1116,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/cumulative_impact_of_check_dam/cumulative_impact_model.py">
+    <entry file="file://$PROJECT_DIR$/Lake_bathymetry/tmg_bathymetry/tmg_data_merge.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="413" column="29" selection-start-line="413" selection-start-column="29" selection-end-line="413" selection-end-column="29" />
+          <caret line="13" column="21" selection-start-line="13" selection-start-column="21" selection-end-line="13" selection-end-column="21" />
           <folding />
         </state>
       </provider>
@@ -1132,8 +1129,16 @@
         <state />
       </provider>
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="3.2542372">
+        <state vertical-scroll-proportion="-68.57143">
           <caret line="197" column="10" selection-start-line="197" selection-start-column="10" selection-end-line="197" selection-end-column="10" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cumulative_impact_of_check_dam/cumulative_impact_model.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.49029127">
+          <caret line="1079" column="0" selection-start-line="1079" selection-start-column="0" selection-end-line="1079" selection-end-column="0" />
           <folding />
         </state>
       </provider>

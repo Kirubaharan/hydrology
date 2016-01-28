@@ -409,11 +409,11 @@ class CheckdamChainMerge(object):
             self.output_df = merged_df
 
     def merge_df(self, df_a, df_b):
-        # columns_to_use = df_a.columns.difference(df_b.columns)
-        # merged_df = df_a.merge(df_b, left_index=True, right_index=True, how='outer')\
-        merged_df = df_a.join
+        columns_to_use = df_a.columns.difference(df_b.columns)
+        merged_df = df_b.merge(df_a[columns_to_use], left_index=True, right_index=True, how='outer')
+        # merged_df = df_a.jo/in(df_b, how='outer')
         return merged_df
-
+    #
     def merge_check_dam_list(self):
         merged_list = self.checkdam_chain_a.checkdam_list + self.checkdam_chain_b.checkdam_list
         merged_list.append(self.converging_check_dam)
@@ -424,7 +424,6 @@ class CheckdamChainMerge(object):
         checkdam = self.converging_check_dam
         self.output_df[('volume_{0:d}'.format(checkdam.check_dam_name))] = 0.0
         self.output_df[('inflow_from_catchment_{0:d}'.format(checkdam.check_dam_name))] = 0.0
-        self.output_df[('inflow_from_overflow_{0:d}'.format(checkdam.check_dam_name))] = 0.0
         self.output_df[('total_inflow_{0:d}'.format(checkdam.check_dam_name))] = 0.0
         self.output_df[('evap_{0:d}'.format(checkdam.check_dam_name))] = 0.0
         self.output_df[('infilt_{0:d}'.format(checkdam.check_dam_name))] = 0.0
@@ -433,6 +432,8 @@ class CheckdamChainMerge(object):
         self.output_df[('est_own_flow_ratio_{0:d}'.format(checkdam.check_dam_name))] = 0.0
         # add two previous check dam's overflow to get inflow from check dam
         self.output_df[('inflow_from_overflow_{0:d}'.format(checkdam.check_dam_name))] = self.output_df_a[('overflow_{0:d}'.format(self.check_dam_a))] + self.output_df_b[('overflow_{0:d}'.format(self.check_dam_b))]
+        if not checkdam.next_check_dam is None:
+            self.output_df[('inflow_from_overflow_{0:d}'.format(checkdam.next_check_dam))] = 0.0
         last_date = max(self.output_df.index)
         for dt in self.output_df.index:
             if dt < last_date:
@@ -662,7 +663,7 @@ own_catchment_inflow_ratio_463 = 1.0
 checkdam_463 = CheckdamParameters(check_dam_name=463, catchment_area=catchment_area_463, infiltration_rate=infiltration_rate, evaporation=evaporation_463, max_height=max_height_463, stage_volume_csv=stage_volume_463, stage_area_csv=stage_area_463,previous_check_dam=None, own_catchment_inflow_ratio=own_catchment_inflow_ratio_463)
 checkdam_463.initial_volume = 0.0
 checkdam_463.next_check_dam = 640
-""" ################################
+
 
 # 640
 catchment_area_640 = 0.07  # dummy value as of now
@@ -763,10 +764,10 @@ max_height_2 = 0.0
 stage_volume_2 = default_stage_volume_file
 stage_area_2 = default_stage_area_file
 own_catchment_inflow_ratio_2 = 1.0
-checkdam_2 = CheckdamParameters(check_dam_name=2, catchment_area=catchment_area_2, infiltration_rate=infiltration_rate, evaporation=evaporation_2, max_height=max_height_2, stage_volume_csv=stage_volume_2, stage_area_csv=stage_area_2,previous_check_dam=None, own_catchment_inflow_ratio=own_catchment_inflow_ratio_2)
+checkdam_2 = CheckdamParameters(check_dam_name=2, catchment_area=catchment_area_2, infiltration_rate=infiltration_rate, evaporation=evaporation_2, max_height=max_height_2, stage_volume_csv=stage_volume_2, stage_area_csv=stage_area_2,previous_check_dam=checkdam_641, own_catchment_inflow_ratio=own_catchment_inflow_ratio_2)
 checkdam_2.initial_volume = 0.0
 
-had_chain_2 = CheckdamChain(inflow_catchment_area_df=inflow_catchment_area_had_df, check_dam_chain=[checkdam_639, checkdam_641, checkdam_2], slope=slope, intercept=intercept, output_df=had_chain_1.output_df)
+had_chain_2 = CheckdamChain(inflow_catchment_area_df=inflow_catchment_area_had_df, check_dam_chain=[checkdam_639, checkdam_641, checkdam_2], slope=slope, intercept=intercept)
 # had_chain_2.create_output_df()
 had_output_2_df = had_chain_2.simulate
 
@@ -799,9 +800,6 @@ checkdam_3.initial_volume = 0.0
 had_chain_1_2 = CheckdamChainMerge(checkdam_chain_a=had_chain_1, checkdam_chain_b=had_chain_2, check_dam_a=1, check_dam_b=2, converging_check_dam=checkdam_3)
 had_chain_1_2_df = had_chain_1_2.simulate
 
-"""##################################
-
-""" ####################################
 """
 # Chain 3 625 -> 5
 """
@@ -849,10 +847,9 @@ checkdam_5.initial_volume = 0.0
 had_chain_3 = CheckdamChain(inflow_catchment_area_df=inflow_catchment_area_had_df, check_dam_chain=[checkdam_625, checkdam_5], slope=slope, intercept=intercept)
 had_output_3_df = had_chain_3.simulate
 
-"""  ########################################
 
 """
-Chain 4 627
+# Chain 4 627
 """
 # 627
 catchment_area_627 = 0.456
@@ -880,7 +877,7 @@ had_output_4_df = had_chain_4.simulate
 #test plots
 
 """
-Chain 5 633
+# Chain 5 633
 """
 # _633
 catchment_area_633 = 0.145
@@ -906,7 +903,7 @@ had_chain_5 = CheckdamChain(inflow_catchment_area_df=inflow_catchment_area_had_d
 had_output_5_df = had_chain_5.simulate
 
 """
-Merge Chain 4 and chain 5 and simulate for check dam 626
+# Merge Chain 4 and chain 5 and simulate for check dam 626
 """
 # 626
 catchment_area_626 = 0.051
@@ -932,7 +929,7 @@ had_chain_4_5 = CheckdamChainMerge(checkdam_chain_a=had_chain_4, checkdam_chain_
 had_chain_4_5_df = had_chain_4_5.simulate
 
 """
-Chain 6 634
+# Chain 6 634
 """
 # 634
 catchment_area_634 = 0.007
@@ -958,7 +955,7 @@ had_chain_6 = CheckdamChain(inflow_catchment_area_df=inflow_catchment_area_had_d
 had_output_6_df = had_chain_6.simulate
 
 """
-Merge Chain 6 and chain 4_5  and simulate for check dam 624
+# Merge Chain 6 and chain 4_5  and simulate for check dam 624
 """
 # 624
 catchment_area_624 = 1
@@ -983,9 +980,10 @@ checkdam_624.next_check_dam = 6
 
 had_chain_4_5_6 = CheckdamChainMerge(checkdam_chain_a=had_chain_4_5, checkdam_chain_b=had_chain_6, check_dam_a=626, check_dam_b=634, converging_check_dam=checkdam_624)
 had_chain_4_5_6_df = had_chain_4_5_6.simulate
-
+had_chain_4_5_6_df.to_csv('/media/kiruba/New Volume/milli_watershed/cumulative impacts/had_chain_4_5_6_df.csv')
+# raise SystemExit(0)
 """
-Chain 7 had_chain_4_5_6 (624) -> 6
+# Chain 7 had_chain_4_5_6 (624) -> 6
 """
 # 6
 catchment_area_6 = 0.263
@@ -1010,41 +1008,114 @@ checkdam_6.initial_volume = 0.0
 had_chain_7 = CheckdamChain(inflow_catchment_area_df=inflow_catchment_area_had_df, check_dam_chain=[checkdam_6], slope=slope, intercept=intercept, output_df=had_chain_4_5_6.output_df)
 # had_chain_2.create_output_df()
 had_output_7_df = had_chain_7.simulate
+had_output_7_df.to_csv('/media/kiruba/New Volume/milli_watershed/cumulative impacts/had_output_df_7.csv')
 
-for checkdam in had_chain_4_5_6.checkdam_list:
-#     print checkdam.check_dam_name, checkdam.max_volume
-    fig = plt.figure()
-    plt.plot(had_chain_4_5_6.output_df.index, had_chain_4_5_6.output_df[('total_inflow_{0:d}'.format(checkdam.check_dam_name))], '-', label=('inflow_{0:d}'.format(checkdam.check_dam_name)))
-    plt.plot(had_chain_4_5_6.output_df.index, had_chain_4_5_6.output_df[('evap_{0:d}'.format(checkdam.check_dam_name))], '-', label=('evap_{0:d}'.format(checkdam.check_dam_name)))
-    plt.plot(had_chain_4_5_6.output_df.index, had_chain_4_5_6.output_df[('volume_{0:d}'.format(checkdam.check_dam_name))], '-', label=('volume_{0:d}'.format(checkdam.check_dam_name)))
-    plt.plot(had_chain_4_5_6.output_df.index, had_chain_4_5_6.output_df[('infilt_{0:d}').format(checkdam.check_dam_name)], '-', label=('infilt_{0:d}'.format(checkdam.check_dam_name)))
-    plt.plot(had_chain_4_5_6.output_df.index, had_chain_4_5_6.output_df[('overflow_{0:d}'.format(checkdam.check_dam_name))], '-', label=('overflow_{0:d}'.format(checkdam.check_dam_name)))
-    plt.hlines(y=checkdam.max_volume, xmin=(min(had_chain_4_5_6.output_df.index)), xmax=max(had_chain_4_5_6.output_df.index), linewidth=2, color='k')
-    plt.legend()
+
+
+"""
+Chain 8 7 -> Lake
+single check dam
+"""
+# 7
+catchment_area_7 = 0.177
+evaporation_7 = weather_463_df_daily['Evaporation (mm)']
+max_height_7 = 0.0
+stage_volume_7 = default_stage_volume_file
+stage_area_7 = default_stage_area_file
+own_catchment_inflow_ratio_7 = 1.0
+checkdam_7 = CheckdamParameters(check_dam_name=7, catchment_area=catchment_area_7, infiltration_rate=infiltration_rate, evaporation=evaporation_7, max_height=max_height_7, stage_volume_csv=stage_volume_7, stage_area_csv=stage_area_7, previous_check_dam=None, own_catchment_inflow_ratio=own_catchment_inflow_ratio_7)
+checkdam_7.initial_volume = 0.0
+had_chain_8 = CheckdamChain(inflow_catchment_area_df=inflow_catchment_area_had_df, check_dam_chain=[checkdam_7], slope=slope, intercept=intercept)
+# had_chain_8.create_output_df()
+had_output_8_df = had_chain_8.simulate
+
+"""
+Chain 9 4 -> Lake
+"""
+# 4
+catchment_area_4 = 2.134
+evaporation_4 = weather_463_df_daily['Evaporation (mm)']
+max_height_4 = 0.0
+stage_volume_4 = default_stage_volume_file
+stage_area_4 = default_stage_area_file
+own_catchment_inflow_ratio_4 = 1.0
+checkdam_4 = CheckdamParameters(check_dam_name=4, catchment_area=catchment_area_4, infiltration_rate=infiltration_rate, evaporation=evaporation_4, max_height=max_height_4, stage_volume_csv=stage_volume_4, stage_area_csv=stage_area_4, previous_check_dam=None, own_catchment_inflow_ratio=own_catchment_inflow_ratio_4)
+checkdam_4.initial_volume = 0.0
+had_chain_9 = CheckdamChain(inflow_catchment_area_df=inflow_catchment_area_had_df, check_dam_chain=[checkdam_4], slope=slope, intercept=intercept)
+had_output_9_df = had_chain_9.simulate
+
+"""
+Chain 10, 8 -> Lake
+"""
+# 8
+catchment_area_8 = 2.138
+evaporation_8 = weather_463_df_daily['Evaporation (mm)']
+max_height_8 = 0.0
+stage_volume_8 = default_stage_volume_file
+stage_area_8 = default_stage_area_file
+own_catchment_inflow_ratio_8 = 1.0
+checkdam_8 = CheckdamParameters(check_dam_name=8, catchment_area=catchment_area_8, infiltration_rate=infiltration_rate, evaporation=evaporation_8, max_height=max_height_8, stage_volume_csv=stage_volume_8, stage_area_csv=stage_area_8, previous_check_dam=None, own_catchment_inflow_ratio=own_catchment_inflow_ratio_8)
+checkdam_8.initial_volume = 0.0
+had_chain_10 = CheckdamChain(inflow_catchment_area_df=inflow_catchment_area_had_df, check_dam_chain=[checkdam_8], slope=slope, intercept=intercept)
+had_output_10_df = had_chain_10.simulate
+
+
+"""
+Inflow into lake
+8, 7, 6, 5, 4, 3 -> lake
+"""
+# add overflow from terminal checkdams which is inflow into lake
+lake_inflow_df = inflow_catchment_area_had_df
+lake_inflow_df['overflow_8'] = had_output_10_df['overflow_8']
+lake_inflow_df['overflow_7'] = had_output_8_df['overflow_7']
+lake_inflow_df['overflow_6'] = had_output_7_df['overflow_6']
+lake_inflow_df['overflow_5'] = had_output_3_df['overflow_5']
+lake_inflow_df['overflow_4'] = had_output_9_df['overflow_4']
+lake_inflow_df['overflow_3'] = had_chain_1_2_df['overflow_3']
+
+lake_inflow_df['inflow_into_lake'] = lake_inflow_df['overflow_8'] + lake_inflow_df['overflow_7'] + lake_inflow_df['overflow_6'] + lake_inflow_df['overflow_5'] + lake_inflow_df['overflow_4'] + lake_inflow_df['overflow_3']
+
+print lake_inflow_df.head()
+
+
+
+
+
+
+# for checkdam in had_chain_4_5_6.checkdam_list:
+# #     print checkdam.check_dam_name, checkdam.max_volume
+#     fig = plt.figure()
+#     plt.plot(had_chain_4_5_6.output_df.index, had_chain_4_5_6.output_df[('total_inflow_{0:d}'.format(checkdam.check_dam_name))], '-', label=('inflow_{0:d}'.format(checkdam.check_dam_name)))
+#     plt.plot(had_chain_4_5_6.output_df.index, had_chain_4_5_6.output_df[('evap_{0:d}'.format(checkdam.check_dam_name))], '-', label=('evap_{0:d}'.format(checkdam.check_dam_name)))
+#     plt.plot(had_chain_4_5_6.output_df.index, had_chain_4_5_6.output_df[('volume_{0:d}'.format(checkdam.check_dam_name))], '-', label=('volume_{0:d}'.format(checkdam.check_dam_name)))
+#     plt.plot(had_chain_4_5_6.output_df.index, had_chain_4_5_6.output_df[('infilt_{0:d}').format(checkdam.check_dam_name)], '-', label=('infilt_{0:d}'.format(checkdam.check_dam_name)))
+#     plt.plot(had_chain_4_5_6.output_df.index, had_chain_4_5_6.output_df[('overflow_{0:d}'.format(checkdam.check_dam_name))], '-', label=('overflow_{0:d}'.format(checkdam.check_dam_name)))
+#     plt.hlines(y=checkdam.max_volume, xmin=(min(had_chain_4_5_6.output_df.index)), xmax=max(had_chain_4_5_6.output_df.index), linewidth=2, color='k')
+#     plt.legend()
 # plt.show()
 
-for checkdam in had_chain_7.check_dam_chain:
-    print checkdam.check_dam_name, checkdam.max_volume
-    fig = plt.figure()
-    plt.plot(had_chain_7.output_df.index, had_chain_7.output_df[('total_inflow_{0:d}'.format(checkdam.check_dam_name))], '-', label=('inflow_{0:d}'.format(checkdam.check_dam_name)))
-    plt.plot(had_chain_7.output_df.index, had_chain_7.output_df[('evap_{0:d}'.format(checkdam.check_dam_name))], '-', label=('evap_{0:d}'.format(checkdam.check_dam_name)))
-    plt.plot(had_chain_7.output_df.index, had_chain_7.output_df[('volume_{0:d}'.format(checkdam.check_dam_name))], '-', label=('volume_{0:d}'.format(checkdam.check_dam_name)))
-    plt.plot(had_chain_7.output_df.index, had_chain_7.output_df[('infilt_{0:d}').format(checkdam.check_dam_name)], '-', label=('infilt_{0:d}'.format(checkdam.check_dam_name)))
-    plt.plot(had_chain_7.output_df.index, had_chain_7.output_df[('overflow_{0:d}'.format(checkdam.check_dam_name))], '-', label=('overflow_{0:d}'.format(checkdam.check_dam_name)))
-    plt.hlines(y=checkdam.max_volume, xmin=(min(had_chain_7.output_df.index)), xmax=max(had_chain_7.output_df.index), linewidth=2, color='k')
-    plt.legend()
-plt.show()
-
-
-# for checkdam in had_chain_2.check_dam_chain:
+# for checkdam in had_chain_8.check_dam_chain:
 #     print checkdam.check_dam_name, checkdam.max_volume
 #     fig = plt.figure()
-#     plt.plot(had_chain_2.output_df.index, had_chain_2.output_df[('total_inflow_{0:d}'.format(checkdam.check_dam_name))], '-', label=('inflow_{0:d}'.format(checkdam.check_dam_name)))
-#     plt.plot(had_chain_2.output_df.index, had_chain_2.output_df[('evap_{0:d}'.format(checkdam.check_dam_name))], '-', label=('evap_{0:d}'.format(checkdam.check_dam_name)))
-#     plt.plot(had_chain_2.output_df.index, had_chain_2.output_df[('volume_{0:d}'.format(checkdam.check_dam_name))], '-', label=('volume_{0:d}'.format(checkdam.check_dam_name)))
-#     plt.plot(had_chain_2.output_df.index, had_chain_2.output_df[('infilt_{0:d}').format(checkdam.check_dam_name)], '-', label=('infilt_{0:d}'.format(checkdam.check_dam_name)))
-#     plt.plot(had_chain_2.output_df.index, had_chain_2.output_df[('overflow_{0:d}'.format(checkdam.check_dam_name))], '-', label=('overflow_{0:d}'.format(checkdam.check_dam_name)))
-#     plt.hlines(y=checkdam.max_volume, xmin=(min(had_chain_2.output_df.index)), xmax=max(had_chain_2.output_df.index), linewidth=2, color='k')
+#     plt.plot(had_chain_8.output_df.index, had_chain_8.output_df[('total_inflow_{0:d}'.format(checkdam.check_dam_name))], '-', label=('inflow_{0:d}'.format(checkdam.check_dam_name)))
+#     plt.plot(had_chain_8.output_df.index, had_chain_8.output_df[('evap_{0:d}'.format(checkdam.check_dam_name))], '-', label=('evap_{0:d}'.format(checkdam.check_dam_name)))
+#     plt.plot(had_chain_8.output_df.index, had_chain_8.output_df[('volume_{0:d}'.format(checkdam.check_dam_name))], '-', label=('volume_{0:d}'.format(checkdam.check_dam_name)))
+#     plt.plot(had_chain_8.output_df.index, had_chain_8.output_df[('infilt_{0:d}').format(checkdam.check_dam_name)], '-', label=('infilt_{0:d}'.format(checkdam.check_dam_name)))
+#     plt.plot(had_chain_8.output_df.index, had_chain_8.output_df[('overflow_{0:d}'.format(checkdam.check_dam_name))], '-', label=('overflow_{0:d}'.format(checkdam.check_dam_name)))
+#     plt.hlines(y=checkdam.max_volume, xmin=(min(had_chain_8.output_df.index)), xmax=max(had_chain_8.output_df.index), linewidth=2, color='k')
+#     plt.legend()
+# plt.show()
+#
+#
+# for checkdam in had_chain_9.check_dam_chain:
+#     print checkdam.check_dam_name, checkdam.max_volume
+#     fig = plt.figure()
+#     plt.plot(had_chain_9.output_df.index, had_chain_9.output_df[('total_inflow_{0:d}'.format(checkdam.check_dam_name))], '-', label=('inflow_{0:d}'.format(checkdam.check_dam_name)))
+#     plt.plot(had_chain_9.output_df.index, had_chain_9.output_df[('evap_{0:d}'.format(checkdam.check_dam_name))], '-', label=('evap_{0:d}'.format(checkdam.check_dam_name)))
+#     plt.plot(had_chain_9.output_df.index, had_chain_9.output_df[('volume_{0:d}'.format(checkdam.check_dam_name))], '-', label=('volume_{0:d}'.format(checkdam.check_dam_name)))
+#     plt.plot(had_chain_9.output_df.index, had_chain_9.output_df[('infilt_{0:d}').format(checkdam.check_dam_name)], '-', label=('infilt_{0:d}'.format(checkdam.check_dam_name)))
+#     plt.plot(had_chain_9.output_df.index, had_chain_9.output_df[('overflow_{0:d}'.format(checkdam.check_dam_name))], '-', label=('overflow_{0:d}'.format(checkdam.check_dam_name)))
+#     plt.hlines(y=checkdam.max_volume, xmin=(min(had_chain_9.output_df.index)), xmax=max(had_chain_9.output_df.index), linewidth=2, color='k')
 #     plt.legend()
 # plt.show()
 # had_output_1_df.to_csv('/media/kiruba/New Volume/milli_watershed/cumulative impacts/had_chain_1.csv')
