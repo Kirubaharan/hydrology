@@ -30,6 +30,18 @@ water_level_4 = cd.read_correct_ch_dam_data(block_4, slope, intercept)
 block_5 = '/media/kiruba/New Volume/ACCUWA_Data/lake_water_level/2972/2972_007_001_24_12_2015.CSV'
 water_level_5 = cd.read_correct_ch_dam_data(block_5, slope, intercept)
 
+# 2015-09-10 12:00:00
+water_level_2.drop('2015-09-10 12:00:00', inplace=True, axis=0)
+print water_level_1.head()
+print water_level_1.tail()
+print water_level_2.head()
+print water_level_2.tail()
+print water_level_3.head()
+print water_level_3.tail()
+print water_level_4.head()
+print water_level_4.tail()
+print water_level_5.head()
+print water_level_5.tail()
 
 for i in range(1, 6, 1):
     eval("water_level_{0}.drop(water_level_{0}.tail(1).index, inplace=True, axis=0)".format(i))
@@ -48,5 +60,5 @@ water_level.sort_index(inplace=True)
 print water_level.tail()
 water_level_bathymetry_verify_df = water_level['2015-12-24']
 print water_level_bathymetry_verify_df.head()
-
+water_level.to_csv('/media/kiruba/New Volume/Mail/Sierra/water_level_had_tank.csv')
 water_level_bathymetry_verify_df.to_csv('/media/kiruba/New Volume/Mail/Sierra/water_level_had_tank_24_12_15.csv')

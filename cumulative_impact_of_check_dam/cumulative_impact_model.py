@@ -1076,23 +1076,23 @@ lake_inflow_df['overflow_3'] = had_chain_1_2_df['overflow_3']
 lake_inflow_df['inflow_into_lake'] = lake_inflow_df['overflow_8'] + lake_inflow_df['overflow_7'] + lake_inflow_df['overflow_6'] + lake_inflow_df['overflow_5'] + lake_inflow_df['overflow_4'] + lake_inflow_df['overflow_3']
 
 print lake_inflow_df.head()
+lake_inflow_df.to_csv('/media/kiruba/New Volume/milli_watershed/cumulative impacts/lake_inflow_df.csv')
 
 
 
 
 
-
-# for checkdam in had_chain_4_5_6.checkdam_list:
-# #     print checkdam.check_dam_name, checkdam.max_volume
-#     fig = plt.figure()
-#     plt.plot(had_chain_4_5_6.output_df.index, had_chain_4_5_6.output_df[('total_inflow_{0:d}'.format(checkdam.check_dam_name))], '-', label=('inflow_{0:d}'.format(checkdam.check_dam_name)))
-#     plt.plot(had_chain_4_5_6.output_df.index, had_chain_4_5_6.output_df[('evap_{0:d}'.format(checkdam.check_dam_name))], '-', label=('evap_{0:d}'.format(checkdam.check_dam_name)))
-#     plt.plot(had_chain_4_5_6.output_df.index, had_chain_4_5_6.output_df[('volume_{0:d}'.format(checkdam.check_dam_name))], '-', label=('volume_{0:d}'.format(checkdam.check_dam_name)))
-#     plt.plot(had_chain_4_5_6.output_df.index, had_chain_4_5_6.output_df[('infilt_{0:d}').format(checkdam.check_dam_name)], '-', label=('infilt_{0:d}'.format(checkdam.check_dam_name)))
-#     plt.plot(had_chain_4_5_6.output_df.index, had_chain_4_5_6.output_df[('overflow_{0:d}'.format(checkdam.check_dam_name))], '-', label=('overflow_{0:d}'.format(checkdam.check_dam_name)))
-#     plt.hlines(y=checkdam.max_volume, xmin=(min(had_chain_4_5_6.output_df.index)), xmax=max(had_chain_4_5_6.output_df.index), linewidth=2, color='k')
-#     plt.legend()
-# plt.show()
+for checkdam in had_chain_4_5_6.checkdam_list:
+#     print checkdam.check_dam_name, checkdam.max_volume
+    fig = plt.figure()
+    plt.plot(had_chain_4_5_6.output_df.index, had_chain_4_5_6.output_df[('total_inflow_{0:d}'.format(checkdam.check_dam_name))], '-', label=('inflow_{0:d}'.format(checkdam.check_dam_name)))
+    plt.plot(had_chain_4_5_6.output_df.index, had_chain_4_5_6.output_df[('evap_{0:d}'.format(checkdam.check_dam_name))], '-', label=('evap_{0:d}'.format(checkdam.check_dam_name)))
+    plt.plot(had_chain_4_5_6.output_df.index, had_chain_4_5_6.output_df[('volume_{0:d}'.format(checkdam.check_dam_name))], '-', label=('volume_{0:d}'.format(checkdam.check_dam_name)))
+    plt.plot(had_chain_4_5_6.output_df.index, had_chain_4_5_6.output_df[('infilt_{0:d}').format(checkdam.check_dam_name)], '-', label=('infilt_{0:d}'.format(checkdam.check_dam_name)))
+    plt.plot(had_chain_4_5_6.output_df.index, had_chain_4_5_6.output_df[('overflow_{0:d}'.format(checkdam.check_dam_name))], '-', label=('overflow_{0:d}'.format(checkdam.check_dam_name)))
+    plt.hlines(y=checkdam.max_volume, xmin=(min(had_chain_4_5_6.output_df.index)), xmax=max(had_chain_4_5_6.output_df.index), linewidth=2, color='k')
+    plt.legend()
+plt.show()
 
 # for checkdam in had_chain_8.check_dam_chain:
 #     print checkdam.check_dam_name, checkdam.max_volume
