@@ -36,5 +36,7 @@ This file does following functions:
 
 ###Contact
 For related queries please mail: haran.kiruba@gmail.com
-
+<a href="http://stackoverflow.com/users/2632856/kirubaharan-j">
+<img src="http://stackoverflow.com/users/flair/2632856.png" width="208" height="58" alt="profile for Kirubaharan J at Stack Overflow, Q&amp;A for professional and enthusiast programmers" title="profile for Kirubaharan J at Stack Overflow, Q&amp;A for professional and enthusiast programmers">
+</a>
 ![Contact](http://i.imgur.com/C9rENMG.png)
