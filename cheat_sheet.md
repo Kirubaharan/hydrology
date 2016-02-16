@@ -148,8 +148,8 @@ fig.autofmt_xdate(rotation=90)
 plt.show()
 ```
 ### Select the ideal width for time series bar plots
-width = time_interval / (len(df.index)-1)
-If the time series df is sampled every 15 minutes then, time_interval = 15.
+http://stackoverflow.com/questions/5902371/matplotlib-bar-chart-with-dates
+
 ![Time Series Bar plot](http://i.imgur.com/KulaQ1R.png "Time Series Bar plot")
 
 [Image in Markdown:](http://stackoverflow.com/questions/22428662/displaying-an-image-in-a-github-readme)

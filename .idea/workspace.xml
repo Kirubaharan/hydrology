@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="dc293af8-ff48-430a-ad15-38e8d386d107" name="Default" comment="">
+    <list default="true" id="dc293af8-ff48-430a-ad15-38e8d386d107" name="Default" comment="pre-check dam network correction">
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/cumulative_impact_of_check_dam/cum_impact_no_checkdam.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/cumulative_impact_of_check_dam/model_output_plots.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/README.md" afterPath="$PROJECT_DIR$/README.md" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/GIS/zonal_stats.py" afterPath="$PROJECT_DIR$/GIS/zonal_stats.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/cheat_sheet.md" afterPath="$PROJECT_DIR$/cheat_sheet.md" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/scrap.py" afterPath="$PROJECT_DIR$/scrap.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/soil_moisture/field_capacity_estimation.py" afterPath="$PROJECT_DIR$/soil_moisture/field_capacity_estimation.py" />
     </list>
     <ignored path="hydrology.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -23,24 +28,14 @@
     <favorites_list name="hydrology" />
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.32309508">
+    <splitter split-orientation="horizontal" split-proportion="0.49497932">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file leaf-file-name="checkdam.py" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/checkdam/checkdam.py">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="0" column="21" selection-start-line="0" selection-start-column="21" selection-end-line="0" selection-end-column="21" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
           <file leaf-file-name="PSP_visual3D.py" pinned="false" current-in-tab="false">
             <entry file="file:///media/kiruba/New Volume/python_/soil_physics_with_python/PSP_ALL/PSP_triangulation/PSP_visual3D.py">
               <provider selected="true" editor-type-id="text-editor">
                 <state vertical-scroll-proportion="0.0">
-                  <caret line="24" column="70" selection-start-line="24" selection-start-column="70" selection-end-line="24" selection-end-column="70" />
+                  <caret line="29" column="33" selection-start-line="29" selection-start-column="33" selection-end-line="29" selection-end-column="33" />
                   <folding />
                 </state>
               </provider>
@@ -50,10 +45,20 @@
             <entry file="file:///media/kiruba/New Volume/python_/soil_physics_with_python/PSP_ALL/PSP_triangulation/main.py">
               <provider selected="true" editor-type-id="text-editor">
                 <state vertical-scroll-proportion="0.0">
-                  <caret line="20" column="17" selection-start-line="20" selection-start-column="17" selection-end-line="20" selection-end-column="17" />
+                  <caret line="32" column="23" selection-start-line="32" selection-start-column="23" selection-end-line="32" selection-end-column="23" />
                   <folding>
                     <element signature="e#19#66#0" expanded="true" />
                   </folding>
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="cum_impact_no_checkdam.py" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/cumulative_impact_of_check_dam/cum_impact_no_checkdam.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state vertical-scroll-proportion="0.0">
+                  <caret line="511" column="53" selection-start-line="511" selection-start-column="53" selection-end-line="511" selection-end-column="53" />
+                  <folding />
                 </state>
               </provider>
             </entry>
@@ -62,8 +67,20 @@
             <entry file="file://$PROJECT_DIR$/cumulative_impact_of_check_dam/stage_volume_distribution.py">
               <provider selected="true" editor-type-id="text-editor">
                 <state vertical-scroll-proportion="0.0">
-                  <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+                  <caret line="13" column="22" selection-start-line="13" selection-start-column="22" selection-end-line="13" selection-end-column="22" />
                   <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="model_output_plots.py" pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/cumulative_impact_of_check_dam/model_output_plots.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state vertical-scroll-proportion="1.2378641">
+                  <caret line="51" column="4" selection-start-line="51" selection-start-column="4" selection-end-line="51" selection-end-column="4" />
+                  <folding>
+                    <element signature="e#22#40#0" expanded="true" />
+                  </folding>
                 </state>
               </provider>
             </entry>
@@ -88,16 +105,6 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="agu_plot.py" pinned="false" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/agu_plot.py">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.18932039">
-                  <caret line="284" column="3" selection-start-line="284" selection-start-column="0" selection-end-line="284" selection-end-column="3" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
           <file leaf-file-name="ch_625_daily_wb.py" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/ch_625/ch_625_daily_wb.py">
               <provider selected="true" editor-type-id="text-editor">
@@ -112,7 +119,7 @@
             <entry file="file://$PROJECT_DIR$/scrap.py">
               <provider selected="true" editor-type-id="text-editor">
                 <state vertical-scroll-proportion="0.0">
-                  <caret line="25" column="0" selection-start-line="25" selection-start-column="0" selection-end-line="25" selection-end-column="0" />
+                  <caret line="27" column="9" selection-start-line="27" selection-start-column="9" selection-end-line="27" selection-end-column="9" />
                   <folding />
                 </state>
               </provider>
@@ -132,21 +139,21 @@
       </split-first>
       <split-second>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file leaf-file-name="3d_view_dem.py" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/GIS/3d_view_dem.py">
+          <file leaf-file-name="ch_591_daily_wb_ver_2.py" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/ch_591/ch_591_daily_wb_ver_2.py">
               <provider selected="true" editor-type-id="text-editor">
                 <state vertical-scroll-proportion="0.0">
-                  <caret line="41" column="35" selection-start-line="41" selection-start-column="35" selection-end-line="41" selection-end-column="35" />
+                  <caret line="6" column="27" selection-start-line="6" selection-start-column="26" selection-end-line="6" selection-end-column="27" />
                   <folding />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="ch_591_daily_wb_ver_2.py" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/ch_591/ch_591_daily_wb_ver_2.py">
+          <file leaf-file-name="agu_plot.py" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/agu_plot.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="-5.892857">
-                  <caret line="182" column="59" selection-start-line="182" selection-start-column="58" selection-end-line="182" selection-end-column="59" />
+                <state vertical-scroll-proportion="0.0">
+                  <caret line="195" column="17" selection-start-line="195" selection-start-column="12" selection-end-line="195" selection-end-column="17" />
                   <folding />
                 </state>
               </provider>
@@ -156,20 +163,8 @@
             <entry file="file://$PROJECT_DIR$/cumulative_impact_of_check_dam/cumulative_impact_model.py">
               <provider selected="true" editor-type-id="text-editor">
                 <state vertical-scroll-proportion="0.0">
-                  <caret line="170" column="80" selection-start-line="170" selection-start-column="68" selection-end-line="170" selection-end-column="80" />
+                  <caret line="649" column="23" selection-start-line="649" selection-start-column="23" selection-end-line="649" selection-end-column="23" />
                   <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="ksndmc_rain.py" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/weather/ksndmc_rain.py">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="5" column="0" selection-start-line="5" selection-start-column="0" selection-end-line="5" selection-end-column="0" />
-                  <folding>
-                    <element signature="e#22#40#0" expanded="true" />
-                  </folding>
                 </state>
               </provider>
             </entry>
@@ -178,55 +173,32 @@
             <entry file="file://$PROJECT_DIR$/soil_moisture/field_capacity_estimation.py">
               <provider selected="true" editor-type-id="text-editor">
                 <state vertical-scroll-proportion="0.0">
-                  <caret line="49" column="34" selection-start-line="49" selection-start-column="34" selection-end-line="49" selection-end-column="34" />
+                  <caret line="80" column="45" selection-start-line="80" selection-start-column="45" selection-end-line="80" selection-end-column="45" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="zonal_stats.py" pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/GIS/zonal_stats.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state vertical-scroll-proportion="0.33333334">
+                  <caret line="45" column="48" selection-start-line="45" selection-start-column="48" selection-end-line="45" selection-end-column="48" />
                   <folding>
-                    <element signature="e#22#40#0" expanded="true" />
+                    <element signature="e#244#271#0" expanded="true" />
                   </folding>
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="README.md" pinned="false" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/README.md">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.87288135">
-                  <caret line="42" column="0" selection-start-line="42" selection-start-column="0" selection-end-line="42" selection-end-column="0" />
-                  <folding />
-                </state>
-              </provider>
-              <provider editor-type-id="MarkdownPreviewEditor">
-                <state />
-              </provider>
-            </entry>
-          </file>
           <file leaf-file-name="cheat_sheet.md" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/cheat_sheet.md">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="-4.035714">
-                  <caret line="151" column="75" selection-start-line="151" selection-start-column="75" selection-end-line="151" selection-end-column="75" />
-                  <folding />
-                </state>
-              </provider>
               <provider editor-type-id="MarkdownPreviewEditor">
                 <state />
               </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="value_at_lat_long.py" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/GIS/value_at_lat_long.py">
               <provider selected="true" editor-type-id="text-editor">
                 <state vertical-scroll-proportion="0.0">
-                  <caret line="8" column="20" selection-start-line="8" selection-start-column="20" selection-end-line="8" selection-end-column="20" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="smg_data_merge.py" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/Lake_bathymetry/smg_bathymetry/smg_data_merge.py">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="12" column="0" selection-start-line="12" selection-start-column="0" selection-end-line="12" selection-end-column="47" />
+                  <caret line="49" column="18" selection-start-line="49" selection-start-column="11" selection-end-line="49" selection-end-column="18" />
                   <folding />
                 </state>
               </provider>
@@ -269,16 +241,20 @@
         <option value="$PROJECT_DIR$/Lake_bathymetry/tmg_bathymetry/tmg_data_merge.py" />
         <option value="$PROJECT_DIR$/Lake_bathymetry/smg_bathymetry/smg_data_merge.py" />
         <option value="$PROJECT_DIR$/Lake_bathymetry/smg_bathymetry/smg_stage_vol.py" />
-        <option value="$PROJECT_DIR$/scrap.py" />
         <option value="$PROJECT_DIR$/cumulative_impact_of_check_dam/cumulative_impact_model.py" />
         <option value="$PROJECT_DIR$/tank_water_level/had_2972_calib.py" />
         <option value="$PROJECT_DIR$/GIS/3d_view_dem.py" />
         <option value="/media/kiruba/New Volume/python_/soil_physics_with_python/PSP_ALL/PSP_triangulation/PSP_visual3D.py" />
         <option value="/media/kiruba/New Volume/python_/soil_physics_with_python/PSP_ALL/PSP_triangulation/main.py" />
         <option value="$PROJECT_DIR$/weather/ksndmc_rain_tubgere.py" />
-        <option value="$PROJECT_DIR$/cheat_sheet.md" />
-        <option value="$PROJECT_DIR$/soil_moisture/field_capacity_estimation.py" />
         <option value="$PROJECT_DIR$/README.md" />
+        <option value="$PROJECT_DIR$/scrap.py" />
+        <option value="$PROJECT_DIR$/cheat_sheet.md" />
+        <option value="$PROJECT_DIR$/agu_plot.py" />
+        <option value="$PROJECT_DIR$/cumulative_impact_of_check_dam/model_output_plots.py" />
+        <option value="$PROJECT_DIR$/cumulative_impact_of_check_dam/cum_impact_no_checkdam.py" />
+        <option value="$PROJECT_DIR$/soil_moisture/field_capacity_estimation.py" />
+        <option value="$PROJECT_DIR$/GIS/zonal_stats.py" />
       </list>
     </option>
   </component>
@@ -313,7 +289,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -547,52 +522,20 @@
         </subPane>
       </pane>
       <pane id="Scratches" />
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
-    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+    <property name="settings.editor.selected.configurable" value="preferences.keymap" />
     <property name="settings.editor.splitter.proportion" value="0.2" />
+    <property name="last_opened_file_path" value="$USER_HOME$/Downloads/gnuplot-py-1.8/demo.py" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/Lake_bathymetry/dt_bathymetry" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.field_capacity_estimation">
-    <configuration default="false" name="had_2972_calib" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tank_water_level" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="hydrology" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/tank_water_level/had_2972_calib.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <method />
-    </configuration>
-    <configuration default="false" name="3d_view_dem" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/GIS" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="hydrology" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/GIS/3d_view_dem.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <method />
-    </configuration>
+  <component name="RunManager" selected="Python.zonal_stats">
     <configuration default="false" name="field_capacity_estimation" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -627,19 +570,53 @@
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
     </configuration>
-    <configuration default="false" name="PSP_visual3D" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration default="false" name="model_output_plots" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="/media/kiruba/New Volume/python_/soil_physics_with_python/PSP_ALL/PSP_triangulation" />
-      <option name="IS_MODULE_SDK" value="false" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/cumulative_impact_of_check_dam" />
+      <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="hydrology" />
-      <option name="SCRIPT_NAME" value="/media/kiruba/New Volume/python_/soil_physics_with_python/PSP_ALL/PSP_triangulation/PSP_visual3D.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/cumulative_impact_of_check_dam/model_output_plots.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <method />
+    </configuration>
+    <configuration default="false" name="cum_impact_no_checkdam" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/cumulative_impact_of_check_dam" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="hydrology" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/cumulative_impact_of_check_dam/cum_impact_no_checkdam.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <method />
+    </configuration>
+    <configuration default="false" name="zonal_stats" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/GIS" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="hydrology" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/GIS/zonal_stats.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
@@ -767,19 +744,19 @@
       <method />
     </configuration>
     <list size="5">
-      <item index="0" class="java.lang.String" itemvalue="Python.had_2972_calib" />
-      <item index="1" class="java.lang.String" itemvalue="Python.3d_view_dem" />
-      <item index="2" class="java.lang.String" itemvalue="Python.field_capacity_estimation" />
-      <item index="3" class="java.lang.String" itemvalue="Python.main" />
-      <item index="4" class="java.lang.String" itemvalue="Python.PSP_visual3D" />
+      <item index="0" class="java.lang.String" itemvalue="Python.field_capacity_estimation" />
+      <item index="1" class="java.lang.String" itemvalue="Python.main" />
+      <item index="2" class="java.lang.String" itemvalue="Python.model_output_plots" />
+      <item index="3" class="java.lang.String" itemvalue="Python.cum_impact_no_checkdam" />
+      <item index="4" class="java.lang.String" itemvalue="Python.zonal_stats" />
     </list>
     <recent_temporary>
       <list size="5">
-        <item index="0" class="java.lang.String" itemvalue="Python.field_capacity_estimation" />
-        <item index="1" class="java.lang.String" itemvalue="Python.main" />
-        <item index="2" class="java.lang.String" itemvalue="Python.PSP_visual3D" />
-        <item index="3" class="java.lang.String" itemvalue="Python.3d_view_dem" />
-        <item index="4" class="java.lang.String" itemvalue="Python.had_2972_calib" />
+        <item index="0" class="java.lang.String" itemvalue="Python.zonal_stats" />
+        <item index="1" class="java.lang.String" itemvalue="Python.field_capacity_estimation" />
+        <item index="2" class="java.lang.String" itemvalue="Python.model_output_plots" />
+        <item index="3" class="java.lang.String" itemvalue="Python.cum_impact_no_checkdam" />
+        <item index="4" class="java.lang.String" itemvalue="Python.main" />
       </list>
     </recent_temporary>
   </component>
@@ -830,15 +807,24 @@
       <option name="project" value="LOCAL" />
       <updated>1454928495339</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="read_me_stack">
+      <created>1454928555814</created>
+      <option name="number" value="00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1454928555814</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TestHistory">
     <history-entry file="Nosetests_in_hydrology - 2015.12.04 at 10h 31m 52s.xml">
       <configuration name="Nosetests in hydrology" configurationId="tests" />
     </history-entry>
+    <history-entry file="Nosetests_in_hydrology - 2016.02.12 at 11h 00m 44s.xml">
+      <configuration name="Nosetests in hydrology" configurationId="tests" />
+    </history-entry>
   </component>
-  <component name="TodoView">
+  <component name="TodoView" selected-index="4">
     <todo-panel id="selected-file">
       <is-autoscroll-to-source value="true" />
     </todo-panel>
@@ -849,23 +835,23 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="1366" y="4" width="1920" height="1076" extended-state="0" />
-    <editor active="true" />
+    <editor active="false" />
     <layout>
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32916668" sideWeight="0.4970976" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32952183" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="TODO" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32952183" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.106596306" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.105540894" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32916668" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.39895833" sideWeight="0.49788806" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3970894" sideWeight="0.4955145" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32952183" sideWeight="0.5029024" order="7" side_tool="true" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.328125" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.39895833" sideWeight="0.5044855" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32744282" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.2497332" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
@@ -889,7 +875,8 @@
     <MESSAGE value="cum_impact_model_working" />
     <MESSAGE value="pre FC determination" />
     <MESSAGE value="read_me_stack" />
-    <option name="LAST_COMMIT_MESSAGE" value="read_me_stack" />
+    <MESSAGE value="pre-check dam network correction" />
+    <option name="LAST_COMMIT_MESSAGE" value="pre-check dam network correction" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -924,50 +911,6 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/cumulative_impact_of_check_dam/cumulative_impact_model.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/cumulative_impact_of_check_dam/cumulative_impact_model.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/cumulative_impact_of_check_dam/cumulative_impact_model.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/scrap.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/cumulative_impact_of_check_dam/cumulative_impact_model.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/scrap.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/cumulative_impact_of_check_dam/cumulative_impact_model.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1139,49 +1082,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="21" selection-start-line="0" selection-start-column="21" selection-end-line="0" selection-end-column="21" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///media/kiruba/New Volume/python_/soil_physics_with_python/PSP_ALL/PSP_triangulation/PSP_visual3D.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="24" column="70" selection-start-line="24" selection-start-column="70" selection-end-line="24" selection-end-column="70" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///media/kiruba/New Volume/python_/soil_physics_with_python/PSP_ALL/PSP_triangulation/main.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="20" column="17" selection-start-line="20" selection-start-column="17" selection-end-line="20" selection-end-column="17" />
-          <folding>
-            <element signature="e#19#66#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/cumulative_impact_of_check_dam/stage_volume_distribution.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/scrap.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="25" column="0" selection-start-line="25" selection-start-column="0" selection-end-line="25" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/scraping/iahs/collect_pdf_list.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="29" column="49" selection-start-line="29" selection-start-column="49" selection-end-line="29" selection-end-column="49" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1189,7 +1089,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="8" column="48" selection-start-line="8" selection-start-column="48" selection-end-line="8" selection-end-column="48" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1197,9 +1096,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="33" column="48" selection-start-line="33" selection-start-column="48" selection-end-line="33" selection-end-column="48" />
-          <folding>
-            <element signature="e#22#40#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1211,11 +1107,45 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/GIS/value_at_lat_long.py">
+    <entry file="file://$PROJECT_DIR$/cumulative_impact_of_check_dam/rainfall_had.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.6195652">
+          <caret line="42" column="14" selection-start-line="5" selection-start-column="0" selection-end-line="44" selection-end-column="22" />
+          <folding>
+            <element signature="e#22#40#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/README.md">
+      <provider editor-type-id="MarkdownPreviewEditor">
+        <state />
+      </provider>
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="8" column="20" selection-start-line="8" selection-start-column="20" selection-end-line="8" selection-end-column="20" />
+          <caret line="42" column="0" selection-start-line="42" selection-start-column="0" selection-end-line="42" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/Downloads/gnuplot-py-1.8/demo.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cumulative_impact_of_check_dam/stage_volume_distribution.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="13" column="22" selection-start-line="13" selection-start-column="22" selection-end-line="13" selection-end-column="22" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/GIS/3d_view_dem.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.16042781">
+          <caret line="10" column="38" selection-start-line="10" selection-start-column="38" selection-end-line="10" selection-end-column="38" />
         </state>
       </provider>
     </entry>
@@ -1223,6 +1153,77 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="12" column="0" selection-start-line="12" selection-start-column="0" selection-end-line="12" selection-end-column="47" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///media/kiruba/New Volume/python_/soil_physics_with_python/PSP_ALL/PSP_triangulation/PSP_visual3D.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="29" column="33" selection-start-line="29" selection-start-column="33" selection-end-line="29" selection-end-column="33" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/weather/rainfall_stage_6h.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/weather/evap_aral.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/weather/ksndmc_rain.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.7005445">
+          <caret line="41" column="32" selection-start-line="41" selection-start-column="32" selection-end-line="41" selection-end-column="32" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///media/kiruba/New Volume/python_/soil_physics_with_python/PSP_ALL/PSP_triangulation/main.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="32" column="23" selection-start-line="32" selection-start-column="23" selection-end-line="32" selection-end-column="23" />
+          <folding>
+            <element signature="e#19#66#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/GIS/value_at_lat_long.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.027223231">
+          <caret line="8" column="20" selection-start-line="8" selection-start-column="20" selection-end-line="8" selection-end-column="20" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cumulative_impact_of_check_dam/cum_impact_no_checkdam.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="511" column="53" selection-start-line="511" selection-start-column="53" selection-end-line="511" selection-end-column="53" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cumulative_impact_of_check_dam/model_output_plots.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="1.2378641">
+          <caret line="51" column="4" selection-start-line="51" selection-start-column="4" selection-end-line="51" selection-end-column="4" />
+          <folding>
+            <element signature="e#22#40#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ch_634/ch_634_stage_area.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="113" column="27" selection-start-line="113" selection-start-column="27" selection-end-line="113" selection-end-column="27" />
           <folding />
         </state>
       </provider>
@@ -1235,18 +1236,34 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/ch_634/ch_634_stage_area.py">
+    <entry file="file://$PROJECT_DIR$/scrap.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="113" column="27" selection-start-line="113" selection-start-column="27" selection-end-line="113" selection-end-column="27" />
+          <caret line="27" column="9" selection-start-line="27" selection-start-column="9" selection-end-line="27" selection-end-column="9" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/GIS/3d_view_dem.py">
+    <entry file="file://$PROJECT_DIR$/scraping/iahs/collect_pdf_list.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="41" column="35" selection-start-line="41" selection-start-column="35" selection-end-line="41" selection-end-column="35" />
+          <caret line="29" column="49" selection-start-line="29" selection-start-column="49" selection-end-line="29" selection-end-column="49" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ch_591/ch_591_daily_wb_ver_2.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="6" column="27" selection-start-line="6" selection-start-column="26" selection-end-line="6" selection-end-column="27" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/agu_plot.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="195" column="17" selection-start-line="195" selection-start-column="12" selection-end-line="195" selection-end-column="17" />
           <folding />
         </state>
       </provider>
@@ -1254,77 +1271,38 @@
     <entry file="file://$PROJECT_DIR$/cumulative_impact_of_check_dam/cumulative_impact_model.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="170" column="80" selection-start-line="170" selection-start-column="68" selection-end-line="170" selection-end-column="80" />
+          <caret line="649" column="23" selection-start-line="649" selection-start-column="23" selection-end-line="649" selection-end-column="23" />
           <folding />
         </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/cumulative_impact_of_check_dam/rainfall_had.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.6195652">
-          <caret line="42" column="14" selection-start-line="5" selection-start-column="0" selection-end-line="44" selection-end-column="22" />
-          <folding>
-            <element signature="e#22#40#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/weather/ksndmc_rain.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="5" column="0" selection-start-line="5" selection-start-column="0" selection-end-line="5" selection-end-column="0" />
-          <folding>
-            <element signature="e#22#40#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/ch_591/ch_591_daily_wb_ver_2.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-5.892857">
-          <caret line="182" column="59" selection-start-line="182" selection-start-column="58" selection-end-line="182" selection-end-column="59" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/agu_plot.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.18932039">
-          <caret line="284" column="3" selection-start-line="284" selection-start-column="0" selection-end-line="284" selection-end-column="3" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/cheat_sheet.md">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-4.035714">
-          <caret line="151" column="75" selection-start-line="151" selection-start-column="75" selection-end-line="151" selection-end-column="75" />
-          <folding />
-        </state>
-      </provider>
-      <provider editor-type-id="MarkdownPreviewEditor">
-        <state />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/soil_moisture/field_capacity_estimation.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="49" column="34" selection-start-line="49" selection-start-column="34" selection-end-line="49" selection-end-column="34" />
-          <folding>
-            <element signature="e#22#40#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/README.md">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.87288135">
-          <caret line="42" column="0" selection-start-line="42" selection-start-column="0" selection-end-line="42" selection-end-column="0" />
+          <caret line="80" column="45" selection-start-line="80" selection-start-column="45" selection-end-line="80" selection-end-column="45" />
           <folding />
         </state>
       </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cheat_sheet.md">
       <provider editor-type-id="MarkdownPreviewEditor">
         <state />
+      </provider>
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="49" column="18" selection-start-line="49" selection-start-column="11" selection-end-line="49" selection-end-column="18" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/GIS/zonal_stats.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.33333334">
+          <caret line="45" column="48" selection-start-line="45" selection-start-column="48" selection-end-line="45" selection-end-column="48" />
+          <folding>
+            <element signature="e#244#271#0" expanded="true" />
+          </folding>
+        </state>
       </provider>
     </entry>
   </component>
