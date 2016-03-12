@@ -27,7 +27,9 @@ def load_decagon_sm_data_as_df(csv_file, no_of_sensors=4, date_time_format='%m/%
     df.drop(['date_time'], inplace=True, axis=1)
     return df
 
-def plot_decagon_sm_df(sm_df, rain_df, ports=[1, 2, 3, 4]):
+def plot_decagon_sm_df(sm_df, rain_df, ports=None):
+    if ports is None:
+        ports = [1, 2, 3, 4]
     rain_df = rain_df[min(sm_df.index).strftime(date_time_format):max(sm_df.index).strftime(date_time_format)]
     fig, ax_1 = plt.subplots(nrows=1, ncols=1, sharex=True, facecolor='white')
     bar_1 = ax_1.bar(rain_df.index, rain_df['diff'], width=1, color='#203a72', alpha=0.85, label='Rainfall (mm)')

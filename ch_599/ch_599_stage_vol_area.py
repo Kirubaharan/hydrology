@@ -230,8 +230,8 @@ def poly_plot(xy, titlestr = "", margin = 0.25):
         dx = xy[j,0] - xy[i,0]
         dy = xy[j,1] - xy[i,1]
         dd = np.sqrt(dx*dx + dy*dy)
-        dx = dx*(1 - hl/dd)
-        dy = dy*(1 - hl/dd)
+        dx *= (1 - hl/dd)
+        dy *= (1 - hl/dd)
         plt.arrow(xy[i,0], xy[i,1], dx, dy, head_width=0.05, head_length=0.1, fc='b', ec='b')
         plt.xlim(xmin-margin, xmax+margin)
         plt.ylim(ymin-margin, ymax+margin)

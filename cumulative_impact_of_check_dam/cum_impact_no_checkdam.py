@@ -942,7 +942,7 @@ max_height_6 = 0.0
 stage_volume_6 = default_stage_volume_file
 stage_area_6 = default_stage_area_file
 own_catchment_inflow_ratio_6 = 1.0
-checkdam_6 = CheckdamParameters(check_dam_name=6, catchment_area=catchment_area_6, infiltration_rate=infiltration_rate, evaporation=evaporation_6, max_height=max_height_6, stage_volume_csv=stage_volume_6, stage_area_csv=stage_area_6, previous_check_dam=checkdam_624, own_catchment_inflow_ratio=own_catchment_inflow_ratio_6)
+checkdam_6 = CheckdamParameters(check_dam_name=6, catchment_area=catchment_area_6, infiltration_rate=infiltration_rate, evaporation=evaporation_6, max_height=max_height_6, stage_volume_csv=stage_volume_6, stage_area_csv=stage_area_6, previous_check_dam=None, own_catchment_inflow_ratio=own_catchment_inflow_ratio_6)
 checkdam_6.initial_volume = 0.0
 
 had_chain_7 = CheckdamChain(inflow_catchment_area_df=inflow_catchment_area_had_df, check_dam_chain=[checkdam_6], slope=slope, intercept=intercept, output_df=had_chain_4_5_6.output_df)

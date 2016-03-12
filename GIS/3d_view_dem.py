@@ -5,14 +5,26 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import itertools
-import gdal
+# import gdal
 from mpl_toolkits.mplot3d import Axes3D, axes3d
 from mayavi import mlab
 from scipy.interpolate import griddata
 from matplotlib import cm
 import matplotlib.rcsetup as rcsetup
 print(rcsetup.all_backends)
+from osgeo import gdal
 
+# ds = gdal.Open('/media/kiruba/New Volume/milli_watershed/ALOS_DEM/sample/5mDTM_Sample/N39986E115983_N39900E116068/N39986E115983_N39900E116068_LT_DTM.tif')
+# data = ds.ReadAsArray()
+# mlab.figure(size=(640, 800), bgcolor=(0.16, 0.28, 0.46))
+# mlab.surf(data, warp_scale=0.2)
+# mlab.show()
+ds = gdal.Open('/media/kiruba/New Volume/ACCUWA_Data/DEM_20_May/SRTM_30m/n13_e077_1arc_v3.tif')
+data = ds.ReadAsArray()
+mlab.figure(size=(640, 800), bgcolor=(0.16, 0.28, 0.46))
+mlab.surf(data, warp_scale=0.2)
+mlab.show()
+raise SystemExit(0)
 
 
 data = np.loadtxt('/media/kiruba/New Volume/milli_watershed/Hadonahalli_dem/had_dem_utm.txt', delimiter=',')

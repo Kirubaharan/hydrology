@@ -7,6 +7,10 @@ import operator
 
 import mpl_toolkits.mplot3d.axes3d
 
+from numpy import pi, arange, sin, linspace
+
+from bokeh.models import LinearAxis, Range1d
+from bokeh.plotting import figure, show, output_file
 
 
 # t = np.linspace(0,10,40)
@@ -22,14 +26,18 @@ import mpl_toolkits.mplot3d.axes3d
 # arrow_1 = ax1.plot(t[0:2]*1.5, length[0:2], z[0:2], lw=3)
 #
 # plt.show()
+x = arange(-2*pi, 2*pi, 0.1)
+y = sin(x)
+y2 = linspace(0, 100, len(x))
 
-pizzas_with_prices = [("Hawaiian", 8.5), ("Veg Deluxe", 8.5), ("Ham and Cheese", 8.5),("Super Supreme", 8.5), ("Seafood Deluxe", 8.5),("Meatlovers", 11.5), ("Hot 'n' Spicy", 11.5), ("BBQ Chicken and Bacon", 11.5),("Satay Chicken", 11.5)]
-numPizza = len(pizzas_with_prices)
-pizza = 1
-for n in range(numPizza):
-    pizza = pizza + [int(input("Choose a pizza: "))]
+p = figure(x_range=(-6.5, 6.5), y_range=(-1.1, 1.1), min_border=80)
 
-total_price = 0
-for selected in pizza:
-    total_price += pizzas_with_prices[selected][1]
-    print("$%s" % (total_price))
+p.circle(x, y, fill_color="red", size=5, line_color="black")
+
+p.extra_y_ranges['foo'] = Range1d(0, 100)
+p.circle(x, y2, fill_color="blue", size=5, line_color="black", y_range_name="foo")
+p.add_layout(LinearAxis(y_range_name="foo"), 'left')
+
+output_file("twin_axis.html", title="twin_axis.py example")
+
+show(p)

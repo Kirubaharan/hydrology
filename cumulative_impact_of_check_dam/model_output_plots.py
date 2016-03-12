@@ -59,5 +59,14 @@ plt.title('Inflow into Thirumagondanahalli Lake (HAD watershed)')
 fig.autofmt_xdate()
 plt.show()
 
-print as_is_model_output_df['inflow_into_lake'].sum(axis=0)
-print no_checkdam_model_output_df['inflow_into_lake'].sum(axis=0)
+as_is_inflow = as_is_model_output_df['inflow_into_lake'].sum(axis=0)
+no_check_dam_inflow = no_checkdam_model_output_df['inflow_into_lake'].sum(axis=0)
+
+difference_inflow = no_check_dam_inflow - as_is_inflow
+
+percentage_diff =  (difference_inflow/no_check_dam_inflow)*100.0
+
+print "as is inflow = {0}".format(as_is_inflow)
+print "no check dam inflow = {0}".format(no_check_dam_inflow)
+print "difference in inflow = {0}".format(difference_inflow)
+print "percentage  difference = {0}".format(percentage_diff)

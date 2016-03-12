@@ -453,6 +453,93 @@ def half_hour_evaporation(airtemp=sp.array([]),
     return E0
 
 
+class Open_Water_Evaporation(object):
+    def __init__(self,check_dam_name, air_temperature, relative_humidity,incoming_solar_radiation, wind_speed_mps, date_time_index, elevation, latitdude, longitude):
+        self.check_dam_name = check_dam_name
+        self.date_time_index = date_time_index
+        self.elevation = elevation
+        self.latitude = latitdude
+        self.longitude = longitude
+        self.air_temperature = air_temperature
+        self.relative_humidity = relative_humidity
+        self.incoming_solar_radiation = incoming_solar_radiation
+        self.wind_speed_mps = wind_speed_mps
+        self.air_p_pa = self.calculate_air_pressure()
+        self.air_pressure = np.empty(len(self.date_time_index))
+        self.air_pressure.fill(self.air_p_pa)
+        self.extraterrestrial_irradiation = self.calculate_extraterrestrial_irradiation()
+        self.half_hour_eo = self.calculate_half_hour_eo()
+
+    def calculate_air_pressure(self, elevation=None):    # None is the key here
+        z = elevation or self.elevation
+        p = ((1 - (2.25577 * (10 ** -5) * z)))
+        air_p_pa = 101325 * (p ** 5.25588)
+        return air_p_pa
+
+    def calculate_extraterrestrial_irradiation(self, date_time=None, latitude=None, longitude=None):
+        lat = latitude or self.latitude
+        lon = longitude or self.longitude
+        date_time = date_time or self.date_time_index
+        l = np.size(date_time)
+        s = 0.0820  # MJ m-2 min-1
+        lat_rad = lat * (math.pi / 180)
+        if l < 2:
+            day = (date_time - datetime(datetime.year, 1, 1)).days + 1
+            hour = float(date_time.hour)
+            minute = float(date_time.minute)
+            b = ((2 * math.pi) * (day - 81)) / 364
+            sc = 0.1645 * (math.sin(2 * b)) - 0.1255 * (math.cos(b)) - 0.025 * (math.sin(b))  # seasonal correction in hour
+            lz = 270  # for India longitude of local time zone in degrees west of greenwich
+            lm = (180 + (180 - lon))  # longitude of measurement site
+            t = (hour + (minute / 60)) - 0.25
+            t1 = 0.5  # 0.5 for 30 minute 1 for hourly period
+            w = (math.pi / 12) * ((t + (0.0667 * (lz - lm)) + sc) - 12)
+            w1 = w - ((math.pi * t1) / 24)  # solar time angle at beginning of period [rad]
+            w2 = w + ((math.pi * t1) / 24)  # solar time angle at end of period [rad]
+            dr = 1 + (0.033 * math.cos((2 * math.pi * day) / 365))  # inverse relative distance Earth-Sun
+            dt = 0.409 * math.sin(((2 * math.pi * day) / 365) - 1.39)  # solar declination in radian
+            ws = math.acos(-math.tan(lat_rad) * math.tan(dt))
+            if (w > ws) or (w < -ws):
+                rext = 0.0
+            else:
+                rext = ((12 * 60) / math.pi) * s * dr * (((w2 - w1) * math.sin(lat_rad) * math.sin(dt)) + (math.cos(lat_rad) * math.cos(dt) * (math.sin(w2) - math.sin(w1))))  # MJm-2(30min)-1
+        else:
+            rext = np.zeros(l)
+            for dt in date_time:
+                i = date_time.get_loc(dt)
+                day = (dt - datetime(dt.year, 1, 1)).days + 1
+                hour = float(dt.hour)
+                minute = float(dt.minute)
+                b = ((2 * math.pi) * (day - 81)) / 364
+                sc = 0.1645 * (math.sin(2 * b)) - 0.1255 * (math.cos(b)) - 0.025 * (math.sin(b))  # seasonal correction in hour
+                lz = 270  # for India longitude of local time zone in degrees west of greenwich
+                lm = (180 + (180 - lon))  # longitude of measurement site
+                t = (hour + (minute / 60)) - 0.25
+                t1 = 0.5  # 0.5 for 30 minute 1 for hourly period
+                w = (math.pi / 12) * ((t + (0.0667 * (lz - lm)) + sc) - 12)
+                w1 = w - ((math.pi * t1) / 24)  # solar time angle at beginning of period [rad]
+                w2 = w + ((math.pi * t1) / 24)  # solar time angle at end of period [rad]
+                dr = 1 + (0.033 * math.cos((2 * math.pi * day) / 365))  # inverse relative distance Earth-Sun
+                dt = 0.409 * math.sin(((2 * math.pi * day) / 365) - 1.39)  # solar declination in radian
+                ws = math.acos(-math.tan(lat_rad) * math.tan(dt))
+                if (w > ws) or (w < -ws):
+                    rext[i] = 0.0
+                else:
+                    rext[i] = ((12 * 60) / math.pi) * s * dr * (((w2 - w1) * math.sin(lat_rad) * math.sin(dt)) + (math.cos(lat_rad) * math.cos(dt) * (math.sin(w2) - math.sin(w1))))  # MJm-2(30min)-1
+        return rext
+
+    def calculate_half_hour_eo(self, airtemp=None, rh=None, airpress=None, rs=None, rext=None,u=None, z=None):
+        at = airtemp or self.air_temperature
+        rh = rh or self.relative_humidity
+        ap = airpress or self.air_pressure
+        rs = rs or self.incoming_solar_radiation
+        rext = rext or self.extraterrestrial_irradiation
+        u = u or self.wind_speed_mps
+        z = z or self.elevation
+        half_hour_eo = half_hour_evaporation(airtemp=at, rh=rh, airpress=ap, rs=rs, rext=rext, u=u, z=z)
+        return half_hour_eo
+
+
 def pick_incorrect_value(dataframe, **param):
     """
     Selects a unique list of timestamp that satisfies the condition given in the param dictionary
@@ -481,7 +568,6 @@ def pick_incorrect_value(dataframe, **param):
                 wrong_date_time.append(wrong_time)
             # if final_time > wrong_time > first_time:
 
-
     for i in wrong_date_time:
         if i not in unique_list:
             unique_list.append(i)
@@ -503,7 +589,7 @@ def day_interpolate(dataframe, column_name, wrong_date_time):
     initial_cutoff = min(dataframe.index) + timedelta(days=1)
     final_cutoff = max(dataframe.index) - timedelta(days=1)
     for date_time in wrong_date_time:
-        if (date_time > initial_cutoff ) and (date_time < final_cutoff):
+        if (date_time > initial_cutoff) and (date_time < final_cutoff):
             prev_date_time = date_time - timedelta(days=1)
             next_date_time = date_time + timedelta(days=1)
             prev_value = dataframe[column_name][prev_date_time.strftime('%Y-%m-%d %H:%M')]
@@ -512,6 +598,7 @@ def day_interpolate(dataframe, column_name, wrong_date_time):
             dataframe[column_name][date_time.strftime('%Y-%m-%d %H:%M')] = average_value
 
     return dataframe
+
 
 def previous_interpolate(dataframe, column_name, wrong_date_time):
     """
@@ -528,7 +615,7 @@ def previous_interpolate(dataframe, column_name, wrong_date_time):
     initial_cutoff = min(dataframe.index) + timedelta(days=1)
     final_cutoff = max(dataframe.index) - timedelta(days=1)
     for date_time in wrong_date_time:
-        if (date_time > initial_cutoff ) and (date_time < final_cutoff):
+        if (date_time > initial_cutoff) and (date_time < final_cutoff):
             prev_date_time = date_time - timedelta(days=1)
             prev_value = dataframe[column_name][prev_date_time.strftime('%Y-%m-%d %H:%M')]
             dataframe[column_name][date_time.strftime('%Y-%m-%d %H:%M')] = prev_value
@@ -541,7 +628,7 @@ class DraggableColorbar(object):
         self.cbar = cbar
         self.mappable = mappable
         self.press = None
-        self.cycle = sorted([i for i in dir(plt.cm) if hasattr(getattr(plt.cm,i),'N')])
+        self.cycle = sorted([i for i in dir(plt.cm) if hasattr(getattr(plt.cm, i), 'N')])
         self.index = self.cycle.index(cbar.get_cmap().name)
 
     def connect(self):
@@ -561,13 +648,13 @@ class DraggableColorbar(object):
         self.press = event.x, event.y
 
     def key_press(self, event):
-        if event.key=='down':
+        if event.key == 'down':
             self.index += 1
-        elif event.key=='up':
+        elif event.key == 'up':
             self.index -= 1
-        if self.index<0:
+        if self.index < 0:
             self.index = len(self.cycle)
-        elif self.index>=len(self.cycle):
+        elif self.index >= len(self.cycle):
             self.index = 0
         cmap = self.cycle[self.index]
         self.cbar.set_cmap(cmap)
@@ -587,10 +674,10 @@ class DraggableColorbar(object):
         #print 'x0=%f, xpress=%f, event.xdata=%f, dx=%f, x0+dx=%f'%(x0, xpress, event.xdata, dx, x0+dx)
         scale = self.cbar.norm.vmax - self.cbar.norm.vmin
         perc = 0.03
-        if event.button==1:
+        if event.button == 1:
             self.cbar.norm.vmin -= (perc*scale)*np.sign(dy)
             self.cbar.norm.vmax -= (perc*scale)*np.sign(dy)
-        elif event.button==3:
+        elif event.button == 3:
             self.cbar.norm.vmin -= (perc*scale)*np.sign(dy)
             self.cbar.norm.vmax += (perc*scale)*np.sign(dy)
         self.cbar.draw_all()

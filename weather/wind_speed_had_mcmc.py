@@ -104,7 +104,7 @@ for index in weather_ksndmc_df.index:
     if weather_ksndmc_df['WIND_SPEED'][index] is None and (index > min_limit) and (index < max_limit):
         previous_day_value = weather_ksndmc_df['WIND_SPEED'][index - timedelta(days=1)]
         next_day_value = weather_ksndmc_df['WIND_SPEED'][index + timedelta(days=1)]
-        if (previous_day_value != None) and (next_day_value != None):
+        if (previous_day_value is not None) and (next_day_value is not None):
             weather_ksndmc_df["WIND_SPEED"][index] = 0.5 * (previous_day_value + next_day_value)
 
 missing_values = np.ma.masked_values(weather_ksndmc_df['WIND_SPEED'].values, value=None)
