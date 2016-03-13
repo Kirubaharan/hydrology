@@ -646,20 +646,6 @@ def calculate_daily_extraterrestrial_irradiation(doy, latitude):
 
 
 
-def datesep(df):
-    """
-
-    :param df: dataframe
-    :param column_name: date column name
-    :return: date array, month array, year array
-    """
-
-    date = pd.DatetimeIndex(df.index).day
-    month = pd.DatetimeIndex(df.index).month
-    year = pd.DatetimeIndex(df.index).year
-    return date, month, year
-
-
 class DraggableColorbar(object):
     def __init__(self, cbar, mappable):
         self.cbar = cbar
