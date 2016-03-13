@@ -10,6 +10,47 @@ import pymc as pm
 from pymc import Normal, TruncatedNormal, deterministic
 # from scipy.signal import lombscargle
 from scipy import fft, arange
+import math
+from datetime import datetime
+import checkdam.meteolib as meteo
+
+# half hour
+def calculate_daily_extraterrestrial_irradiation(doy, latitude):
+    lat = latitude
+    l = np.size(doy)
+    s = 0.0820  # MJ m-2 min-1
+    lat_rad = lat * (math.pi / 180)
+    if l < 2:
+        day = doy
+        dr = 1 + (0.033 * math.cos((2 * math.pi * day) / 365))  # inverse relative distance Earth-Sun
+        dt = 0.409 * math.sin(((2 * math.pi * day) / 365) - 1.39)  # solar declination in radian
+        ws = math.acos(-math.tan(lat_rad) * math.tan(dt))   # sunset hour angle in radian
+        rext = ((24* 60) / math.pi) * s * dr * ((ws * math.sin(lat_rad) * math.sin(dt)) + (math.cos(lat_rad) * math.cos(dt) * math.sin(ws)))  # MJm-2day-1
+    else:
+        rext = np.zeros(l)
+        for i in range(0, l):
+            day = doy[i]
+            dr = 1 + (0.033 * math.cos((2 * math.pi * day) / 365))  # inverse relative distance Earth-Sun
+            dt = 0.409 * math.sin(((2 * math.pi * day) / 365) - 1.39)  # solar declination in radian
+            ws = math.acos(-math.tan(lat_rad) * math.tan(dt))  # sunset hour angle in radian
+            rext[i] = ((24 * 60) / math.pi) * s * dr * ((ws * math.sin(lat_rad) * math.sin(dt)) + (math.cos(lat_rad) * math.cos(dt) * math.sin(ws)))  # MJm-2day-1
+    return rext
+
+
+
+def datesep(df):
+    """
+
+    :param df: dataframe
+    :param column_name: date column name
+    :return: date array, month array, year array
+    """
+
+    date = pd.DatetimeIndex(df.index).day
+    month = pd.DatetimeIndex(df.index).month
+    year = pd.DatetimeIndex(df.index).year
+    return date, month, year
+
 
 # no_of_iterations = 400000
 # burn = 390000
@@ -32,6 +73,7 @@ def mtext(p, x, y, text):
 
 date_format = '%d/%m/%y %H:%M:%S'
 daily_format = '%d/%m/%y %H:%M'
+day_format = "%Y-%m-%d"
 # raise SystemExit(0)
 # hadonahalli weather station
 weather_file = '/media/kiruba/New Volume/ACCUWA_Data/weather_station/hadonahalli/had_may_14_feb_16.csv'
@@ -224,6 +266,16 @@ mean_max_temp_grouped = max_temp_grouped.mean()
 max_temp_transformed = max_temp_grouped.transform(f)
 weather_df.loc[:, 'Max Air Temperature (C)'] = max_temp_transformed
 
+"""
+Convert to daily values
+"""
+observed_rext = (weather_df.loc[:, 'Solar Radiation (Wpm2)'] * 1800) / 10 ** 6
+observed_rext_daily = observed_rext.resample('D', how=np.sum)
+weather_df = weather_df.resample('D', how=np.mean)
+# print weather_df.head()
+
+
+
 # fig, (ax1, ax2) = plt.subplots(nrows=2, ncols=1)
 # ax1.plot(weather_df.index, weather_df['Min Air Temperature (C)'] , 'g-')
 # ax2.plot(weather_df.index, weather_df['Max Air Temperature (C)'], 'r-')
@@ -232,12 +284,36 @@ weather_df.loc[:, 'Max Air Temperature (C)'] = max_temp_transformed
 # http://www.fao.org/docrep/x0490e/x0490e07.htm#estimating%20missing%20climatic%20data
 #  ra = krs*sqrt(tmax - tmin)*Rs  krs = 0.16 rs MJm-2time-1
 """
-Half hourly Extraterrestrial Radiation Calculation(J/m2/30min)
+Daily Extraterrestrial Radiation Calculation(J/m2/d)
+# lake 77.5433, 13.3556
 """
-sc_default = 1367.0  # Solar constant in W/m^2 is 1367.0.
-ch_591_lat = 13.260196
-ch_591_long = 77.512085
-weather_df['Rext (MJ/m2/30min)'] = 0.000
+
+weather_df.loc[:, 'Rext (MJ/m2/d)'] = 0.000
+weather_df.loc[:, 'date'] = 0
+weather_df.loc[:, 'year'] = 0
+date, month, year = datesep(weather_df)
+weather_df.loc[:, 'date'] = date
+weather_df.loc[:, 'month'] = month
+weather_df.loc[:, 'year'] = year
+weather_df.loc[:, 'doy'] = 0
+weather_df.loc[:, 'doy'] = meteo.date2doy(dd=weather_df.date, mm=weather_df.month, yyyy=weather_df.year)
+
+rext = calculate_daily_extraterrestrial_irradiation(doy=weather_df.doy, latitude=13.3556)
+# convert J/cm2/day to MJ/m2/day
+weather_df.loc[:, 'Rext (MJ/m2/d)'] = rext
+
+weather_df.loc[:, 'Estimated Solar Radiation (MJ/m2/d)'] = 0.0
+krs = 0.16
+weather_df.loc[:, 'Estimated Solar Radiation (MJ/m2/d)'] = (np.sqrt(weather_df['Max Air Temperature (C)'] - weather_df['Min Air Temperature (C)'])) * krs * weather_df['Rext (MJ/m2/d)']
+# radiation unit conversion
+weather_df.loc[:, 'Observed Solar Radiation (MJ/m2/d)'] = (weather_df['Solar Radiation (Wpm2)'] * 1800) / (10 ** 6)
+fig = plt.figure()
+plt.plot(weather_df.index, observed_rext_daily, 'ro-')
+plt.plot(weather_df.index, weather_df['Estimated Solar Radiation (MJ/m2/d)'], 'go-')
+plt.show()
+
+weather_df.index.name = 'date_time'
+weather_df.to_csv('/media/kiruba/New Volume/ACCUWA_Data/weather_station/hadonahalli/had_daily_tmg_may_14_feb_16.csv')
 
 # fig, (ax1, ax2, ax3, ax4) = plt.subplots(nrows=4, ncols=1)
 # # ax1.plot(weather_ksndmc_df.index, weather_ksndmc_df['TEMPERATURE'], 'r-')

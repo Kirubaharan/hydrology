@@ -235,7 +235,7 @@ for i in weather_df.index:
 wind speed from km/h to m/s
 1 kmph = 0.277778 m/s
 """
-# weather_df['Wind Speed (mps)'] = weather_df['Wind Speed (kmph)'] * 0.277778
+# weather_df['Wind Speed (mps)'] = weather_df['Wind Speed (kmph)'] * 0.277778202.142681
 """
 Radiation unit conversion
 """

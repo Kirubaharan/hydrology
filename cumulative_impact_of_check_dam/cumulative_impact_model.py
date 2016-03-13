@@ -79,11 +79,11 @@ def columns_in(dataframe):
 # print weather_df.head()
 
 class Open_Water_Evaporation(object):
-    def __init__(self,check_dam_name, air_temperature, relative_humidity,incoming_solar_radiation, wind_speed_mps, date_time_index, elevation, latitdude, longitude):
+    def __init__(self,check_dam_name, air_temperature, relative_humidity,incoming_solar_radiation, wind_speed_mps, date_time_index, elevation, latitude, longitude):
         self.check_dam_name = check_dam_name
         self.date_time_index = date_time_index
         self.elevation = elevation
-        self.latitude = latitdude
+        self.latitude = latitude
         self.longitude = longitude
         self.air_temperature = air_temperature
         self.relative_humidity = relative_humidity
@@ -648,7 +648,7 @@ catchment_area_463 = 0.182
 elevation_463 = 839
 ch_463_lat = 13.360354
 ch_463_long = 77.527267
-weather_463 = Open_Water_Evaporation(check_dam_name="463",air_temperature=airtemp, relative_humidity=hum, incoming_solar_radiation=rs, wind_speed_mps=wind_speed,elevation=elevation_463, date_time_index=weather_df.index, latitdude=ch_463_lat, longitude=ch_463_long)
+weather_463 = Open_Water_Evaporation(check_dam_name="463",air_temperature=airtemp, relative_humidity=hum, incoming_solar_radiation=rs, wind_speed_mps=wind_speed,elevation=elevation_463, date_time_index=weather_df.index, latitude=ch_463_lat, longitude=ch_463_long)
 weather_463 = weather_463.calculate_half_hour_eo()
 weather_463_df = pd.DataFrame(weather_463, index=weather_df.index, columns=['Evaporation (mm)'])
 # weather_463_df = weather_463_df.join(rain_df, how='right')
@@ -672,7 +672,7 @@ max_height_640 = 0.5
 elevation_640 = 838
 ch_640_lat = 13.36007
 ch_640_long = 77.52778
-weather_640 = Open_Water_Evaporation(check_dam_name="640",air_temperature=airtemp, relative_humidity=hum, incoming_solar_radiation=rs, wind_speed_mps=wind_speed,elevation=elevation_640, date_time_index=weather_df.index, latitdude=ch_640_lat, longitude=ch_640_long)
+weather_640 = Open_Water_Evaporation(check_dam_name="640",air_temperature=airtemp, relative_humidity=hum, incoming_solar_radiation=rs, wind_speed_mps=wind_speed,elevation=elevation_640, date_time_index=weather_df.index, latitude=ch_640_lat, longitude=ch_640_long)
 weather_640 = weather_640.calculate_half_hour_eo()
 weather_640_df = pd.DataFrame(weather_640, index=weather_df.index, columns=['Evaporation (mm)'])
 weather_640_df_daily = weather_640_df.resample('D', how=np.sum)
@@ -711,7 +711,7 @@ catchment_area_639 = 0.624
 elevation_639 = 831
 ch_639_lat = 13.35314
 ch_639_long = 77.53556
-weather_639 = Open_Water_Evaporation(check_dam_name="639",air_temperature=airtemp, relative_humidity=hum, incoming_solar_radiation=rs, wind_speed_mps=wind_speed,elevation=elevation_639, date_time_index=weather_df.index, latitdude=ch_639_lat, longitude=ch_639_long)
+weather_639 = Open_Water_Evaporation(check_dam_name="639",air_temperature=airtemp, relative_humidity=hum, incoming_solar_radiation=rs, wind_speed_mps=wind_speed,elevation=elevation_639, date_time_index=weather_df.index, latitude=ch_639_lat, longitude=ch_639_long)
 weather_639 = weather_639.calculate_half_hour_eo()
 weather_639_df = pd.DataFrame(weather_639, index=weather_df.index, columns=['Evaporation (mm)'])
 # weather_639_df = weather_639_df.join(rain_df, how='right')
@@ -732,7 +732,7 @@ catchment_area_641 = 0.082
 elevation_641 = 828
 ch_641_lat = 13.35405
 ch_641_long = 77.53615
-weather_641 = Open_Water_Evaporation(check_dam_name="641",air_temperature=airtemp, relative_humidity=hum, incoming_solar_radiation=rs, wind_speed_mps=wind_speed,elevation=elevation_641, date_time_index=weather_df.index, latitdude=ch_641_lat, longitude=ch_641_long)
+weather_641 = Open_Water_Evaporation(check_dam_name="641",air_temperature=airtemp, relative_humidity=hum, incoming_solar_radiation=rs, wind_speed_mps=wind_speed,elevation=elevation_641, date_time_index=weather_df.index, latitude=ch_641_lat, longitude=ch_641_long)
 weather_641 = weather_641.calculate_half_hour_eo()
 weather_641_df = pd.DataFrame(weather_641, index=weather_df.index, columns=['Evaporation (mm)'])
 # weather_641_df = weather_641_df.join(rain_df, how='right')
@@ -752,7 +752,7 @@ catchment_area_2 = 0.152
 # elevation_2 = 831
 # ch_2_lat = 13.35314
 # ch_2_long = 77.53556
-# weather_2 = Open_Water_Evaporation(check_dam_name="2",air_temperature=airtemp, relative_humidity=hum, incoming_solar_radiation=rs, wind_speed_mps=wind_speed,elevation=elevation_2, date_time_index=weather_df.index, latitdude=ch_2_lat, longitude=ch_2_long)
+# weather_2 = Open_Water_Evaporation(check_dam_name="2",air_temperature=airtemp, relative_humidity=hum, incoming_solar_radiation=rs, wind_speed_mps=wind_speed,elevation=elevation_2, date_time_index=weather_df.index, latitude=ch_2_lat, longitude=ch_2_long)
 # weather_2 = weather_2.calculate_half_hour_eo()
 # weather_2_df = pd.DataFrame(weather_2, index=weather_df.index, columns=['Evaporation (mm)'])
 # weather_2_df = weather_2_df.join(rain_df, how='right')
@@ -781,7 +781,7 @@ catchment_area_3 = 0.244
 # elevation_3 = 831
 # ch_3_lat = 13.35314
 # ch_3_long = 77.53556
-# weather_3 = Open_Water_Evaporation(check_dam_name="2",air_temperature=airtemp, relative_humidity=hum, incoming_solar_radiation=rs, wind_speed_mps=wind_speed,elevation=elevation_3, date_time_index=weather_df.index, latitdude=ch_3_lat, longitude=ch_3_long)
+# weather_3 = Open_Water_Evaporation(check_dam_name="2",air_temperature=airtemp, relative_humidity=hum, incoming_solar_radiation=rs, wind_speed_mps=wind_speed,elevation=elevation_3, date_time_index=weather_df.index, latitude=ch_3_lat, longitude=ch_3_long)
 # weather_3 = weather_3.calculate_half_hour_eo()
 # weather_3_df = pd.DataFrame(weather_3, index=weather_df.index, columns=['Evaporation (mm)'])
 # weather_3_df = weather_3_df.join(rain_df, how='right')
@@ -808,7 +808,7 @@ catchment_area_625 = 0.35
 elevation_625 = 830
 ch_625_lat = 13.36411
 ch_625_long = 77.55606
-weather_625 = Open_Water_Evaporation(check_dam_name="625",air_temperature=airtemp, relative_humidity=hum, incoming_solar_radiation=rs, wind_speed_mps=wind_speed,elevation=elevation_625, date_time_index=weather_df.index, latitdude=ch_625_lat, longitude=ch_625_long)
+weather_625 = Open_Water_Evaporation(check_dam_name="625",air_temperature=airtemp, relative_humidity=hum, incoming_solar_radiation=rs, wind_speed_mps=wind_speed,elevation=elevation_625, date_time_index=weather_df.index, latitude=ch_625_lat, longitude=ch_625_long)
 weather_625 = weather_625.calculate_half_hour_eo()
 weather_625_df = pd.DataFrame(weather_625, index=weather_df.index, columns=['Evaporation (mm)'])
 # weather_625_df = weather_625_df.join(rain_df, how='right')
@@ -829,7 +829,7 @@ catchment_area_5 = 0.335
 # elevation_5 = 830
 # ch_5_lat = 13.36411
 # ch_5_long = 77.55606
-# weather_5 = Open_Water_Evaporation(check_dam_name="5",air_temperature=airtemp, relative_humidity=hum, incoming_solar_radiation=rs, wind_speed_mps=wind_speed,elevation=elevation_5, date_time_index=weather_df.index, latitdude=ch_5_lat, longitude=ch_5_long)
+# weather_5 = Open_Water_Evaporation(check_dam_name="5",air_temperature=airtemp, relative_humidity=hum, incoming_solar_radiation=rs, wind_speed_mps=wind_speed,elevation=elevation_5, date_time_index=weather_df.index, latitude=ch_5_lat, longitude=ch_5_long)
 # weather_5 = weather_5.calculate_half_hour_eo()
 # weather_5_df = pd.DataFrame(weather_5, index=weather_df.index, columns=['Evaporation (mm)'])
 # weather_5_df = weather_5_df.join(rain_df, how='right')
@@ -856,7 +856,7 @@ catchment_area_627 = 0.456
 elevation_627 = 841
 ch_627_lat = 13.36838
 ch_627_long = 77.55807
-weather_627 = Open_Water_Evaporation(check_dam_name="627",air_temperature=airtemp, relative_humidity=hum, incoming_solar_radiation=rs, wind_speed_mps=wind_speed,elevation=elevation_627, date_time_index=weather_df.index, latitdude=ch_627_lat, longitude=ch_627_long)
+weather_627 = Open_Water_Evaporation(check_dam_name="627",air_temperature=airtemp, relative_humidity=hum, incoming_solar_radiation=rs, wind_speed_mps=wind_speed,elevation=elevation_627, date_time_index=weather_df.index, latitude=ch_627_lat, longitude=ch_627_long)
 weather_627 = weather_627.calculate_half_hour_eo()
 weather_627_df = pd.DataFrame(weather_627, index=weather_df.index, columns=['Evaporation (mm)'])
 # weather_627_df = weather_627_df.join(rain_df, how='right')
@@ -884,7 +884,7 @@ catchment_area_633 = 0.145
 elevation_633 = 839
 ch_633_lat = 13.36838
 ch_633_long = 77.55807
-weather_633 = Open_Water_Evaporation(check_dam_name="633",air_temperature=airtemp, relative_humidity=hum, incoming_solar_radiation=rs, wind_speed_mps=wind_speed,elevation=elevation_633, date_time_index=weather_df.index, latitdude=ch_633_lat, longitude=ch_633_long)
+weather_633 = Open_Water_Evaporation(check_dam_name="633",air_temperature=airtemp, relative_humidity=hum, incoming_solar_radiation=rs, wind_speed_mps=wind_speed,elevation=elevation_633, date_time_index=weather_df.index, latitude=ch_633_lat, longitude=ch_633_long)
 weather_633 = weather_633.calculate_half_hour_eo()
 weather_633_df = pd.DataFrame(weather_633, index=weather_df.index, columns=['Evaporation (mm)'])
 # weather_633_df = weather_633_df.join(rain_df, how='right')
@@ -910,7 +910,7 @@ catchment_area_626 = 0.051
 elevation_626 = 834
 ch_626_lat = 13.36586
 ch_626_long = 77.5588
-weather_626 = Open_Water_Evaporation(check_dam_name="626",air_temperature=airtemp, relative_humidity=hum, incoming_solar_radiation=rs, wind_speed_mps=wind_speed,elevation=elevation_626, date_time_index=weather_df.index, latitdude=ch_626_lat, longitude=ch_626_long)
+weather_626 = Open_Water_Evaporation(check_dam_name="626",air_temperature=airtemp, relative_humidity=hum, incoming_solar_radiation=rs, wind_speed_mps=wind_speed,elevation=elevation_626, date_time_index=weather_df.index, latitude=ch_626_lat, longitude=ch_626_long)
 weather_626 = weather_626.calculate_half_hour_eo()
 weather_626_df = pd.DataFrame(weather_626, index=weather_df.index, columns=['Evaporation (mm)'])
 # weather_626_df = weather_626_df.join(rain_df, how='right')
@@ -936,7 +936,7 @@ catchment_area_634 = 0.007
 elevation_634 = 838
 ch_634_lat = 13.36562
 ch_634_long = 77.55905
-weather_634 = Open_Water_Evaporation(check_dam_name="634",air_temperature=airtemp, relative_humidity=hum, incoming_solar_radiation=rs, wind_speed_mps=wind_speed,elevation=elevation_634, date_time_index=weather_df.index, latitdude=ch_634_lat, longitude=ch_634_long)
+weather_634 = Open_Water_Evaporation(check_dam_name="634",air_temperature=airtemp, relative_humidity=hum, incoming_solar_radiation=rs, wind_speed_mps=wind_speed,elevation=elevation_634, date_time_index=weather_df.index, latitude=ch_634_lat, longitude=ch_634_long)
 weather_634 = weather_634.calculate_half_hour_eo()
 weather_634_df = pd.DataFrame(weather_634, index=weather_df.index, columns=['Evaporation (mm)'])
 # weather_634_df = weather_634_df.join(rain_df, how='right')
@@ -962,7 +962,7 @@ catchment_area_624 = 1
 elevation_624 = 833
 ch_624_lat = 13.3642
 ch_624_long = 77.55827
-weather_624 = Open_Water_Evaporation(check_dam_name="624",air_temperature=airtemp, relative_humidity=hum, incoming_solar_radiation=rs, wind_speed_mps=wind_speed,elevation=elevation_624, date_time_index=weather_df.index, latitdude=ch_624_lat, longitude=ch_624_long)
+weather_624 = Open_Water_Evaporation(check_dam_name="624",air_temperature=airtemp, relative_humidity=hum, incoming_solar_radiation=rs, wind_speed_mps=wind_speed,elevation=elevation_624, date_time_index=weather_df.index, latitude=ch_624_lat, longitude=ch_624_long)
 weather_624 = weather_624.calculate_half_hour_eo()
 weather_624_df = pd.DataFrame(weather_624, index=weather_df.index, columns=['Evaporation (mm)'])
 # weather_624_df = weather_624_df.join(rain_df, how='right')
@@ -990,7 +990,7 @@ catchment_area_6 = 0.263
 # elevation_6 = 831
 # ch_6_lat = 13.35314
 # ch_6_long = 77.53556
-# weather_6 = Open_Water_Evaporation(check_dam_name="6",air_temperature=airtemp, relative_humidity=hum, incoming_solar_radiation=rs, wind_speed_mps=wind_speed,elevation=elevation_6, date_time_index=weather_df.index, latitdude=ch_6_lat, longitude=ch_6_long)
+# weather_6 = Open_Water_Evaporation(check_dam_name="6",air_temperature=airtemp, relative_humidity=hum, incoming_solar_radiation=rs, wind_speed_mps=wind_speed,elevation=elevation_6, date_time_index=weather_df.index, latitude=ch_6_lat, longitude=ch_6_long)
 # weather_6 = weather_6.calculate_half_hour_eo()
 # weather_6_df = pd.DataFrame(weather_6, index=weather_df.index, columns=['Evaporation (mm)'])
 # weather_6_df = weather_6_df.join(rain_df, how='right')

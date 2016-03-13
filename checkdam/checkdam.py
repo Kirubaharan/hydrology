@@ -454,11 +454,11 @@ def half_hour_evaporation(airtemp=sp.array([]),
 
 
 class Open_Water_Evaporation(object):
-    def __init__(self,check_dam_name, air_temperature, relative_humidity,incoming_solar_radiation, wind_speed_mps, date_time_index, elevation, latitdude, longitude):
+    def __init__(self,check_dam_name, air_temperature, relative_humidity,incoming_solar_radiation, wind_speed_mps, date_time_index, elevation, latitude, longitude):
         self.check_dam_name = check_dam_name
         self.date_time_index = date_time_index
         self.elevation = elevation
-        self.latitude = latitdude
+        self.latitude = latitude
         self.longitude = longitude
         self.air_temperature = air_temperature
         self.relative_humidity = relative_humidity
@@ -621,6 +621,43 @@ def previous_interpolate(dataframe, column_name, wrong_date_time):
             dataframe[column_name][date_time.strftime('%Y-%m-%d %H:%M')] = prev_value
 
     return dataframe
+
+
+def calculate_daily_extraterrestrial_irradiation(doy, latitude):
+    lat = latitude
+    l = np.size(doy)
+    s = 0.0820  # MJ m-2 min-1
+    lat_rad = lat * (math.pi / 180)
+    if l < 2:
+        day = doy
+        dr = 1 + (0.033 * math.cos((2 * math.pi * day) / 365))  # inverse relative distance Earth-Sun
+        dt = 0.409 * math.sin(((2 * math.pi * day) / 365) - 1.39)  # solar declination in radian
+        ws = math.acos(-math.tan(lat_rad) * math.tan(dt))   # sunset hour angle in radian
+        rext = ((24* 60) / math.pi) * s * dr * ((ws * math.sin(lat_rad) * math.sin(dt)) + (math.cos(lat_rad) * math.cos(dt) * math.sin(ws)))  # MJm-2day-1
+    else:
+        rext = np.zeros(l)
+        for i in range(0, l):
+            day = doy[i]
+            dr = 1 + (0.033 * math.cos((2 * math.pi * day) / 365))  # inverse relative distance Earth-Sun
+            dt = 0.409 * math.sin(((2 * math.pi * day) / 365) - 1.39)  # solar declination in radian
+            ws = math.acos(-math.tan(lat_rad) * math.tan(dt))  # sunset hour angle in radian
+            rext[i] = ((24 * 60) / math.pi) * s * dr * ((ws * math.sin(lat_rad) * math.sin(dt)) + (math.cos(lat_rad) * math.cos(dt) * math.sin(ws)))  # MJm-2day-1
+    return rext
+
+
+
+def datesep(df):
+    """
+
+    :param df: dataframe
+    :param column_name: date column name
+    :return: date array, month array, year array
+    """
+
+    date = pd.DatetimeIndex(df.index).day
+    month = pd.DatetimeIndex(df.index).month
+    year = pd.DatetimeIndex(df.index).year
+    return date, month, year
 
 
 class DraggableColorbar(object):

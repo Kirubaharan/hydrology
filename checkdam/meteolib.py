@@ -358,7 +358,7 @@ def sun_NR(doy=scipy.array([]),\
 
     Output:
         - N: (array of) maximum sunshine hours [h]
-        - Rext: (array of) extraterrestrial radiation [J/day]  
+        - Rext: (array of) extraterrestrial radiation [J/cm2/day]
 
     Examples:
         >>> sun_NR(50,60)
